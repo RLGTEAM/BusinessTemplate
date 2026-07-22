@@ -132,15 +132,23 @@ the remote ones connect over HTTP. Run `/mcp` inside Claude Code to see server s
 | `chrome-devtools` | Console, network, performance traces | None |
 | `lighthouse` | Core Web Vitals / a11y / SEO audits (budgets: LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) | None (needs Node ≥ 22) |
 | `a11y` | axe-core WCAG audits, contrast + ARIA checks | None |
-| `github` | Repos, PRs, Actions for the per-client workflow | `/mcp` → authenticate (OAuth, browser opens) |
-| `cloudflare` | Cloudflare API — Pages deploys, DNS, domains | `/mcp` → authenticate (OAuth) |
+| `github` | Repos, PRs, Actions for the per-client workflow | Set the `GITHUB_MCP_PAT` env var (see below) |
+| `cloudflare` | Cloudflare API — Pages deploys, DNS, domains | `/mcp` → authenticate (OAuth). Only needed in CLIENT repos when deploying |
 
 Notes:
 
 - `github` and `cloudflare` are intentionally **not** pre-approved — they can change real
   infrastructure, so Claude asks before each action. The other six are read-only/local and
   pre-approved in `.claude/settings.json`.
-- Skip the OAuth servers entirely if you don't need them; everything else works without them.
+- **GitHub auth**: GitHub's MCP server doesn't support the OAuth flow Claude Code uses
+  ("does not support dynamic client registration"), so it authenticates with a token instead.
+  Create a fine-grained PAT (github.com → Settings → Developer settings → Personal access
+  tokens; scope it to your org's repos), then set it once:
+  `setx GITHUB_MCP_PAT "github_pat_..."` and restart the terminal. The token is read from
+  the environment — never committed. Until it's set, the `github` server just shows as
+  disconnected in `/mcp`, which is harmless.
+- Skip both infra servers entirely if you don't need them; everything else works without them.
+  (`gh` CLI is a fine alternative for GitHub tasks.)
 - Other MCP clients (Cursor, VS Code, Windsurf): copy the entries from `.mcp.json` into your
   client's MCP config — the format is identical or near-identical.
 
