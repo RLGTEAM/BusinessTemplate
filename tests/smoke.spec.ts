@@ -17,8 +17,14 @@ test.describe("home page", () => {
   });
 
   test("renders the bidi test string", async ({ page }) => {
+    // The about body must contain a mixed Hebrew/Latin/number/currency line
+    // (the /new-client skill keeps one) — assert it renders, whatever it says.
+    const bidiLine = business.content.about.body.find(
+      (paragraph) => /[A-Za-z]/.test(paragraph) && /₪/.test(paragraph),
+    );
+    expect(bidiLine, "business.json must keep a bidi test line in content.about.body").toBeTruthy();
     await page.goto("/");
-    await expect(page.getByText("שלום John 050-1234567 ₪1,234")).toBeVisible();
+    await expect(page.getByText(bidiLine as string)).toBeVisible();
   });
 
   test("renders JSON-LD structured data", async ({ page }) => {
