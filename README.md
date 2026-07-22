@@ -46,6 +46,33 @@ FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Li
 
 First e2e run needs `npx playwright install chromium`.
 
+## MCP setup for AI agents (first time — nothing to install)
+
+The repo ships with `.mcp.json` (declares the servers) and `.claude/settings.json`
+(auto-enables them and pre-approves the safe ones). If you use Claude Code, **it just
+works on your first session in this folder** — the local servers run via `npx` on demand,
+the remote ones connect over HTTP. Run `/mcp` inside Claude Code to see server status.
+
+| Server | What it's for | First-time action needed |
+| --- | --- | --- |
+| `context7` | Current docs for Tailwind 4, GSAP, Lenis, Zod, Playwright | None |
+| `astro-docs` | Official Astro docs (remote, always current) | None |
+| `playwright` | Drive a real browser to verify UI/RTL changes | None |
+| `chrome-devtools` | Console, network, performance traces | None |
+| `lighthouse` | Core Web Vitals / a11y / SEO audits (budgets: LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1) | None (needs Node ≥ 22) |
+| `a11y` | axe-core WCAG audits, contrast + ARIA checks | None |
+| `github` | Repos, PRs, Actions for the per-client workflow | `/mcp` → authenticate (OAuth, browser opens) |
+| `cloudflare` | Cloudflare API — Pages deploys, DNS, domains | `/mcp` → authenticate (OAuth) |
+
+Notes:
+
+- `github` and `cloudflare` are intentionally **not** pre-approved — they can change real
+  infrastructure, so Claude asks before each action. The other six are read-only/local and
+  pre-approved in `.claude/settings.json`.
+- Skip the OAuth servers entirely if you don't need them; everything else works without them.
+- Other MCP clients (Cursor, VS Code, Windsurf): copy the entries from `.mcp.json` into your
+  client's MCP config — the format is identical or near-identical.
+
 ## Deploy — Cloudflare Pages
 
 The site is fully static, so **no adapter is needed** (the Cloudflare adapter is only for SSR).

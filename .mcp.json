@@ -4,6 +4,10 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"]
     },
+    "astro-docs": {
+      "type": "http",
+      "url": "https://mcp.docs.astro.build/mcp"
+    },
     "playwright": {
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest"]
@@ -11,6 +15,22 @@
     "chrome-devtools": {
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "lighthouse": {
+      "command": "npx",
+      "args": ["-y", "@danielsogl/lighthouse-mcp@latest"]
+    },
+    "a11y": {
+      "command": "npx",
+      "args": ["-y", "a11y-mcp-server"]
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "cloudflare": {
+      "type": "http",
+      "url": "https://mcp.cloudflare.com/mcp"
     }
   }
 }
