@@ -12,12 +12,18 @@ FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Li
 
 Do this once; every client site afterwards starts from here.
 
-1. **Host the template on GitHub**: create a private repo (e.g. `your-org/business-template`)
-   and push this project to it.
+1. **Host the template on GitHub as a PUBLIC repo.** Rationale: on the GitHub Free plan,
+   branch protection is only enforced on public repos, and public repos get unlimited free
+   Actions minutes. The template contains no client data or secrets (`.env` is gitignored;
+   `business.json` holds demo content only), and the `LICENSE` file keeps it
+   all-rights-reserved — public to view, not licensed for reuse.
+   **Client repos are always PRIVATE** — they hold real client data and don't need branch
+   protection (Actions minutes on private repos: 2000 free/month, plenty for client CI).
 2. **Settings → General → check "Template repository"** — enables "Use this template" for
    client repos with clean history.
 3. **Branch protection** on `master`: require the three CI jobs (quality / e2e / lighthouse)
-   to pass, require one review.
+   to pass, require one review. (The job names appear in the checks picker after CI has run
+   once — type e.g. "Validate" in the search box.)
 4. **Enable the [Renovate GitHub App](https://github.com/apps/renovate)** on the template repo
    only — dependencies stay fresh here; client clones stay frozen at known-good versions.
 5. **Cloudflare account**: one agency account; invite developers as members.
