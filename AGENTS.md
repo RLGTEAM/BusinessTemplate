@@ -17,9 +17,13 @@ npm run format            # biome check --write .
 npm run typecheck         # astro check
 npm run validate:content  # standalone business.json schema check
 npm run test              # validate:content + lint + typecheck
-npm run test:e2e          # Playwright smoke tests (builds + previews automatically)
+npm run test:e2e          # Playwright smoke + axe tests (builds + previews automatically)
+npm run test:visual       # visual regression snapshots (local only, platform-specific)
+npm run generate:og       # regenerate public/og-default.png from business.json
 npm run lhci              # Lighthouse CI against dist/ (run build first)
 ```
+
+After an intentional visual change, rebaseline: `npx playwright test --grep @visual --update-snapshots`.
 
 ## Folder map
 

@@ -45,7 +45,9 @@ FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Li
 | `npm run build`            | Static build to `dist/`                            |
 | `npm run preview`          | Serve the built site                               |
 | `npm run test`             | Content validation + Biome + `astro check`         |
-| `npm run test:e2e`         | Playwright smoke tests (builds + serves itself)    |
+| `npm run test:e2e`         | Playwright smoke + axe a11y tests (builds + serves itself) |
+| `npm run test:visual`      | Visual regression snapshots (local; rebaseline with `--update-snapshots`) |
+| `npm run generate:og`      | Regenerate the OG image from business.json name + palette |
 | `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1) — run `build` first |
 
 First e2e run needs `npx playwright install chromium`.
@@ -53,6 +55,16 @@ First e2e run needs `npx playwright install chromium`.
 **CI**: `.github/workflows/ci.yml` runs all of the above (including axe-core accessibility
 checks and the Lighthouse budgets) on every push/PR. Recommended: protect `master` and require
 the three jobs to pass before merge.
+
+Notes:
+
+- Visual snapshots are platform-specific (`-win32`/`-linux` suffixes), so the `@visual` suite
+  runs locally and is excluded in CI. Rebaseline after intentional design changes with
+  `npx playwright test --grep @visual --update-snapshots`.
+- `renovate.json` keeps the pinned dependencies fresh (enable the Renovate GitHub App on the
+  **template** repo only — grouped PRs, majors held for approval). Client clones stay frozen.
+- Claude Code users get a `/new-client` skill (`.claude/skills/new-client/`) that walks the
+  whole fill-validate-test pipeline for a new client brief.
 
 ## MCP setup for AI agents (first time — nothing to install)
 

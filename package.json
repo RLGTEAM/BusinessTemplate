@@ -12,6 +12,8 @@
     "format": "biome check --write .",
     "typecheck": "astro check",
     "validate:content": "tsx scripts/validate-content.ts",
+    "generate:og": "tsx scripts/generate-og.ts",
+    "test:visual": "playwright test --grep @visual",
     "test": "npm run validate:content && npm run lint && npm run typecheck",
     "test:e2e": "playwright test",
     "lhci": "lhci autorun",

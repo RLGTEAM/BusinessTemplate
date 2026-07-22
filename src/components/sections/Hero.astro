@@ -10,7 +10,7 @@ const { hero } = business.content;
 const heroImage = resolveImage(hero.image.src);
 ---
 
-<section class="hero-bg overflow-hidden py-16 sm:py-24">
+<section id="hero" class="hero-bg overflow-hidden py-16 sm:py-24">
   <Container class="grid items-center gap-12 lg:grid-cols-2">
     <div class="max-w-xl">
       {/* Eyebrow uses text-secondary, not text-primary: it sits on bg-surface-alt, and
