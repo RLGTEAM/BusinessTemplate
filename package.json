@@ -1,0 +1,43 @@
+{
+  "name": "business-template",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static, RTL-first Astro template for small-business sites. Content-driven via business.json.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "astro check",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "test": "npm run validate:content && npm run lint && npm run typecheck",
+    "test:e2e": "playwright test",
+    "lhci": "lhci autorun",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.3",
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.1.3",
+    "gsap": "3.15.0",
+    "lenis": "1.3.25",
+    "tailwindcss": "4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.9",
+    "@biomejs/biome": "2.5.5",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.61.1",
+    "husky": "9.1.7",
+    "lint-staged": "17.1.0",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,astro,json,css}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  }
+}

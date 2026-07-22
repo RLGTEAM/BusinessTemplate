@@ -1,0 +1,47 @@
+---
+import { Image } from "astro:assets";
+import Container from "@/components/ui/Container.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import { getBusiness } from "@/lib/business";
+import { resolveImage } from "@/lib/images";
+
+const business = await getBusiness();
+const { about } = business.content;
+const aboutImage = resolveImage(about.image.src);
+---
+
+<section id="about" class="scroll-mt-20 bg-surface-alt py-16 sm:py-24">
+  <Container class="grid items-center gap-12 lg:grid-cols-2">
+    <div data-reveal="slide-start">
+      <Image
+        src={aboutImage}
+        alt={about.image.alt}
+        widths={[480, 800]}
+        sizes="(max-width: 1023px) 100vw, 50vw"
+        loading="lazy"
+        class="w-full rounded-card object-cover shadow-card"
+      />
+    </div>
+
+    <div>
+      <SectionHeading title={about.title} subtitle={about.subtitle} />
+      <div class="space-y-4 text-ink-muted" data-reveal>
+        {about.body.map((paragraph) => <p><bdi>{paragraph}</bdi></p>)}
+      </div>
+      {
+        about.highlights.length > 0 && (
+          <dl class="mt-10 grid grid-cols-3 gap-6" data-reveal-group>
+            {about.highlights.map((highlight) => (
+              <div class="border-s-2 border-accent ps-4">
+                <dt class="order-last text-sm text-ink-muted">{highlight.label}</dt>
+                <dd class="text-2xl font-bold text-secondary sm:text-3xl">
+                  <bdi class="force-ltr">{highlight.value}</bdi>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+    </div>
+  </Container>
+</section>

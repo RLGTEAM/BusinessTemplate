@@ -1,0 +1,32 @@
+---
+import { Image } from "astro:assets";
+import Container from "@/components/ui/Container.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import { getBusiness } from "@/lib/business";
+import { resolveImage } from "@/lib/images";
+
+const business = await getBusiness();
+const { gallery } = business.content;
+---
+
+<section id="gallery" class="scroll-mt-20 bg-surface-alt py-16 sm:py-24">
+  <Container>
+    <SectionHeading title={gallery.title} subtitle={gallery.subtitle} />
+    <ul class="grid grid-cols-2 gap-4 md:grid-cols-3" data-reveal-group>
+      {
+        gallery.items.map((item) => (
+          <li>
+            <Image
+              src={resolveImage(item.src)}
+              alt={item.alt}
+              widths={[320, 640]}
+              sizes="(max-width: 767px) 50vw, 33vw"
+              loading="lazy"
+              class="aspect-square w-full rounded-card object-cover shadow-card"
+            />
+          </li>
+        ))
+      }
+    </ul>
+  </Container>
+</section>

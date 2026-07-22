@@ -1,0 +1,34 @@
+---
+import Container from "@/components/ui/Container.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import { getBusiness } from "@/lib/business";
+
+const business = await getBusiness();
+const { testimonials } = business.content;
+---
+
+<section id="testimonials" class="scroll-mt-20 py-16 sm:py-24">
+  <Container>
+    <SectionHeading title={testimonials.title} subtitle={testimonials.subtitle} />
+    <ul class="grid gap-6 md:grid-cols-3" data-reveal-group>
+      {
+        testimonials.items.map((item) => (
+          <li class="flex flex-col rounded-card border border-line bg-surface p-6 shadow-card">
+            <blockquote class="flex-1 text-lg text-ink">
+              <span aria-hidden="true" class="mb-2 block font-display text-4xl text-accent">
+                ”
+              </span>
+              <bdi>{item.quote}</bdi>
+            </blockquote>
+            <footer class="mt-5 border-t border-line pt-4">
+              <p class="font-semibold text-secondary">
+                <bdi>{item.author}</bdi>
+              </p>
+              {item.role && <p class="text-sm text-ink-muted">{item.role}</p>}
+            </footer>
+          </li>
+        ))
+      }
+    </ul>
+  </Container>
+</section>

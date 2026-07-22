@@ -1,0 +1,27 @@
+---
+interface Props {
+  href: string;
+  variant?: "primary" | "outline";
+  class?: string;
+}
+
+const { href, variant = "primary", class: className } = Astro.props;
+
+const variants: Record<NonNullable<Props["variant"]>, string> = {
+  primary:
+    "bg-primary text-surface hover:bg-secondary focus-visible:bg-secondary shadow-card hover:shadow-card-hover",
+  outline:
+    "border border-line bg-transparent text-secondary hover:border-primary hover:text-primary",
+};
+---
+
+<a
+  href={href}
+  class:list={[
+    "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 text-base font-semibold transition-[background-color,border-color,box-shadow,color] duration-200",
+    variants[variant],
+    className,
+  ]}
+>
+  <slot />
+</a>

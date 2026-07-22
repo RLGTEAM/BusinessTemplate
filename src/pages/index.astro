@@ -1,0 +1,33 @@
+---
+import About from "@/components/sections/About.astro";
+import ContactForm from "@/components/sections/ContactForm.astro";
+import CTA from "@/components/sections/CTA.astro";
+import FAQ from "@/components/sections/FAQ.astro";
+import Footer from "@/components/sections/Footer.astro";
+import Gallery from "@/components/sections/Gallery.astro";
+import Header from "@/components/sections/Header.astro";
+import Hero from "@/components/sections/Hero.astro";
+import Services from "@/components/sections/Services.astro";
+import Testimonials from "@/components/sections/Testimonials.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getBusiness } from "@/lib/business";
+import { resolveImage } from "@/lib/images";
+
+const business = await getBusiness();
+const heroImage = resolveImage(business.content.hero.image.src);
+---
+
+<BaseLayout preloadImage={heroImage.src}>
+  <Header />
+  <main id="main">
+    <Hero />
+    <Services />
+    <About />
+    <Testimonials />
+    <Gallery />
+    <FAQ />
+    <CTA />
+    <ContactForm />
+  </main>
+  <Footer />
+</BaseLayout>

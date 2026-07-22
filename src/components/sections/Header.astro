@@ -1,0 +1,119 @@
+---
+import Button from "@/components/ui/Button.astro";
+import Container from "@/components/ui/Container.astro";
+import { getBusiness, resolveHref, telHref } from "@/lib/business";
+
+const business = await getBusiness();
+const { nav, hero, ui } = business.content;
+const phone = business.data.contact.phone;
+---
+
+<header class="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
+  <Container class="flex min-h-16 items-center justify-between gap-4 py-2">
+    <a href="/" class="font-display text-xl font-bold text-secondary">
+      {business.data.name}
+    </a>
+
+    <nav aria-label={business.content.footer.navTitle} class="hidden items-center gap-6 md:flex">
+      {
+        nav.map((item) => (
+          <a
+            href={item.href}
+            class="text-sm font-medium text-ink-muted transition-colors hover:text-primary"
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="hidden md:block">
+      <Button href={resolveHref(hero.primaryCta.href, business)} class="min-h-10 px-5 py-2 text-sm">
+        {hero.primaryCta.label}
+      </Button>
+    </div>
+
+    <button
+      type="button"
+      id="menu-toggle"
+      class="inline-flex size-11 items-center justify-center rounded-md text-secondary md:hidden"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      aria-label={ui.openMenu}
+      data-open-label={ui.openMenu}
+      data-close-label={ui.closeMenu}
+    >
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path class="icon-open" d="M4 7h16M4 12h16M4 17h16"></path>
+        <path class="icon-close hidden" d="M6 6l12 12M18 6L6 18"></path>
+      </svg>
+    </button>
+  </Container>
+
+  <div id="mobile-menu" class="hidden border-t border-line md:hidden" hidden>
+    <Container class="flex flex-col gap-1 py-4">
+      {
+        nav.map((item) => (
+          <a
+            href={item.href}
+            class="rounded-md px-3 py-3 text-base font-medium text-ink transition-colors hover:bg-surface-alt hover:text-primary"
+          >
+            {item.label}
+          </a>
+        ))
+      }
+      <a
+        href={telHref(phone)}
+        class="mt-2 rounded-md bg-primary px-3 py-3 text-center font-semibold text-surface"
+      >
+        <bdi class="force-ltr">{phone}</bdi>
+      </a>
+    </Container>
+  </div>
+</header>
+
+<script>
+  function setupMenu(): void {
+    const toggle = document.getElementById("menu-toggle");
+    const menu = document.getElementById("mobile-menu");
+    if (!(toggle instanceof HTMLButtonElement) || !(menu instanceof HTMLElement)) return;
+
+    const setOpen = (open: boolean): void => {
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute(
+        "aria-label",
+        (open ? toggle.dataset.closeLabel : toggle.dataset.openLabel) ?? "",
+      );
+      menu.hidden = !open;
+      menu.classList.toggle("hidden", !open);
+      toggle.querySelector(".icon-open")?.classList.toggle("hidden", open);
+      toggle.querySelector(".icon-close")?.classList.toggle("hidden", !open);
+    };
+
+    toggle.addEventListener("click", () => {
+      setOpen(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    for (const link of menu.querySelectorAll("a")) {
+      link.addEventListener("click", () => setOpen(false));
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+
+  document.addEventListener("astro:page-load", setupMenu);
+</script>

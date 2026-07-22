@@ -1,0 +1,33 @@
+---
+import Button from "@/components/ui/Button.astro";
+import Container from "@/components/ui/Container.astro";
+import { getBusiness, resolveHref } from "@/lib/business";
+
+const business = await getBusiness();
+const { cta } = business.content;
+---
+
+<section class="py-16 sm:py-24">
+  <Container>
+    <div class="cta-bg rounded-card px-6 py-14 text-center sm:px-12" data-reveal="scale">
+      <h2 class="text-3xl font-bold text-surface sm:text-4xl">{cta.title}</h2>
+      <p class="mx-auto mt-4 max-w-xl text-lg text-surface/80">{cta.subtitle}</p>
+      <Button
+        href={resolveHref(cta.button.href, business)}
+        class="mt-8 bg-accent text-secondary hover:bg-surface hover:text-secondary"
+      >
+        {cta.button.label}
+      </Button>
+    </div>
+  </Container>
+</section>
+
+<style>
+  .cta-bg {
+    background-image: linear-gradient(
+      var(--angle-brand),
+      var(--color-secondary),
+      color-mix(in oklab, var(--color-primary) 70%, var(--color-secondary))
+    );
+  }
+</style>

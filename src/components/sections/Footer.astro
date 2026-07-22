@@ -1,0 +1,117 @@
+---
+import Container from "@/components/ui/Container.astro";
+import { getBusiness, telHref, whatsappHref } from "@/lib/business";
+
+const business = await getBusiness();
+const { data, content } = business;
+const { footer } = content;
+const year = new Date().getFullYear();
+
+const socials = [
+  { label: "Instagram", href: data.socials.instagram },
+  { label: "Facebook", href: data.socials.facebook },
+  { label: "TikTok", href: data.socials.tiktok },
+].filter((social) => social.href !== "");
+---
+
+<footer class="border-t border-line bg-secondary text-surface/85">
+  <Container class="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
+    <div>
+      <p class="font-display text-xl font-bold text-surface">{data.name}</p>
+      <p class="mt-2 text-sm">{data.tagline}</p>
+      {
+        socials.length > 0 && (
+          <ul class="mt-4 flex gap-4">
+            {socials.map((social) => (
+              <li>
+                <a
+                  href={social.href}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  class="text-sm underline-offset-4 transition-colors hover:text-accent hover:underline"
+                >
+                  {social.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+
+    <nav aria-label={footer.navTitle}>
+      <h2 class="mb-3 font-display font-semibold text-surface">{footer.navTitle}</h2>
+      <ul class="space-y-2 text-sm">
+        {
+          content.nav.map((item) => (
+            <li>
+              <a href={item.href} class="transition-colors hover:text-accent">
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="mb-3 font-display font-semibold text-surface">{footer.contactTitle}</h2>
+      <ul class="space-y-2 text-sm">
+        <li>
+          <a href={telHref(data.contact.phone)} class="transition-colors hover:text-accent">
+            <bdi class="force-ltr">{data.contact.phone}</bdi>
+          </a>
+        </li>
+        <li>
+          <a
+            href={whatsappHref(data.contact.whatsapp)}
+            rel="noopener noreferrer"
+            target="_blank"
+            class="transition-colors hover:text-accent"
+          >
+            WhatsApp
+          </a>
+        </li>
+        <li>
+          <a href={`mailto:${data.contact.email}`} class="transition-colors hover:text-accent">
+            <bdi class="force-ltr">{data.contact.email}</bdi>
+          </a>
+        </li>
+        <li>{data.contact.address}</li>
+      </ul>
+      {
+        data.serviceAreas.length > 0 && (
+          <p class="mt-4 text-sm">
+            <span class="font-semibold text-surface">{footer.areasTitle}:</span>{" "}
+            {data.serviceAreas.join(", ")}
+          </p>
+        )
+      }
+    </div>
+
+    <div>
+      <h2 class="mb-3 font-display font-semibold text-surface">{footer.hoursTitle}</h2>
+      <ul class="space-y-1.5 text-sm">
+        {
+          data.hours.map((entry) => (
+            <li class="flex justify-between gap-4">
+              <span>{entry.label}</span>
+              <bdi class="force-ltr tabular-nums">
+                {entry.open}–{entry.close}
+              </bdi>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </Container>
+
+  <div class="border-t border-surface/15">
+    <Container class="py-5 text-center text-sm">
+      <p>
+        © <bdi class="force-ltr">{year}</bdi>
+        {data.legalName} · {footer.rights}
+      </p>
+    </Container>
+  </div>
+</footer>

@@ -1,0 +1,60 @@
+---
+import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
+import JsonLd from "@/components/seo/JsonLd.astro";
+import SEO from "@/components/seo/SEO.astro";
+import { getBusiness, getDir } from "@/lib/business";
+import { faqJsonLd, localBusinessJsonLd, organizationJsonLd } from "@/lib/jsonld";
+import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** href of the LCP image (already resolved) to preload, if the page has one. */
+  preloadImage?: string;
+}
+
+const { preloadImage } = Astro.props;
+const business = await getBusiness();
+const dir = getDir(business.locale);
+const { palette } = business.voice;
+
+// Brand tokens flow: business.json → these vars → @theme inline (global.css).
+const brandVars = [
+  `--brand-primary: ${palette.primary}`,
+  `--brand-secondary: ${palette.secondary}`,
+  `--brand-accent: ${palette.accent}`,
+].join("; ");
+---
+
+<!doctype html>
+<html lang={business.locale} dir={dir} style={brandVars}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <SEO business={business} title={Astro.props.title} description={Astro.props.description} />
+    <Font cssVariable="--font-heebo" preload />
+    <Font cssVariable="--font-assistant" preload />
+    {preloadImage && <link rel="preload" as="image" href={preloadImage} />}
+    <JsonLd data={localBusinessJsonLd(business)} />
+    <JsonLd data={organizationJsonLd(business)} />
+    <JsonLd data={faqJsonLd(business)} />
+    <ClientRouter />
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="fixed start-4 top-4 z-50 -translate-y-24 rounded-md bg-secondary px-4 py-2 text-surface transition-transform focus-visible:translate-y-0"
+    >
+      {business.content.ui.skipToContent}
+    </a>
+    <slot />
+    <script>
+      import { destroyAnimations, initAnimations } from "@/lib/animation";
+
+      document.addEventListener("astro:page-load", initAnimations);
+      document.addEventListener("astro:before-swap", destroyAnimations);
+    </script>
+  </body>
+</html>

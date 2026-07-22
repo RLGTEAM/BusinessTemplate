@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/*
+ * Theme tokens.
+ * Brand colors are NOT hardcoded here — they arrive as --brand-* custom
+ * properties set on <html> by BaseLayout.astro, sourced from
+ * business.json → voice.palette. Re-theming a client = editing business.json.
+ * `@theme inline` lets Tailwind utilities reference those runtime vars.
+ */
+@theme inline {
+  --color-primary: var(--brand-primary);
+  --color-secondary: var(--brand-secondary);
+  --color-accent: var(--brand-accent);
+
+  --font-sans: var(--font-heebo);
+  --font-display: var(--font-assistant);
+}
+
+@theme {
+  --color-surface: #faf9f7;
+  --color-surface-alt: #f1eeea;
+  --color-ink: #211c2e;
+  --color-ink-muted: #5d5670;
+  --color-line: #e2ddd6;
+
+  /* Elevation. X offsets use --dir-factor so shadows mirror in RTL. */
+  --shadow-card: calc(0px * var(--dir-factor)) 2px 12px rgb(33 28 46 / 0.06);
+  --shadow-card-hover: calc(-4px * var(--dir-factor)) 8px 28px rgb(33 28 46 / 0.12);
+
+  --radius-card: 1.25rem;
+}
+
+/*
+ * Direction plumbing — the properties that do NOT auto-flip with dir="rtl".
+ * Convention: any directional value in CSS or GSAP multiplies by
+ * var(--dir-factor) / reads these tokens. Never write a raw left/right value.
+ *
+ *   --dir-factor           multiply horizontal offsets (shadows, translateX)
+ *   --angle-brand          mirrored linear-gradient angle
+ *   --origin-inline-start  transform-origin keyword for the inline-start edge
+ *   --bg-pos-inline-start  background-position keyword for the inline-start edge
+ */
+:root {
+  --dir-factor: 1;
+  --angle-brand: 135deg;
+  --origin-inline-start: left;
+  --bg-pos-inline-start: left;
+}
+
+[dir="rtl"] {
+  --dir-factor: -1;
+  --angle-brand: 225deg;
+  --origin-inline-start: right;
+  --bg-pos-inline-start: right;
+}
+
+html {
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Comfortable for Hebrew (and fine for Latin). */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Hebrew typography:
+ * - slightly larger base than a Latin equivalent
+ * - letter-spacing must stay 0 — Hebrew has no tracking. Do not use
+ *   tracking-* utilities on Hebrew text; this guard neutralizes mistakes.
+ */
+html[lang="he"] {
+  font-size: 106.25%; /* 17px base */
+}
+
+html[lang="he"] body * {
+  letter-spacing: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* Force LTR for phone numbers, prices, URLs, code — pair with <bdi> for mixed runs. */
+.force-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-secondary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Motion is opt-in: the animation layer reveals [data-reveal] elements.
+   If JS fails or reduced motion is preferred, everything stays visible. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
