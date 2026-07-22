@@ -10,20 +10,24 @@ FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Li
 
 ## Per-client workflow
 
-1. **Clone** this template into a new repo:
+1. **Create the client repo.** On GitHub, mark this repo as a **Template repository**
+   (Settings → General → check "Template repository", one time). Then per client:
+   **Use this template → Create a new repository**, and:
 
    ```sh
-   git clone <template-repo-url> client-name && cd client-name
-   rm -rf .git && git init
+   git clone <client-repo-url> && cd client-name
    npm install         # also installs the husky pre-commit hook
    ```
+
+   (Without GitHub: `git clone <template-url> client-name && cd client-name && rm -rf .git && git init`.)
 
 2. **Fill `src/content/business/business.json`** — facts (`data`), tone + palette (`voice`),
    and every visible string (`content`). This re-brands the whole site, including theme colors.
    Set `data.seo.siteUrl` to the production URL (drives canonical, sitemap, robots, JSON-LD).
    Set `locale` to `"he"` or `"en"` — this flips `lang`/`dir` site-wide.
 
-3. **Validate**: `npm run validate:content` (an invalid file also fails `npm run build`).
+3. **Validate**: `npm run validate:content` — checks the schema AND WCAG AA contrast of
+   `voice.palette` (an invalid file also fails `npm run build`).
 
 4. **Replace images**: drop client photos into `src/assets/images/` (referenced by filename in
    business.json) and `public/og-default.png` (1200×630). Placeholders can be regenerated with
@@ -45,6 +49,10 @@ FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Li
 | `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1) — run `build` first |
 
 First e2e run needs `npx playwright install chromium`.
+
+**CI**: `.github/workflows/ci.yml` runs all of the above (including axe-core accessibility
+checks and the Lighthouse budgets) on every push/PR. Recommended: protect `master` and require
+the three jobs to pass before merge.
 
 ## MCP setup for AI agents (first time — nothing to install)
 

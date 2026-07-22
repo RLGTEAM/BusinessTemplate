@@ -52,6 +52,11 @@ tests/smoke.spec.ts                ← Playwright smoke suite
 - Images: `business.json` references filenames; files live in `src/assets/images/`; resolve with `resolveImage()`. OG image lives in `public/`.
 - Link fields may use the sentinel `"whatsapp"` — always pass hrefs through `resolveHref()`.
 - Schema failures fail the build. Run `npm run validate:content` after editing.
+- **Palette contract**: `validate:content` enforces WCAG AA (≥ 4.5:1) on the pairs the template
+  actually uses — primary↔surface, secondary↔surface, secondary↔surface-alt, accent↔secondary.
+  Therefore: `text-primary` only on `bg-surface`; text on `bg-accent` is always `text-secondary`;
+  never use `accent` as text on light backgrounds. New color-as-text usage → add the pair to
+  `scripts/validate-content.ts` first.
 
 ## RTL rules (non-negotiable)
 
