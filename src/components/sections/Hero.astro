@@ -46,8 +46,7 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
             alt={hero.image.alt}
             widths={[480, 800, 1200]}
             sizes="(max-width: 1023px) 100vw, 50vw"
-            loading="eager"
-            fetchpriority="high"
+            priority
             class="w-full rounded-card object-cover shadow-card"
           />
         </div>
@@ -83,8 +82,7 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
             alt={hero.image.alt}
             widths={[480, 800, 1200]}
             sizes="(max-width: 1023px) 100vw, 896px"
-            loading="eager"
-            fetchpriority="high"
+            priority
             class="aspect-[2/1] w-full rounded-card object-cover shadow-card"
           />
         </div>
@@ -101,8 +99,7 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
         alt=""
         widths={[768, 1280, 1920]}
         sizes="100vw"
-        loading="eager"
-        fetchpriority="high"
+        priority
         class="absolute inset-0 size-full object-cover"
       />
       {/* Overlay keeps text on the validated secondary↔surface contrast pair. */}

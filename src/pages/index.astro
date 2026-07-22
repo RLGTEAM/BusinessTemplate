@@ -12,10 +12,8 @@ import Testimonials from "@/components/sections/Testimonials.astro";
 import type { orderableSections } from "@/content/business.schema";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getBusiness } from "@/lib/business";
-import { resolveImage } from "@/lib/images";
 
 const business = await getBusiness();
-const heroImage = resolveImage(business.content.hero.image.src);
 
 // Composition is data-driven: design.sectionOrder decides the page flow.
 // Header/Hero/Footer are fixed; everything else reorders per client.
@@ -30,7 +28,7 @@ const sections: Record<(typeof orderableSections)[number], typeof Services> = {
 };
 ---
 
-<BaseLayout preloadImage={heroImage.src}>
+<BaseLayout>
   <Header />
   <main id="main">
     <Hero />

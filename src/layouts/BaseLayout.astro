@@ -11,11 +11,8 @@ import "@/styles/global.css";
 interface Props {
   title?: string;
   description?: string;
-  /** href of the LCP image (already resolved) to preload, if the page has one. */
-  preloadImage?: string;
 }
 
-const { preloadImage } = Astro.props;
 const business = await getBusiness();
 const dir = getDir(business.locale);
 const { palette } = business.voice;
@@ -47,7 +44,6 @@ const brandVars = [
     <SEO business={business} title={Astro.props.title} description={Astro.props.description} />
     <Font cssVariable="--font-brand-display" preload />
     <Font cssVariable="--font-brand-body" preload />
-    {preloadImage && <link rel="preload" as="image" href={preloadImage} />}
     <JsonLd data={localBusinessJsonLd(business)} />
     <JsonLd data={organizationJsonLd(business)} />
     <JsonLd data={websiteJsonLd(business)} />
