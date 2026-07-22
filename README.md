@@ -12,7 +12,7 @@ FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Li
 
 Do this once; every client site afterwards starts from here.
 
-1. **Host the template on GitHub as a PUBLIC repo.** Rationale: on the GitHub Free plan,
+1. **The template lives at github.com/RLGTEAM/BusinessTemplate (PUBLIC).** Rationale: on the GitHub Free plan,
    branch protection is only enforced on public repos, and public repos get unlimited free
    Actions minutes. The template contains no client data or secrets (`.env` is gitignored;
    `business.json` holds demo content only), and the `LICENSE` file keeps it
@@ -36,7 +36,8 @@ Do this once; every client site afterwards starts from here.
 
 A new client asked for a website. Step by step:
 
-1. **Collect the brief** (sales call / intake form). Minimum needed — this list mirrors
+1. **Collect the brief** (sales call / intake form) — copy [docs/brief.md](./docs/brief.md)
+   and fill it in; it's paste-ready for `/new-client`. Minimum needed — this list mirrors
    Step 0 of the `/new-client` skill, which will ask for anything missing:
    business name + legal name, what they do, address, phone, email, WhatsApp, hours,
    3–6 services with prices, service areas, socials, brand colors (if any), tone/voice

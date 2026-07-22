@@ -6,10 +6,11 @@
  * Replace these files with real client photos in production — keep the filenames
  * or update business.json accordingly.
  */
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import { businessSchema } from "../src/content/business.schema";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
@@ -29,11 +30,13 @@ function placeholderSvg(width: number, height: number, from: string, to: string)
   );
 }
 
-const palette = {
-  primary: "#7c5cbf",
-  secondary: "#2b2140",
-  accent: "#e8b04b",
-};
+// Placeholders take their colors from the client palette in business.json.
+const business = businessSchema.parse(
+  JSON.parse(
+    readFileSync(join(root, "src/content/business/business.json"), "utf-8").replace(/^﻿/, ""),
+  ),
+);
+const palette = business.voice.palette;
 
 interface Spec {
   path: string;

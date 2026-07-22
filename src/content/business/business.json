@@ -57,6 +57,7 @@
       "tiktok": ""
     },
     "serviceAreas": ["תל אביב", "רמת גן", "גבעתיים"],
+    "analytics": { "cloudflareToken": "" },
     "seo": {
       "siteUrl": "https://studio-or.example",
       "defaultTitle": "סטודיו אור — עיצוב שיער בתל אביב",

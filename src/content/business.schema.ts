@@ -128,6 +128,13 @@ export const businessSchema = z.object({
       tiktok: urlOrEmpty,
     }),
     serviceAreas: z.array(z.string().min(1)),
+    /** Cloudflare Web Analytics (cookieless, no consent banner needed).
+     *  Empty token = no analytics script emitted. Dashboard → Analytics → Web Analytics. */
+    analytics: z
+      .object({
+        cloudflareToken: z.string().default(""),
+      })
+      .default({ cloudflareToken: "" }),
     seo: z.object({
       /** Canonical production origin, no trailing slash, e.g. "https://example.co.il". */
       siteUrl: z.url(),
