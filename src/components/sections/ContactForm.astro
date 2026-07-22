@@ -1,4 +1,5 @@
 ---
+import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -13,7 +14,8 @@ const fields = [
 ] as const;
 ---
 
-<section id="contact" class="scroll-mt-20 bg-surface-alt section-pad">
+<section id="contact" class="relative isolate scroll-mt-20 bg-surface-alt section-pad">
+  <SectionDecor section="contact" />
   <Container class="max-w-2xl">
     <SectionHeading title={copy.title} subtitle={copy.subtitle} />
 
@@ -28,9 +30,9 @@ const fields = [
       data-error-message={copy.errorMessage}
       data-required-error={copy.requiredError}
       data-email-error={copy.emailError}
-      data-subject={`${copy.title} — ${business.data.name}`}
+      data-subject={`${copy.title} â€” ${business.data.name}`}
     >
-      {/* Honeypot — hidden from humans, screen readers, and tab order. */}
+      {/* Honeypot â€” hidden from humans, screen readers, and tab order. */}
       <input
         type="checkbox"
         name="botcheck"
@@ -172,7 +174,7 @@ const fields = [
       event.preventDefault();
       if (!validate(form)) return;
       if (PUBLIC_WEB3FORMS_KEY === "") {
-        // Endpoint not configured (no PUBLIC_WEB3FORMS_KEY) — treat as error state.
+        // Endpoint not configured (no PUBLIC_WEB3FORMS_KEY) â€” treat as error state.
         showStatus(form, "error");
         return;
       }

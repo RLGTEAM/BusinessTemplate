@@ -40,9 +40,10 @@ src/
   layouts/BaseLayout.astro         ← html lang/dir, brand CSS vars, SEO, fonts, JSON-LD
   components/sections/             ← Header, Hero, Services, About, Testimonials,
                                      Gallery, FAQ, CTA, ContactForm, Footer
-  components/custom/               ← per-client signature moment (no-op stubs; docs/CREATIVE-CONTRACT.md)
+  components/custom/               ← per-client experience layer (no-op stubs; docs/CREATIVE-CONTRACT.md)
   components/seo/  components/ui/  ← SEO/JsonLd · Container/SectionHeading/Button
   styles/global.css                ← @theme tokens + RTL direction plumbing
+  styles/custom.css                ← per-client atmosphere/color story (empty in template)
   pages/index.astro                ← composes all sections
   pages/404.astro                  ← not-found page (copy from content.notFound)
   pages/{accessibility-statement,privacy}.astro ← legal pages (content.legal)
@@ -90,13 +91,18 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
   - `sectionOrder`: permutation of the 7 middle sections; index.astro renders from it. Keep
     `content.nav` link order consistent with it.
   - Adding a variant = schema enum → tokens/markup → this list. Never fork a section per client.
-- **Signature moment (`src/components/custom/`)** — the ONE sanctioned per-client creative
-  sandbox; full contract in `docs/CREATIVE-CONTRACT.md`. `SignatureBackdrop.astro` (decorative
-  hero layer), `Signature.astro` (custom section, activated by adding `"signature"` to
-  `sectionOrder`), `signature.ts` (`registerSignature()`, runs inside the reduced-motion-guarded
-  matchMedia context). All ship as no-ops. Strings from `content.signature`, colors from tokens,
-  same RTL/animation rules, same test gate. At most one signature moment per client site;
-  custom code lives ONLY in `custom/` — sections are still never forked.
+- **Experience layer (`src/components/custom/` + `src/styles/custom.css`)** — the sanctioned
+  per-client creative surfaces; full contract in `docs/CREATIVE-CONTRACT.md`. Principle:
+  ONE concept, expressed everywhere it helps (coherence, not quantity, is the constraint).
+  Surfaces: `custom.css` (color story / atmosphere, loaded after global.css),
+  `SectionDecor.astro` (first child of every content section; section roots are
+  `relative isolate` so `-z-10` decor sits between background and content),
+  `SignatureBackdrop.astro` (hero layer), `Signature.astro` (custom section via `"signature"`
+  in `sectionOrder`), `signature.ts` (`registerSignature()`, runs inside the
+  reduced-motion-guarded matchMedia context). All ship as no-ops. Strings from
+  `content.signature`, colors from tokens (use `color-mix()` for tints), text only on
+  validated contrast pairs, same RTL/animation rules, same test gate. Custom code lives
+  ONLY in these files — sections are still never forked.
 
 ## RTL rules (non-negotiable)
 

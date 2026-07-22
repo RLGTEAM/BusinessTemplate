@@ -1,4 +1,5 @@
 ---
+import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -9,7 +10,8 @@ const copy = business.content.services;
 const layout = business.design.servicesLayout;
 ---
 
-<section id="services" class="scroll-mt-20 section-pad">
+<section id="services" class="relative isolate scroll-mt-20 section-pad">
+  <SectionDecor section="services" />
   <Container>
     <SectionHeading title={copy.title} subtitle={copy.subtitle} />
 

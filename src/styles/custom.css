@@ -1,0 +1,24 @@
+/*
+ * Per-client experience layer — the sanctioned stylesheet for atmosphere
+ * (docs/CREATIVE-CONTRACT.md). Loaded AFTER global.css, so it can re-skin
+ * section surfaces without touching any component.
+ *
+ * Use it for the color story: tinted/dark/gradient section backgrounds,
+ * color-blocking, texture, motif accents — always via tokens:
+ *
+ *   #testimonials { background: var(--color-secondary); }
+ *   #services {
+ *     background: linear-gradient(
+ *       var(--angle-brand),
+ *       color-mix(in oklab, var(--color-primary) 10%, var(--color-surface)),
+ *       var(--color-surface)
+ *     );
+ *   }
+ *
+ * Rules (same fence as everywhere): tokens only — no literal colors; logical
+ * properties only; text may sit ONLY on the validated contrast pairs (on a
+ * dark section: text-surface on secondary — same as the full-bleed hero);
+ * no display:none of content, no layout-affecting animation.
+ *
+ * The template ships this file empty.
+ */

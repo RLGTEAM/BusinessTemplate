@@ -69,20 +69,29 @@ Set the `design` block so this client does NOT share a skeleton with previous cl
 - If other client sites are known (ask the user which combos are already in use), choose a
   combination that differs in at least three axes overall.
 
-## Step 3.75 — Creative concept + signature moment
+## Step 3.75 — Experience concept (this is where the site becomes an experience)
 
-Before touching images, propose ONE bold creative concept drawn from the client's world —
-a metaphor their customers instantly recognize (record store → vinyl, bakery → flour dust,
-barber → clipper lines). Present it to the user with:
+Before touching images, design ONE bold concept from the client's world — a metaphor their
+customers instantly recognize (record store → vinyl, bakery → flour dust, barber → clipper
+lines) — and let it permeate the page. Write the four-line concept from
+`docs/CREATIVE-CONTRACT.md` and present it to the user:
 
-- the concept in one sentence, and how it maps onto the palette/fontPairing/hero choices;
-- where its **signature moment** lives: hero backdrop (`SignatureBackdrop.astro`), custom
-  section (`Signature.astro` + `"signature"` in `sectionOrder`), or animation
-  (`signature.ts`), per the contract in `docs/CREATIVE-CONTRACT.md`;
-- what the reduced-motion/static version looks like (it must stand on its own).
+1. **Metaphor** — one sentence.
+2. **Color story** — which sections go light/tinted/dark, where the accent burns brightest
+   (implemented in `src/styles/custom.css` with tokens + `color-mix()`).
+3. **Motif system** — 1–2 shapes derived from the metaphor, and which sections show them
+   (implemented in `SectionDecor.astro`, branching on the `section` prop; hero statement
+   piece in `SignatureBackdrop.astro`; optionally a full custom section via `"signature"`
+   in `sectionOrder`).
+4. **Motion identity** — the ONE characteristic movement reused wherever motion appears
+   (implemented in `signature.ts`; entrances via `data-reveal`).
 
-Rules: at most ONE signature moment; strings via `content.signature`; tokens only; the
-same test gate applies. If the user declines, skip — the dials alone are a complete design.
+Also state what the reduced-motion still frame looks like — it must stand on its own.
+
+Rules: one concept, coherent everywhere (incoherence, not quantity, is what's forbidden);
+strings via `content.signature`; tokens only; text only on validated contrast pairs; the
+same test gate applies. Scale ambition to the client's appetite from the brief
+(none / subtle / go wild). If they want none, skip — the dials alone are a complete design.
 
 ## Step 4 — Images
 

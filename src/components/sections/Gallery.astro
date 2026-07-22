@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -13,7 +14,8 @@ const layout = business.design.galleryLayout;
 const masonryAspects = ["aspect-square", "aspect-[3/4]", "aspect-[4/3]"];
 ---
 
-<section id="gallery" class="scroll-mt-20 bg-surface-alt section-pad">
+<section id="gallery" class="relative isolate scroll-mt-20 bg-surface-alt section-pad">
+  <SectionDecor section="gallery" />
   <Container>
     <SectionHeading title={gallery.title} subtitle={gallery.subtitle} />
 

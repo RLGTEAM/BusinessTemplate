@@ -49,9 +49,10 @@ A new client asked for a website. Step by step:
    brief. It fills `business.json` (facts, voice, palette, every visible string), picks a
    distinct **design variant combo** (`design` block: six independent dials — font pairing,
    hero layout, shape, density, services/gallery layouts, section order — so no two client
-   sites share a skeleton), proposes a **signature moment** (one bespoke creative flourish
-   per site, built under [docs/CREATIVE-CONTRACT.md](./docs/CREATIVE-CONTRACT.md)), enforces
-   the WCAG palette contract, regenerates the OG image, and runs the full test gate.
+   sites share a skeleton), designs an **experience concept** (one metaphor from the client's
+   world expressed as a color story, per-section motifs, and a motion identity — built under
+   [docs/CREATIVE-CONTRACT.md](./docs/CREATIVE-CONTRACT.md)), enforces the WCAG palette
+   contract, regenerates the OG image, and runs the full test gate.
    Doing it by hand instead: edit `src/content/business/business.json`, then
    `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
 4. **Real photos**: drop client photos into `src/assets/images/` keeping the filenames (or

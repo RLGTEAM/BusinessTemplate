@@ -79,12 +79,15 @@ That's **thousands of combinations before you even pick colors**. Tips for choos
 - **Photos beat every other dial.** Real photos of the client's work, lightly
   edited for consistent warmth/exposure, are the single biggest anti-template
   signal. Placeholder-quality stock kills the effect of every choice above.
-- **Then add the signature moment.** Beyond the dials, every client site may get
-  ONE bespoke creative flourish — a custom hero backdrop (spinning vinyl for a
-  record store, drifting steam for a café) or a fully custom section. It lives in
-  `src/components/custom/` under a strict contract (tokens, RTL, reduced-motion,
-  same test gate) — read `docs/CREATIVE-CONTRACT.md` before writing it. One
-  moment, done well, beats ten scattered effects.
+- **Then build the experience layer.** Beyond the dials, every client site gets
+  ONE creative concept expressed across the page: a color story in
+  `src/styles/custom.css` (tinted/dark/gradient sections from the client's own
+  colors), motifs per section in `SectionDecor.astro`, a hero statement piece in
+  `SignatureBackdrop.astro`, optionally a fully custom section, and one
+  characteristic motion in `signature.ts`. This is what turns "a clean page"
+  into "feels like walking into their shop." Strict contract (tokens, contrast
+  pairs, RTL, reduced-motion, same test gate) — read `docs/CREATIVE-CONTRACT.md`
+  first. One coherent concept beats ten scattered effects.
 
 ## Rules that keep you out of trouble
 

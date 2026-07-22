@@ -1,4 +1,5 @@
 ---
+import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -7,7 +8,8 @@ const business = await getBusiness();
 const { testimonials } = business.content;
 ---
 
-<section id="testimonials" class="scroll-mt-20 section-pad">
+<section id="testimonials" class="relative isolate scroll-mt-20 section-pad">
+  <SectionDecor section="testimonials" />
   <Container>
     <SectionHeading title={testimonials.title} subtitle={testimonials.subtitle} />
     <ul class="grid gap-6 md:grid-cols-3" data-reveal-group>
@@ -16,7 +18,7 @@ const { testimonials } = business.content;
           <li class="flex flex-col rounded-card border border-line bg-surface p-6 shadow-card">
             <blockquote class="flex-1 text-lg text-ink">
               <span aria-hidden="true" class="mb-2 block font-display text-4xl text-accent">
-                ”
+                â€
               </span>
               <bdi>{item.quote}</bdi>
             </blockquote>
