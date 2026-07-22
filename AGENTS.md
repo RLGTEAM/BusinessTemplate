@@ -86,6 +86,13 @@ tests/smoke.spec.ts                ← Playwright smoke suite
   - `sectionOrder`: permutation of the 7 middle sections; index.astro renders from it. Keep
     `content.nav` link order consistent with it.
   - Adding a variant = schema enum → tokens/markup → this list. Never fork a section per client.
+- **Signature moment (`src/components/custom/`)** — the ONE sanctioned per-client creative
+  sandbox; full contract in `docs/CREATIVE-CONTRACT.md`. `SignatureBackdrop.astro` (decorative
+  hero layer), `Signature.astro` (custom section, activated by adding `"signature"` to
+  `sectionOrder`), `signature.ts` (`registerSignature()`, runs inside the reduced-motion-guarded
+  matchMedia context). All ship as no-ops. Strings from `content.signature`, colors from tokens,
+  same RTL/animation rules, same test gate. At most one signature moment per client site;
+  custom code lives ONLY in `custom/` — sections are still never forked.
 
 ## RTL rules (non-negotiable)
 

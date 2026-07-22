@@ -43,6 +43,14 @@ export const orderableSections = [
   "contact",
 ] as const;
 
+/**
+ * Everything sectionOrder may contain: the core sections plus the optional
+ * per-client "signature" section (src/components/custom/Signature.astro —
+ * see docs/CREATIVE-CONTRACT.md).
+ */
+export const sectionKeys = [...orderableSections, "signature"] as const;
+export type SectionKey = (typeof sectionKeys)[number];
+
 export const businessSchema = z.object({
   locale: z.enum(["he", "en"]),
 
@@ -65,13 +73,13 @@ export const businessSchema = z.object({
       servicesLayout: z.enum(["cards", "list", "panels"]).default("cards"),
       galleryLayout: z.enum(["grid", "masonry", "featured"]).default("grid"),
       sectionOrder: z
-        .array(z.enum(orderableSections))
+        .array(z.enum(sectionKeys))
         .default([...orderableSections])
         .refine(
           (order) =>
-            order.length === orderableSections.length &&
-            orderableSections.every((s) => order.includes(s)),
-          "sectionOrder must contain every section exactly once",
+            orderableSections.every((s) => order.filter((x) => x === s).length === 1) &&
+            order.filter((x) => x === "signature").length <= 1,
+          'sectionOrder must contain every core section exactly once (plus "signature" at most once)',
         ),
     })
     .default({
@@ -305,6 +313,20 @@ export const businessSchema = z.object({
         body: z.array(z.string().min(1)).min(1),
       }),
     }),
+
+    /**
+     * Strings for the per-client signature moment (docs/CREATIVE-CONTRACT.md).
+     * Custom components read copy ONLY from here — never hardcoded literals.
+     * Absent in the template skeleton; add it when a client site builds a
+     * signature section/backdrop that shows text.
+     */
+    signature: z
+      .object({
+        title: z.string().optional(),
+        /** Arbitrary named strings, e.g. { "marqueeText": "...", "badge": "..." }. */
+        strings: z.record(z.string(), z.string()).default({}),
+      })
+      .optional(),
   }),
 });
 

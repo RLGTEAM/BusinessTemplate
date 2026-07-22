@@ -1,6 +1,7 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { registerSignature } from "@/components/custom/signature";
 import { setupReveals } from "./reveal";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -34,8 +35,12 @@ export function initAnimations(): void {
     gsap.ticker.lagSmoothing(0);
 
     setupReveals();
+    // Per-client signature animations (no-op in the template). Runs inside
+    // this matchMedia context, so its tweens revert with everything else.
+    const cleanupSignature = registerSignature();
 
     return () => {
+      cleanupSignature?.();
       if (rafCallback) {
         gsap.ticker.remove(rafCallback);
         rafCallback = null;

@@ -69,6 +69,21 @@ Set the `design` block so this client does NOT share a skeleton with previous cl
 - If other client sites are known (ask the user which combos are already in use), choose a
   combination that differs in at least three axes overall.
 
+## Step 3.75 — Creative concept + signature moment
+
+Before touching images, propose ONE bold creative concept drawn from the client's world —
+a metaphor their customers instantly recognize (record store → vinyl, bakery → flour dust,
+barber → clipper lines). Present it to the user with:
+
+- the concept in one sentence, and how it maps onto the palette/fontPairing/hero choices;
+- where its **signature moment** lives: hero backdrop (`SignatureBackdrop.astro`), custom
+  section (`Signature.astro` + `"signature"` in `sectionOrder`), or animation
+  (`signature.ts`), per the contract in `docs/CREATIVE-CONTRACT.md`;
+- what the reduced-motion/static version looks like (it must stand on its own).
+
+Rules: at most ONE signature moment; strings via `content.signature`; tokens only; the
+same test gate applies. If the user declines, skip — the dials alone are a complete design.
+
 ## Step 4 — Images
 
 - Replace `src/assets/images/*.png` with client photos (keep filenames, or update

@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import SignatureBackdrop from "@/components/custom/SignatureBackdrop.astro";
 import Button from "@/components/ui/Button.astro";
 import Container from "@/components/ui/Container.astro";
 import { getBusiness, resolveHref } from "@/lib/business";
@@ -16,8 +17,9 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
 
 {
   variant === "split" && (
-    <section id="hero" class="hero-bg overflow-hidden section-pad">
-      <Container class="grid items-center gap-12 lg:grid-cols-2">
+    <section id="hero" class="hero-bg relative overflow-hidden section-pad">
+      <SignatureBackdrop />
+      <Container class="relative grid items-center gap-12 lg:grid-cols-2">
         <div class="max-w-xl">
           {/* Eyebrow uses text-secondary, not text-primary: it sits on bg-surface-alt, and
               only the pairs checked in scripts/validate-content.ts are contrast-safe. */}
@@ -57,8 +59,9 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
 
 {
   variant === "centered" && (
-    <section id="hero" class="hero-bg overflow-hidden section-pad">
-      <Container class="flex flex-col items-center text-center">
+    <section id="hero" class="hero-bg relative overflow-hidden section-pad">
+      <SignatureBackdrop />
+      <Container class="relative flex flex-col items-center text-center">
         {hero.eyebrow && (
           <p class="mb-4 inline-block rounded-full bg-surface-alt px-4 py-1.5 text-sm font-semibold text-secondary">
             {hero.eyebrow}
@@ -104,6 +107,7 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
       />
       {/* Overlay keeps text on the validated secondary↔surface contrast pair. */}
       <div class="hero-overlay absolute inset-0" aria-hidden="true" />
+      <SignatureBackdrop />
       <Container class="relative flex min-h-[70vh] flex-col items-start justify-center py-24 sm:min-h-[80vh]">
         {hero.eyebrow && (
           <p class="mb-4 inline-block rounded-full bg-surface/15 px-4 py-1.5 text-sm font-semibold text-surface">

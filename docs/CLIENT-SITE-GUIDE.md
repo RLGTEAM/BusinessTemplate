@@ -79,6 +79,12 @@ That's **thousands of combinations before you even pick colors**. Tips for choos
 - **Photos beat every other dial.** Real photos of the client's work, lightly
   edited for consistent warmth/exposure, are the single biggest anti-template
   signal. Placeholder-quality stock kills the effect of every choice above.
+- **Then add the signature moment.** Beyond the dials, every client site may get
+  ONE bespoke creative flourish — a custom hero backdrop (spinning vinyl for a
+  record store, drifting steam for a café) or a fully custom section. It lives in
+  `src/components/custom/` under a strict contract (tokens, RTL, reduced-motion,
+  same test gate) — read `docs/CREATIVE-CONTRACT.md` before writing it. One
+  moment, done well, beats ten scattered effects.
 
 ## Rules that keep you out of trouble
 

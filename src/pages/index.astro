@@ -1,4 +1,5 @@
 ---
+import Signature from "@/components/custom/Signature.astro";
 import About from "@/components/sections/About.astro";
 import ContactForm from "@/components/sections/ContactForm.astro";
 import CTA from "@/components/sections/CTA.astro";
@@ -9,7 +10,7 @@ import Header from "@/components/sections/Header.astro";
 import Hero from "@/components/sections/Hero.astro";
 import Services from "@/components/sections/Services.astro";
 import Testimonials from "@/components/sections/Testimonials.astro";
-import type { orderableSections } from "@/content/business.schema";
+import type { SectionKey } from "@/content/business.schema";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getBusiness } from "@/lib/business";
 
@@ -17,7 +18,7 @@ const business = await getBusiness();
 
 // Composition is data-driven: design.sectionOrder decides the page flow.
 // Header/Hero/Footer are fixed; everything else reorders per client.
-const sections: Record<(typeof orderableSections)[number], typeof Services> = {
+const sections: Record<SectionKey, typeof Services> = {
   services: Services,
   about: About,
   testimonials: Testimonials,
@@ -25,6 +26,7 @@ const sections: Record<(typeof orderableSections)[number], typeof Services> = {
   faq: FAQ,
   cta: CTA,
   contact: ContactForm,
+  signature: Signature,
 };
 ---
 
