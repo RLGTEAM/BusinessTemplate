@@ -82,7 +82,7 @@ A new client asked for a website. Step by step:
 | `npm run test:e2e`         | Playwright smoke + axe a11y tests (builds + serves itself) |
 | `npm run test:visual`      | Visual regression snapshots (local; rebaseline with `--update-snapshots`) |
 | `npm run generate:og`      | Regenerate the OG image from business.json name + palette |
-| `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1) — run `build` first |
+| `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) — run `build` first |
 
 First e2e run needs `npx playwright install chromium`.
 
@@ -113,7 +113,7 @@ the remote ones connect over HTTP. Run `/mcp` inside Claude Code to see server s
 | `astro-docs` | Official Astro docs (remote, always current) | None |
 | `playwright` | Drive a real browser to verify UI/RTL changes | None |
 | `chrome-devtools` | Console, network, performance traces | None |
-| `lighthouse` | Core Web Vitals / a11y / SEO audits (budgets: LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1) | None (needs Node ≥ 22) |
+| `lighthouse` | Core Web Vitals / a11y / SEO audits (budgets: LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) | None (needs Node ≥ 22) |
 | `a11y` | axe-core WCAG audits, contrast + ARIA checks | None |
 | `github` | Repos, PRs, Actions for the per-client workflow | `/mcp` → authenticate (OAuth, browser opens) |
 | `cloudflare` | Cloudflare API — Pages deploys, DNS, domains | `/mcp` → authenticate (OAuth) |

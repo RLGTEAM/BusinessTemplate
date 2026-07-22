@@ -8,7 +8,7 @@ Declared in `.mcp.json`, pre-allowed in `.claude/settings.json` — use them, do
 - **context7** — REQUIRED before writing code against Tailwind 4, GSAP, Lenis, Zod, or Playwright APIs. These move fast (`astro/zod` is zod v4 — memory will be stale). Resolve the library, query the specific concept, then code.
 - **playwright** — REQUIRED for verifying user-visible changes in a real browser (or run `npm run test:e2e`). Don't claim a visual/RTL/animation change works without one of the two.
 - **chrome-devtools** — use for performance traces, console errors, and Core Web Vitals checks against the dev server.
-- **lighthouse** — run after performance-relevant changes (images, fonts, scripts); budgets are LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1.
+- **lighthouse** — run after performance-relevant changes (images, fonts, scripts); budgets are LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1.
 - **a11y** — run axe-core checks after touching forms, nav, color tokens, or heading structure.
 - **github** / **cloudflare** — available but NOT pre-approved (they mutate real infrastructure and need OAuth via `/mcp`). Always confirm with the user before deploy/DNS/repo mutations.
 

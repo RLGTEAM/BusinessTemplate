@@ -6,7 +6,7 @@
  * Uses sharp (ships with Astro). Text renders with system fonts (Arial supports
  * Hebrew everywhere); replace the file with a designed image whenever one exists.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { businessSchema } from "../src/content/business.schema";
@@ -50,3 +50,19 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
 const target = fileURLToPath(new URL(`public/${business.data.seo.ogImage}`, root));
 await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(target);
 console.log(`✓ ${business.data.seo.ogImage} generated (1200×630) for "${name}"`);
+
+// Favicon: brand-gradient tile with the business initial (SVG scales to any size).
+const initial = escapeXml([...name.trim()][0] ?? "•");
+const favicon = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${secondary}"/>
+      <stop offset="1" stop-color="${primary}"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <text x="32" y="44" text-anchor="middle" font-family="Heebo, Arial, sans-serif"
+    font-size="34" font-weight="700" fill="#ffffff">${initial}</text>
+</svg>`;
+writeFileSync(fileURLToPath(new URL("public/favicon.svg", root)), favicon);
+console.log(`✓ favicon.svg generated ("${initial}")`);
