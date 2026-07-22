@@ -103,6 +103,11 @@ Notes:
 - **Legal pages** ship built-in: `/accessibility-statement/` (mandatory for Israeli businesses,
   ת"י 5568 — fill the real coordinator details per client!) and `/privacy/`, both generated
   from `content.legal` and linked in the footer.
+- **Cookies & consent**: the template is cookieless by default (self-hosted fonts, cookieless
+  Cloudflare Analytics) — no banner needed. Setting `data.analytics.gtagId` or `metaPixelId`
+  automatically shows a consent banner and keeps those trackers blocked until the visitor
+  accepts (choice persists in localStorage). When enabling a tracker, also update the
+  `content.legal.privacy` text to disclose it.
 - Visual snapshots are per-machine and NOT committed (gitignored): the first
   `npm run test:visual` creates baselines (that run reports "missing snapshot" — rerun to go
   green). Rebaseline after intentional design changes with

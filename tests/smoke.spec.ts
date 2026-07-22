@@ -80,6 +80,17 @@ test.describe("home page", () => {
     await expect(page.locator("h1")).toHaveText(business.content.legal.privacy.title);
   });
 
+  test("consent banner absent when no cookie-based trackers are configured", async ({ page }) => {
+    const hasTracking =
+      business.data.analytics.gtagId !== "" || business.data.analytics.metaPixelId !== "";
+    await page.goto("/");
+    if (hasTracking) {
+      await expect(page.locator("#consent-banner")).toBeVisible();
+    } else {
+      await expect(page.locator("#consent-banner")).toHaveCount(0);
+    }
+  });
+
   test("AEO/PWA endpoints respond", async ({ request }) => {
     const llms = await request.get("/llms.txt");
     expect(llms.status()).toBe(200);

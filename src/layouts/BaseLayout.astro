@@ -3,6 +3,7 @@ import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import JsonLd from "@/components/seo/JsonLd.astro";
 import SEO from "@/components/seo/SEO.astro";
+import ConsentBanner from "@/components/ui/ConsentBanner.astro";
 import { getBusiness, getDir } from "@/lib/business";
 import { faqJsonLd, localBusinessJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import "@/styles/global.css";
@@ -61,6 +62,7 @@ const brandVars = [
       {business.content.ui.skipToContent}
     </a>
     <slot />
+    <ConsentBanner />
     <script>
       import { destroyAnimations, initAnimations } from "@/lib/animation";
 

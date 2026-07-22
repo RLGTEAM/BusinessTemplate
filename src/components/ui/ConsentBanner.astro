@@ -1,0 +1,123 @@
+---
+import { getBusiness } from "@/lib/business";
+
+/**
+ * Cookie-consent banner. Renders ONLY when business.json declares a
+ * cookie-based tracker (analytics.gtagId / analytics.metaPixelId).
+ * Tracking scripts are loaded exclusively AFTER the visitor accepts;
+ * the choice persists in localStorage ("cookie-consent": granted|denied).
+ * Cloudflare Web Analytics is cookieless and intentionally not gated.
+ */
+const business = await getBusiness();
+const { gtagId, metaPixelId } = business.data.analytics;
+const hasTracking = gtagId !== "" || metaPixelId !== "";
+const { consent } = business.content;
+---
+
+{
+  hasTracking && (
+    <div
+      id="consent-banner"
+      role="region"
+      aria-label={consent.message}
+      hidden
+      class="fixed inset-inline-0 bottom-0 z-50 border-t border-line bg-surface p-4 shadow-card-hover sm:bottom-4 sm:end-4 sm:inset-inline-auto sm:max-w-sm sm:rounded-card sm:border"
+      data-gtag-id={gtagId}
+      data-meta-pixel-id={metaPixelId}
+    >
+      <p class="text-sm text-ink">
+        {consent.message}{" "}
+        <a href="/privacy/" class="text-primary underline underline-offset-4">
+          {consent.privacyLabel}
+        </a>
+      </p>
+      <div class="mt-3 flex gap-3">
+        <button
+          type="button"
+          data-consent-accept
+          class="min-h-10 flex-1 rounded-button bg-primary px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-secondary"
+        >
+          {consent.acceptLabel}
+        </button>
+        <button
+          type="button"
+          data-consent-decline
+          class="min-h-10 flex-1 rounded-button border border-line px-4 py-2 text-sm font-semibold text-secondary transition-colors hover:border-primary"
+        >
+          {consent.declineLabel}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  const STORAGE_KEY = "cookie-consent";
+
+  declare global {
+    interface Window {
+      dataLayer?: unknown[];
+      fbq?: ((...args: unknown[]) => void) & { queue?: unknown[]; loaded?: boolean };
+    }
+  }
+
+  function loadScript(src: string): void {
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = src;
+    document.head.appendChild(script);
+  }
+
+  function loadTrackers(banner: HTMLElement): void {
+    const gtagId = banner.dataset.gtagId ?? "";
+    const metaPixelId = banner.dataset.metaPixelId ?? "";
+
+    if (gtagId !== "") {
+      window.dataLayer = window.dataLayer ?? [];
+      const gtag = (...args: unknown[]): void => {
+        window.dataLayer?.push(args);
+      };
+      gtag("js", new Date());
+      gtag("config", gtagId);
+      loadScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gtagId)}`);
+    }
+
+    if (metaPixelId !== "") {
+      const fbq: NonNullable<Window["fbq"]> = (...args: unknown[]) => {
+        fbq.queue?.push(args);
+      };
+      fbq.queue = [];
+      fbq.loaded = true;
+      window.fbq = window.fbq ?? fbq;
+      window.fbq("init", metaPixelId);
+      window.fbq("track", "PageView");
+      loadScript("https://connect.facebook.net/en_US/fbevents.js");
+    }
+  }
+
+  function setupConsent(): void {
+    const banner = document.getElementById("consent-banner");
+    if (!banner) return;
+
+    const choice = localStorage.getItem(STORAGE_KEY);
+    if (choice === "granted") {
+      loadTrackers(banner);
+      return;
+    }
+    if (choice === "denied") return;
+
+    banner.hidden = false;
+
+    banner.querySelector("[data-consent-accept]")?.addEventListener("click", () => {
+      localStorage.setItem(STORAGE_KEY, "granted");
+      banner.hidden = true;
+      loadTrackers(banner);
+    });
+    banner.querySelector("[data-consent-decline]")?.addEventListener("click", () => {
+      localStorage.setItem(STORAGE_KEY, "denied");
+      banner.hidden = true;
+    });
+  }
+
+  document.addEventListener("astro:page-load", setupConsent);
+</script>

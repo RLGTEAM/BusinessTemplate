@@ -34,6 +34,10 @@ doesn't exist, extend the schema first, then the JSON. Never add unvalidated fie
 - `legal.accessibility.coordinator` needs the client's REAL accessibility coordinator
   (name/phone/email) and today's date in `statementDate` — this page is a legal requirement
   in Israel. `legal.privacy` should reflect what the form actually collects.
+- Trackers: only set `analytics.gtagId` / `metaPixelId` if the client explicitly wants
+  GA4/Meta Pixel — this auto-enables the consent banner (strings in `content.consent`,
+  keep them in the client's voice). If enabled, REWRITE `legal.privacy` to disclose the
+  tracker; the default text claims the site is cookieless.
 - Final sweep: `rg "\[" src/content/business/business.json` — only the bidi test line may remain.
 - Respect `voice`: tone/formality/doNotSay apply to every sentence you write.
 - Keep the bidi test line pattern in `content.about.body` when locale is `he`

@@ -139,13 +139,22 @@ export const businessSchema = z.object({
     serviceAreas: z.array(z.string().min(1)),
     /** Schema.org priceRange for LocalBusiness, e.g. "₪₪". Empty omits it. */
     priceRange: z.string().default(""),
-    /** Cloudflare Web Analytics (cookieless, no consent banner needed).
-     *  Empty token = no analytics script emitted. Dashboard → Analytics → Web Analytics. */
+    /**
+     * Analytics & tracking.
+     * - cloudflareToken: cookieless Cloudflare Web Analytics — NO consent needed.
+     * - gtagId / metaPixelId: cookie-based trackers. Setting either one makes the
+     *   consent banner appear automatically, and the scripts load ONLY after the
+     *   visitor accepts (stored choice in localStorage). Empty = nothing emitted.
+     */
     analytics: z
       .object({
         cloudflareToken: z.string().default(""),
+        /** Google tag id, e.g. "G-XXXXXXXXXX". */
+        gtagId: z.string().default(""),
+        /** Meta (Facebook) Pixel id, digits only. */
+        metaPixelId: z.string().default(""),
       })
-      .default({ cloudflareToken: "" }),
+      .default({ cloudflareToken: "", gtagId: "", metaPixelId: "" }),
     seo: z.object({
       /** Canonical production origin, no trailing slash, e.g. "https://example.co.il". */
       siteUrl: z.url(),
@@ -258,6 +267,15 @@ export const businessSchema = z.object({
       skipToContent: z.string().min(1),
       openMenu: z.string().min(1),
       closeMenu: z.string().min(1),
+    }),
+    /** Cookie-consent banner strings. Rendered only when data.analytics declares
+     *  a cookie-based tracker (gtagId / metaPixelId). */
+    consent: z.object({
+      message: z.string().min(1),
+      acceptLabel: z.string().min(1),
+      declineLabel: z.string().min(1),
+      /** Link text to the privacy policy page. */
+      privacyLabel: z.string().min(1),
     }),
     notFound: z.object({
       title: z.string().min(1),

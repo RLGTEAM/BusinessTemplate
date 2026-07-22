@@ -61,7 +61,7 @@
     },
     "serviceAreas": ["[עיר 1]", "[עיר 2]"],
     "priceRange": "",
-    "analytics": { "cloudflareToken": "" },
+    "analytics": { "cloudflareToken": "", "gtagId": "", "metaPixelId": "" },
     "seo": {
       "siteUrl": "https://example.com",
       "defaultTitle": "[שם העסק] — [תחום העיסוק] ב[עיר]",
@@ -204,6 +204,12 @@
       "skipToContent": "דילוג לתוכן",
       "openMenu": "פתיחת תפריט",
       "closeMenu": "סגירת תפריט"
+    },
+    "consent": {
+      "message": "האתר משתמש בעוגיות למדידה ושיווק. אפשר לאשר או לדחות — האתר עובד מצוין גם בלי.",
+      "acceptLabel": "אישור",
+      "declineLabel": "דחייה",
+      "privacyLabel": "מדיניות פרטיות"
     },
     "notFound": {
       "title": "העמוד לא נמצא",
