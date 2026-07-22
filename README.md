@@ -8,34 +8,60 @@ Ships with: Astro 7 (static output), Tailwind CSS 4 (CSS-first), GSAP + ScrollTr
 (reduced-motion safe), self-hosted Heebo + Assistant, JSON-LD (LocalBusiness / Organization /
 FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Lighthouse CI.
 
-## Per-client workflow
+## One-time agency setup (owner, ~15 minutes)
 
-1. **Create the client repo.** On GitHub, mark this repo as a **Template repository**
-   (Settings → General → check "Template repository", one time). Then per client:
-   **Use this template → Create a new repository**, and:
+Do this once; every client site afterwards starts from here.
 
-   ```sh
-   git clone <client-repo-url> && cd client-name
-   npm install         # also installs the husky pre-commit hook
-   ```
+1. **Host the template on GitHub**: create a private repo (e.g. `your-org/business-template`)
+   and push this project to it.
+2. **Settings → General → check "Template repository"** — enables "Use this template" for
+   client repos with clean history.
+3. **Branch protection** on `master`: require the three CI jobs (quality / e2e / lighthouse)
+   to pass, require one review.
+4. **Enable the [Renovate GitHub App](https://github.com/apps/renovate)** on the template repo
+   only — dependencies stay fresh here; client clones stay frozen at known-good versions.
+5. **Cloudflare account**: one agency account; invite developers as members.
+6. **Onboard a developer**: they need Node ≥ 22 + git. First time in any clone:
+   `npm install`, `npx playwright install chromium`, open the folder in Claude Code (MCP
+   servers self-configure — see below), and read [AGENTS.md](./AGENTS.md). That's the whole
+   onboarding.
 
-   (Without GitHub: `git clone <template-url> client-name && cd client-name && rm -rf .git && git init`.)
+## New client → live site (the per-client flow)
 
-2. **Fill `src/content/business/business.json`** — facts (`data`), tone + palette (`voice`),
-   and every visible string (`content`). This re-brands the whole site, including theme colors.
-   Set `data.seo.siteUrl` to the production URL (drives canonical, sitemap, robots, JSON-LD).
-   Set `locale` to `"he"` or `"en"` — this flips `lang`/`dir` site-wide.
+A new client asked for a website. Step by step:
 
-3. **Validate**: `npm run validate:content` — checks the schema AND WCAG AA contrast of
-   `voice.palette` (an invalid file also fails `npm run build`).
-
-4. **Replace images**: drop client photos into `src/assets/images/` (referenced by filename in
-   business.json) and `public/og-default.png` (1200×630). Placeholders can be regenerated with
-   `npx tsx scripts/generate-placeholders.ts`.
-
-5. **Contact form**: copy `.env.example` to `.env` and set `PUBLIC_WEB3FORMS_KEY`
-   (free key from [web3forms.com](https://web3forms.com)). On Cloudflare Pages, add the same
-   variable in the dashboard.
+1. **Collect the brief** (sales call / intake form). Minimum needed — this list mirrors
+   Step 0 of the `/new-client` skill, which will ask for anything missing:
+   business name + legal name, what they do, address, phone, email, WhatsApp, hours,
+   3–6 services with prices, service areas, socials, brand colors (if any), tone/voice
+   preferences, photos, and the desired domain.
+2. **Create the repo**: template repo → **Use this template → Create a new repository** →
+   `client-name` (private). Then `git clone <client-repo-url> && cd client-name && npm install`.
+3. **Fill the site**: open the folder in Claude Code and run **`/new-client`**, pasting the
+   brief. It fills `business.json` (facts, voice, palette, every visible string), enforces the
+   WCAG palette contract, regenerates the OG image, and runs the full test gate.
+   Doing it by hand instead: edit `src/content/business/business.json`, then
+   `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
+4. **Real photos**: drop client photos into `src/assets/images/` keeping the filenames (or
+   update the refs in business.json). Rebaseline visuals:
+   `npx playwright test --grep @visual --update-snapshots`.
+5. **Contact form key**: create a free [Web3Forms](https://web3forms.com) access key **using
+   the client's email** (submissions go to that inbox). Put it in `.env` locally
+   (copy `.env.example`) — and later in Cloudflare Pages env vars.
+6. **Push** to the client repo. CI must be green.
+7. **Deploy a preview**: connect the repo to Cloudflare Pages (see Deploy section below).
+   The `*.pages.dev` URL is your client-approval link.
+8. **Client feedback loop**: every copy/color/price change is a `business.json` edit → commit
+   → auto-redeploy. No code changes for content feedback.
+9. **Go live**: buy/point the domain, add it as a custom domain in Cloudflare Pages, set
+   `data.seo.siteUrl` in business.json to the final domain, commit (this fixes canonical URLs,
+   sitemap, robots, and JSON-LD), verify the deploy.
+10. **Post-launch checks**: run `npm run build && npm run lhci` against the budgets; validate
+    the structured data at [validator.schema.org](https://validator.schema.org) and Google's
+    Rich Results test; add the site to Google Search Console and submit
+    `https://<domain>/sitemap-index.xml`.
+11. **Handoff**: confirm the client receives form submissions, hand over Search Console
+    access, archive the brief in the client repo (e.g. `docs/brief.md`).
 
 ## Commands
 
