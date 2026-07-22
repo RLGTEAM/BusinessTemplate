@@ -1,0 +1,28 @@
+---
+import Footer from "@/components/sections/Footer.astro";
+import Header from "@/components/sections/Header.astro";
+import Button from "@/components/ui/Button.astro";
+import Container from "@/components/ui/Container.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getBusiness } from "@/lib/business";
+
+const business = await getBusiness();
+const { notFound } = business.content;
+---
+
+<BaseLayout title={`${notFound.title} — ${business.data.name}`}>
+  <Header />
+  <main id="main">
+    <section class="section-pad">
+      <Container class="flex min-h-[40vh] flex-col items-center justify-center text-center">
+        <p class="font-display text-7xl font-bold text-primary" aria-hidden="true">
+          <bdi class="force-ltr">404</bdi>
+        </p>
+        <h1 class="mt-4 text-3xl font-bold text-secondary sm:text-4xl">{notFound.title}</h1>
+        <p class="mt-4 max-w-md text-ink-muted">{notFound.body}</p>
+        <Button href="/" class="mt-8">{notFound.backLabel}</Button>
+      </Container>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

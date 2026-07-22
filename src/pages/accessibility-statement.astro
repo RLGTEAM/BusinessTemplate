@@ -1,0 +1,56 @@
+---
+import Footer from "@/components/sections/Footer.astro";
+import Header from "@/components/sections/Header.astro";
+import Container from "@/components/ui/Container.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getBusiness, telHref } from "@/lib/business";
+
+const business = await getBusiness();
+const { accessibility } = business.content.legal;
+---
+
+<BaseLayout title={`${accessibility.title} — ${business.data.name}`}>
+  <Header />
+  <main id="main">
+    <section class="section-pad">
+      <Container class="max-w-3xl">
+        <h1 class="text-3xl font-bold text-secondary sm:text-4xl">{accessibility.title}</h1>
+
+        <div class="mt-8 space-y-4 text-ink-muted">
+          {accessibility.intro.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+
+        <ul class="mt-8 list-disc space-y-2 ps-6 text-ink-muted marker:text-primary">
+          {accessibility.adjustments.map((item) => <li>{item}</li>)}
+        </ul>
+
+        <div class="mt-10 rounded-card border border-line bg-surface p-6 shadow-card">
+          <h2 class="text-xl font-bold text-secondary">{accessibility.coordinator.name}</h2>
+          <ul class="mt-3 space-y-1.5 text-ink-muted">
+            <li>
+              <a
+                href={telHref(accessibility.coordinator.phone)}
+                class="transition-colors hover:text-primary"
+              >
+                <bdi class="force-ltr">{accessibility.coordinator.phone}</bdi>
+              </a>
+            </li>
+            <li>
+              <a
+                href={`mailto:${accessibility.coordinator.email}`}
+                class="transition-colors hover:text-primary"
+              >
+                <bdi class="force-ltr">{accessibility.coordinator.email}</bdi>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <p class="mt-8 text-sm text-ink-muted">
+          <bdi class="force-ltr">{accessibility.statementDate}</bdi>
+        </p>
+      </Container>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

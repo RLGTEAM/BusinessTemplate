@@ -12,6 +12,11 @@ const socials = [
   { label: "Facebook", href: data.socials.facebook },
   { label: "TikTok", href: data.socials.tiktok },
 ].filter((social) => social.href !== "");
+
+const legalLinks = [
+  { label: content.legal.accessibility.title, href: "/accessibility-statement/" },
+  { label: content.legal.privacy.title, href: "/privacy/" },
+];
 ---
 
 <footer class="border-t border-line bg-secondary text-surface/85">
@@ -97,7 +102,7 @@ const socials = [
             <li class="flex justify-between gap-4">
               <span>{entry.label}</span>
               <bdi class="force-ltr tabular-nums">
-                {entry.open}â€“{entry.close}
+                {entry.open}–{entry.close}
               </bdi>
             </li>
           ))
@@ -107,11 +112,27 @@ const socials = [
   </Container>
 
   <div class="border-t border-surface/15">
-    <Container class="py-5 text-center text-sm">
+    <Container
+      class="flex flex-col items-center gap-3 py-5 text-center text-sm sm:flex-row sm:justify-between"
+    >
       <p>
-        Â© <bdi class="force-ltr">{year}</bdi>
-        {data.legalName} Â· {footer.rights}
+        © <bdi class="force-ltr">{year}</bdi>
+        {data.legalName} · {footer.rights}
       </p>
+      <ul class="flex gap-5">
+        {
+          legalLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="underline-offset-4 transition-colors hover:text-accent hover:underline"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </Container>
   </div>
 </footer>

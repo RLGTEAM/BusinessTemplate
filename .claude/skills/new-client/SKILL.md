@@ -27,8 +27,14 @@ doesn't exist, extend the schema first, then the JSON. Never add unvalidated fie
 
 ## Step 2 — Write business.json
 
-- Rewrite EVERY string in `data`, `voice`, and `content` — including nav labels, form labels,
-  FAQ, testimonials placeholders (mark clearly if awaiting real ones), and footer strings.
+- The shipped file is a `[bracketed]` placeholder skeleton — replace EVERY placeholder in
+  `data`, `voice`, and `content`, including nav labels, form labels, FAQ, testimonials
+  (mark clearly if awaiting real ones), footer strings, `notFound`, and `legal`.
+  A fully-filled reference: `docs/examples/demo-salon.business.json`.
+- `legal.accessibility.coordinator` needs the client's REAL accessibility coordinator
+  (name/phone/email) and today's date in `statementDate` — this page is a legal requirement
+  in Israel. `legal.privacy` should reflect what the form actually collects.
+- Final sweep: `rg "\[" src/content/business/business.json` — only the bidi test line may remain.
 - Respect `voice`: tone/formality/doNotSay apply to every sentence you write.
 - Keep the bidi test line pattern in `content.about.body` when locale is `he`
   (Hebrew + Latin name + phone + ₪ price) — the smoke test asserts it renders.

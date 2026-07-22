@@ -46,6 +46,19 @@ export function localBusinessJsonLd(business: Business): JsonLd {
       closes: h.close,
     })),
     areaServed: data.serviceAreas.map((name) => ({ "@type": "City", name })),
+    priceRange: data.priceRange !== "" ? data.priceRange : undefined,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: business.content.services.title,
+      itemListElement: data.services.map((service) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: service.title,
+          description: service.description,
+        },
+      })),
+    },
     sameAs: sameAs.length > 0 ? sameAs : undefined,
     contactPoint: {
       "@type": "ContactPoint",
@@ -68,6 +81,19 @@ export function organizationJsonLd(business: Business): JsonLd {
     logo: absoluteUrl(data.seo.siteUrl, data.seo.ogImage),
     email: data.contact.email,
     telephone: telHref(data.contact.phone).replace("tel:", ""),
+  };
+}
+
+export function websiteJsonLd(business: Business): JsonLd {
+  const { data } = business;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${data.seo.siteUrl}/#website`,
+    name: data.name,
+    url: data.seo.siteUrl,
+    inLanguage: business.locale,
+    publisher: { "@id": `${data.seo.siteUrl}/#organization` },
   };
 }
 

@@ -4,7 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import JsonLd from "@/components/seo/JsonLd.astro";
 import SEO from "@/components/seo/SEO.astro";
 import { getBusiness, getDir } from "@/lib/business";
-import { faqJsonLd, localBusinessJsonLd, organizationJsonLd } from "@/lib/jsonld";
+import { faqJsonLd, localBusinessJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import "@/styles/global.css";
 
 interface Props {
@@ -39,13 +39,17 @@ const brandVars = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content={palette.primary} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <SEO business={business} title={Astro.props.title} description={Astro.props.description} />
     <Font cssVariable="--font-brand-display" preload />
     <Font cssVariable="--font-brand-body" preload />
     {preloadImage && <link rel="preload" as="image" href={preloadImage} />}
     <JsonLd data={localBusinessJsonLd(business)} />
     <JsonLd data={organizationJsonLd(business)} />
+    <JsonLd data={websiteJsonLd(business)} />
     <JsonLd data={faqJsonLd(business)} />
     <ClientRouter />
   </head>

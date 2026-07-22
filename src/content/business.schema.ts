@@ -137,6 +137,8 @@ export const businessSchema = z.object({
       tiktok: urlOrEmpty,
     }),
     serviceAreas: z.array(z.string().min(1)),
+    /** Schema.org priceRange for LocalBusiness, e.g. "₪₪". Empty omits it. */
+    priceRange: z.string().default(""),
     /** Cloudflare Web Analytics (cookieless, no consent banner needed).
      *  Empty token = no analytics script emitted. Dashboard → Analytics → Web Analytics. */
     analytics: z
@@ -256,6 +258,34 @@ export const businessSchema = z.object({
       skipToContent: z.string().min(1),
       openMenu: z.string().min(1),
       closeMenu: z.string().min(1),
+    }),
+    notFound: z.object({
+      title: z.string().min(1),
+      body: z.string().min(1),
+      backLabel: z.string().min(1),
+    }),
+    /**
+     * Legal pages. The accessibility statement is legally required for Israeli
+     * businesses (תקן 5568 / WCAG 2.2) — coordinator details must be real.
+     */
+    legal: z.object({
+      accessibility: z.object({
+        title: z.string().min(1),
+        intro: z.array(z.string().min(1)).min(1),
+        /** What the site implements (bullet list). */
+        adjustments: z.array(z.string().min(1)).min(1),
+        coordinator: z.object({
+          name: z.string().min(1),
+          phone: z.string().min(1),
+          email: z.email(),
+        }),
+        /** ISO date, e.g. "2026-07-22". */
+        statementDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      }),
+      privacy: z.object({
+        title: z.string().min(1),
+        body: z.array(z.string().min(1)).min(1),
+      }),
     }),
   }),
 });

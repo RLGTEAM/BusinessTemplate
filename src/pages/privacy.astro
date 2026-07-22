@@ -1,0 +1,25 @@
+---
+import Footer from "@/components/sections/Footer.astro";
+import Header from "@/components/sections/Header.astro";
+import Container from "@/components/ui/Container.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getBusiness } from "@/lib/business";
+
+const business = await getBusiness();
+const { privacy } = business.content.legal;
+---
+
+<BaseLayout title={`${privacy.title} — ${business.data.name}`}>
+  <Header />
+  <main id="main">
+    <section class="section-pad">
+      <Container class="max-w-3xl">
+        <h1 class="text-3xl font-bold text-secondary sm:text-4xl">{privacy.title}</h1>
+        <div class="mt-8 space-y-4 text-ink-muted">
+          {privacy.body.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+      </Container>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

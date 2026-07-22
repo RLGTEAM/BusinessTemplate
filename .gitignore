@@ -26,3 +26,6 @@ Thumbs.db
 playwright-report/
 test-results/
 .lighthouseci/
+
+# visual regression baselines are per-machine (see README)
+tests/visual.spec.ts-snapshots/

@@ -29,8 +29,9 @@ test.describe("home page", () => {
 
   test("renders JSON-LD structured data", async ({ page }) => {
     await page.goto("/");
+    // LocalBusiness, Organization, WebSite, FAQPage
     const scripts = page.locator('script[type="application/ld+json"]');
-    await expect(scripts).toHaveCount(3);
+    await expect(scripts).toHaveCount(4);
     const first = await scripts.first().textContent();
     expect(first).toContain("LocalBusiness");
   });
@@ -51,6 +52,43 @@ test.describe("home page", () => {
       business.content.contactForm.requiredError,
     );
     await expect(form.locator("#name")).toBeFocused();
+  });
+
+  test("404 page renders", async ({ page }) => {
+    const response = await page.goto("/this-page-does-not-exist/");
+    expect(response?.status()).toBe(404);
+    await expect(page.locator("h1")).toHaveText(business.content.notFound.title);
+  });
+
+  test("legal pages render and are linked from the footer", async ({ page }) => {
+    await page.goto("/");
+    const footer = page.locator("body > footer");
+    await expect(
+      footer.getByRole("link", { name: business.content.legal.accessibility.title }),
+    ).toBeAttached();
+    await expect(
+      footer.getByRole("link", { name: business.content.legal.privacy.title }),
+    ).toBeAttached();
+
+    await page.goto("/accessibility-statement/");
+    await expect(page.locator("h1")).toHaveText(business.content.legal.accessibility.title);
+    await expect(
+      page.getByText(business.content.legal.accessibility.coordinator.name),
+    ).toBeVisible();
+
+    await page.goto("/privacy/");
+    await expect(page.locator("h1")).toHaveText(business.content.legal.privacy.title);
+  });
+
+  test("AEO/PWA endpoints respond", async ({ request }) => {
+    const llms = await request.get("/llms.txt");
+    expect(llms.status()).toBe(200);
+    expect(await llms.text()).toContain(business.data.name);
+
+    const manifest = await request.get("/site.webmanifest");
+    expect(manifest.status()).toBe(200);
+    const parsed = (await manifest.json()) as { name: string };
+    expect(parsed.name).toBe(business.data.name);
   });
 
   test("contact form flags an invalid email", async ({ page }) => {

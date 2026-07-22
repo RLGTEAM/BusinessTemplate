@@ -52,7 +52,8 @@ await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(target);
 console.log(`✓ ${business.data.seo.ogImage} generated (1200×630) for "${name}"`);
 
 // Favicon: brand-gradient tile with the business initial (SVG scales to any size).
-const initial = escapeXml([...name.trim()][0] ?? "•");
+// First actual letter — skips brackets/digits in placeholder names like "[שם העסק]".
+const initial = escapeXml([...name].find((ch) => /\p{L}/u.test(ch)) ?? "•");
 const favicon = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
   <title>${escapeXml(name)}</title>
   <defs>
@@ -67,3 +68,17 @@ const favicon = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
 </svg>`;
 writeFileSync(fileURLToPath(new URL("public/favicon.svg", root)), favicon);
 console.log(`✓ favicon.svg generated ("${initial}")`);
+
+// PNG icon set (apple-touch-icon + web manifest icons) from the same design.
+const iconSvg = Buffer.from(favicon);
+for (const { file, size } of [
+  { file: "apple-touch-icon.png", size: 180 },
+  { file: "icon-192.png", size: 192 },
+  { file: "icon-512.png", size: 512 },
+]) {
+  await sharp(iconSvg, { density: (72 * size) / 64 })
+    .resize(size, size)
+    .png({ compressionLevel: 9 })
+    .toFile(fileURLToPath(new URL(`public/${file}`, root)));
+  console.log(`✓ ${file} generated (${size}×${size})`);
+}

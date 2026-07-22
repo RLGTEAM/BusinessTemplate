@@ -42,14 +42,23 @@ src/
   components/seo/  components/ui/  ← SEO/JsonLd · Container/SectionHeading/Button
   styles/global.css                ← @theme tokens + RTL direction plumbing
   pages/index.astro                ← composes all sections
+  pages/404.astro                  ← not-found page (copy from content.notFound)
+  pages/{accessibility-statement,privacy}.astro ← legal pages (content.legal)
+  pages/{llms.txt,site.webmanifest,robots.txt}.ts ← generated endpoints
   assets/images/                   ← images referenced by filename in business.json
-scripts/                           ← validate-content.ts, generate-placeholders.ts
+docs/examples/                     ← filled business.json reference (demo salon)
+scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts
 tests/smoke.spec.ts                ← Playwright smoke suite
 ```
 
 ## The business.json contract
 
 - `data` = facts (NAP, hours, services, SEO). `voice` = tone + palette. `content` = every visible string, per section.
+- **The shipped file is a placeholder skeleton**: every `[bracketed]` value must be replaced for a
+  real client. Final sweep: `rg "\[" src/content/business/business.json` must return nothing
+  except the bidi test line. A fully-filled reference lives at `docs/examples/demo-salon.business.json`.
+- `content.legal.accessibility.coordinator` must contain REAL contact details before launch —
+  the accessibility statement is a legal requirement in Israel (ת"י 5568).
 - **No hardcoded business content in components.** New copy → add a field to `business.schema.ts`, then to `business.json`, then read it via `getBusiness()`.
 - Components read content ONLY through `getBusiness()` (never import the JSON directly).
 - `voice.palette` drives theme colors: BaseLayout sets `--brand-*` on `<html>`, `@theme inline` maps them to Tailwind `primary`/`secondary`/`accent`. Re-theming = editing JSON.

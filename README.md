@@ -93,8 +93,19 @@ the three jobs to pass before merge.
 
 Notes:
 
-- Visual snapshots are platform-specific (`-win32`/`-linux` suffixes), so the `@visual` suite
-  runs locally and is excluded in CI. Rebaseline after intentional design changes with
+- **The template ships as a placeholder skeleton** — business.json contains `[bracketed]`
+  placeholders and a neutral palette. A fully-filled example lives at
+  `docs/examples/demo-salon.business.json`.
+- Every site auto-generates its SEO/AEO surface from business.json: meta/OG/canonical,
+  4 JSON-LD blocks (LocalBusiness + OfferCatalog, Organization, WebSite, FAQPage), sitemap,
+  robots.txt, **llms.txt** (AI answer engines), web manifest + icon set, 404 page, and
+  security/cache headers (`public/_headers`).
+- **Legal pages** ship built-in: `/accessibility-statement/` (mandatory for Israeli businesses,
+  ת"י 5568 — fill the real coordinator details per client!) and `/privacy/`, both generated
+  from `content.legal` and linked in the footer.
+- Visual snapshots are per-machine and NOT committed (gitignored): the first
+  `npm run test:visual` creates baselines (that run reports "missing snapshot" — rerun to go
+  green). Rebaseline after intentional design changes with
   `npx playwright test --grep @visual --update-snapshots`.
 - `renovate.json` keeps the pinned dependencies fresh (enable the Renovate GitHub App on the
   **template** repo only — grouped PRs, majors held for approval). Client clones stay frozen.
