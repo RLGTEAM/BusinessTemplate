@@ -16,7 +16,7 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
 
 {
   variant === "split" && (
-    <section id="hero" class="hero-bg overflow-hidden py-16 sm:py-24">
+    <section id="hero" class="hero-bg overflow-hidden section-pad">
       <Container class="grid items-center gap-12 lg:grid-cols-2">
         <div class="max-w-xl">
           {/* Eyebrow uses text-secondary, not text-primary: it sits on bg-surface-alt, and
@@ -58,7 +58,7 @@ const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, bu
 
 {
   variant === "centered" && (
-    <section id="hero" class="hero-bg overflow-hidden py-16 sm:py-24">
+    <section id="hero" class="hero-bg overflow-hidden section-pad">
       <Container class="flex flex-col items-center text-center">
         {hero.eyebrow && (
           <p class="mb-4 inline-block rounded-full bg-surface-alt px-4 py-1.5 text-sm font-semibold text-secondary">

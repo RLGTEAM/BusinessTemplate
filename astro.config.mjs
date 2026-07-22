@@ -16,6 +16,8 @@ const FONT_PAIRINGS = {
   modern: { display: "Rubik", body: "Assistant" },
   elegant: { display: "Frank Ruhl Libre", body: "Heebo" },
   warm: { display: "Alef", body: "Rubik" },
+  bold: { display: "Karantina", body: "Heebo" },
+  editorial: { display: "David Libre", body: "Assistant" },
 };
 const pairing = FONT_PAIRINGS[business.design?.fontPairing ?? "classic"];
 

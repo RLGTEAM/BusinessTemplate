@@ -54,6 +54,28 @@
 }
 
 /*
+ * Vertical rhythm — design.density sets data-density on <html> (BaseLayout).
+ * Sections use the `section-pad` utility, never a literal py-*.
+ * "regular" matches the original py-16 sm:py-24 at phone and desktop widths.
+ */
+:root,
+[data-density="regular"] {
+  --section-py: clamp(4rem, 8vw, 6rem);
+}
+
+[data-density="airy"] {
+  --section-py: clamp(5.5rem, 11vw, 8.5rem);
+}
+
+[data-density="compact"] {
+  --section-py: clamp(2.75rem, 5.5vw, 4rem);
+}
+
+@utility section-pad {
+  padding-block: var(--section-py);
+}
+
+/*
  * Direction plumbing — the properties that do NOT auto-flip with dir="rtl".
  * Convention: any directional value in CSS or GSAP multiplies by
  * var(--dir-factor) / reads these tokens. Never write a raw left/right value.

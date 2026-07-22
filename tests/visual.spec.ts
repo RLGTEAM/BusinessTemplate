@@ -29,6 +29,9 @@ async function preparePage(page: import("@playwright/test").Page): Promise<void>
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
+  // Sticky header ghosts into element screenshots of tall sections depending
+  // on scroll offset (flaky). Make it static for captures — layout-identical.
+  await page.addStyleTag({ content: "header { position: static !important }" });
   // Lazy images may never load off-screen — force them eager, then wait for all.
   await page.evaluate(() => {
     for (const img of Array.from(document.images)) {

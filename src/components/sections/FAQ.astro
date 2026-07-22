@@ -7,7 +7,7 @@ const business = await getBusiness();
 const { faq } = business.content;
 ---
 
-<section id="faq" class="scroll-mt-20 py-16 sm:py-24">
+<section id="faq" class="scroll-mt-20 section-pad">
   <Container class="max-w-3xl">
     <SectionHeading title={faq.title} subtitle={faq.subtitle} />
     <div class="space-y-4" data-reveal-group>

@@ -64,11 +64,16 @@ tests/smoke.spec.ts                ← Playwright smoke suite
 - **Design variants (`design` block)** — the anti-sameness system; every client site must use a
   DISTINCT combination:
   - `fontPairing`: classic (Assistant/Heebo) · modern (Rubik/Assistant) ·
-    elegant (Frank Ruhl Libre/Heebo) · warm (Alef/Rubik). Mapped in astro.config.mjs; components
-    only ever use `font-display`/`font-sans`.
+    elegant (Frank Ruhl Libre/Heebo) · warm (Alef/Rubik) · bold (Karantina/Heebo, condensed
+    display) · editorial (David Libre/Assistant, serif display). Mapped in astro.config.mjs;
+    components only ever use `font-display`/`font-sans`.
   - `hero`: split · centered · full-bleed (variants live inside Hero.astro).
   - `shape`: rounded · sharp · pill — sets `data-shape` on `<html>`; use `rounded-card` /
     `rounded-button` utilities, never a literal radius.
+  - `density`: airy · regular · compact — sets `data-density`; sections use the `section-pad`
+    utility, never a literal `py-*` on a `<section>`.
+  - `servicesLayout`: cards · list · panels (inside Services.astro).
+  - `galleryLayout`: grid · masonry · featured (inside Gallery.astro).
   - `sectionOrder`: permutation of the 7 middle sections; index.astro renders from it. Keep
     `content.nav` link order consistent with it.
   - Adding a variant = schema enum → tokens/markup → this list. Never fork a section per client.

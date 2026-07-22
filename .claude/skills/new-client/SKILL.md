@@ -48,13 +48,16 @@ doesn't exist, extend the schema first, then the JSON. Never add unvalidated fie
 Set the `design` block so this client does NOT share a skeleton with previous clients:
 
 - Pick `fontPairing`, `hero`, `shape` to match the brief's mood — e.g. lawyer/clinic →
-  elegant + centered + sharp; fitness/food → modern + full-bleed + rounded; boutique/care →
-  warm or classic + split + pill.
+  elegant or editorial + centered + sharp; fitness/food → modern or bold + full-bleed +
+  rounded; boutique/care → warm or classic + split + pill.
+- Pick `density` (airy = premium/calm, compact = practical/dense), `servicesLayout`
+  (cards = equal offerings, list = menu/price-list feel, panels = few flagship services),
+  and `galleryLayout` (grid = uniform, masonry = organic/craft, featured = one hero shot).
 - Shuffle `sectionOrder` meaningfully (e.g. testimonials-first for trust-driven businesses,
   gallery-first for visual ones). Keep `contact` last or second-to-last; keep `content.nav`
   order consistent with the section order.
 - If other client sites are known (ask the user which combos are already in use), choose a
-  combination that differs in at least two of: fontPairing, hero, shape.
+  combination that differs in at least three axes overall.
 
 ## Step 4 — Images
 

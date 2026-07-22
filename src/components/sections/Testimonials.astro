@@ -7,7 +7,7 @@ const business = await getBusiness();
 const { testimonials } = business.content;
 ---
 
-<section id="testimonials" class="scroll-mt-20 py-16 sm:py-24">
+<section id="testimonials" class="scroll-mt-20 section-pad">
   <Container>
     <SectionHeading title={testimonials.title} subtitle={testimonials.subtitle} />
     <ul class="grid gap-6 md:grid-cols-3" data-reveal-group>

@@ -7,26 +7,76 @@ import { resolveImage } from "@/lib/images";
 
 const business = await getBusiness();
 const { gallery } = business.content;
+const layout = business.design.galleryLayout;
+
+// masonry: vary aspect ratios in a fixed pattern so columns interlock.
+const masonryAspects = ["aspect-square", "aspect-[3/4]", "aspect-[4/3]"];
 ---
 
-<section id="gallery" class="scroll-mt-20 bg-surface-alt py-16 sm:py-24">
+<section id="gallery" class="scroll-mt-20 bg-surface-alt section-pad">
   <Container>
     <SectionHeading title={gallery.title} subtitle={gallery.subtitle} />
-    <ul class="grid grid-cols-2 gap-4 md:grid-cols-3" data-reveal-group>
-      {
-        gallery.items.map((item) => (
-          <li>
-            <Image
-              src={resolveImage(item.src)}
-              alt={item.alt}
-              widths={[320, 640]}
-              sizes="(max-width: 767px) 50vw, 33vw"
-              loading="lazy"
-              class="aspect-square w-full rounded-card object-cover shadow-card"
-            />
-          </li>
-        ))
-      }
-    </ul>
+
+    {
+      layout === "grid" && (
+        <ul class="grid grid-cols-2 gap-4 md:grid-cols-3" data-reveal-group>
+          {gallery.items.map((item) => (
+            <li>
+              <Image
+                src={resolveImage(item.src)}
+                alt={item.alt}
+                widths={[320, 640]}
+                sizes="(max-width: 767px) 50vw, 33vw"
+                loading="lazy"
+                class="aspect-square w-full rounded-card object-cover shadow-card"
+              />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      layout === "masonry" && (
+        <ul class="columns-2 gap-4 md:columns-3" data-reveal-group>
+          {gallery.items.map((item, index) => (
+            <li class="mb-4 break-inside-avoid">
+              <Image
+                src={resolveImage(item.src)}
+                alt={item.alt}
+                widths={[320, 640]}
+                sizes="(max-width: 767px) 50vw, 33vw"
+                loading="lazy"
+                class:list={[
+                  "w-full rounded-card object-cover shadow-card",
+                  masonryAspects[index % masonryAspects.length],
+                ]}
+              />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      layout === "featured" && (
+        <ul class="grid grid-cols-2 gap-4 md:grid-cols-4" data-reveal-group>
+          {gallery.items.map((item, index) => (
+            <li class:list={[index === 0 && "col-span-2 row-span-2"]}>
+              <Image
+                src={resolveImage(item.src)}
+                alt={item.alt}
+                widths={index === 0 ? [640, 1024] : [320, 640]}
+                sizes={
+                  index === 0 ? "(max-width: 767px) 100vw, 50vw" : "(max-width: 767px) 50vw, 25vw"
+                }
+                loading="lazy"
+                class="aspect-square size-full rounded-card object-cover shadow-card"
+              />
+            </li>
+          ))}
+        </ul>
+      )
+    }
   </Container>
 </section>

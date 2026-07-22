@@ -55,9 +55,15 @@ export const businessSchema = z.object({
   design: z
     .object({
       /** display font / body font — all pairs support Hebrew + Latin. */
-      fontPairing: z.enum(["classic", "modern", "elegant", "warm"]).default("classic"),
+      fontPairing: z
+        .enum(["classic", "modern", "elegant", "warm", "bold", "editorial"])
+        .default("classic"),
       hero: z.enum(["split", "centered", "full-bleed"]).default("split"),
       shape: z.enum(["rounded", "sharp", "pill"]).default("rounded"),
+      /** Vertical rhythm of sections. */
+      density: z.enum(["airy", "regular", "compact"]).default("regular"),
+      servicesLayout: z.enum(["cards", "list", "panels"]).default("cards"),
+      galleryLayout: z.enum(["grid", "masonry", "featured"]).default("grid"),
       sectionOrder: z
         .array(z.enum(orderableSections))
         .default([...orderableSections])
@@ -72,6 +78,9 @@ export const businessSchema = z.object({
       fontPairing: "classic",
       hero: "split",
       shape: "rounded",
+      density: "regular",
+      servicesLayout: "cards",
+      galleryLayout: "grid",
       sectionOrder: [...orderableSections],
     }),
 
