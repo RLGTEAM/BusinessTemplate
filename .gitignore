@@ -24,6 +24,7 @@ Thumbs.db
 
 # testing
 playwright-report/
+.playwright-mcp/
 test-results/
 .lighthouseci/
 
