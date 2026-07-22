@@ -18,6 +18,7 @@ npm run typecheck         # astro check
 npm run validate:content  # standalone business.json schema check
 npm run test              # validate:content + lint + typecheck
 npm run test:e2e          # Playwright smoke + axe tests (builds + previews automatically)
+npm run test:ltr-build    # builds the English/LTR variant, checks structure (leaves it in dist/)
 npm run test:visual       # visual regression snapshots (local only, platform-specific)
 npm run generate:og       # regenerate public/og-default.png from business.json
 npm run lhci              # Lighthouse CI against dist/ (run build first)
@@ -34,11 +35,12 @@ src/
   content.config.ts                ← collection wiring (file loader, id "site")
   lib/business.ts                  ← getBusiness(), telHref(), whatsappHref(), resolveHref()
   lib/images.ts                    ← resolveImage("name.png") → src/assets/images/
-  lib/jsonld.ts                    ← LocalBusiness / Organization / FAQPage JSON-LD
+  lib/jsonld.ts                    ← LocalBusiness / Organization / WebSite / FAQPage JSON-LD
   lib/animation/                   ← GSAP+Lenis lifecycle (index.ts) + reveal helpers
   layouts/BaseLayout.astro         ← html lang/dir, brand CSS vars, SEO, fonts, JSON-LD
   components/sections/             ← Header, Hero, Services, About, Testimonials,
                                      Gallery, FAQ, CTA, ContactForm, Footer
+  components/custom/               ← per-client signature moment (no-op stubs; docs/CREATIVE-CONTRACT.md)
   components/seo/  components/ui/  ← SEO/JsonLd · Container/SectionHeading/Button
   styles/global.css                ← @theme tokens + RTL direction plumbing
   pages/index.astro                ← composes all sections
@@ -46,9 +48,11 @@ src/
   pages/{accessibility-statement,privacy}.astro ← legal pages (content.legal)
   pages/{llms.txt,site.webmanifest,robots.txt}.ts ← generated endpoints
   assets/images/                   ← images referenced by filename in business.json
-docs/examples/                     ← filled business.json reference (demo salon)
-scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts
-tests/smoke.spec.ts                ← Playwright smoke suite
+docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
+                                     CREATIVE-CONTRACT.md (signature sandbox) · examples/ (demo salon)
+scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts,
+                                     check-ltr-build.ts
+tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright)
 ```
 
 ## The business.json contract

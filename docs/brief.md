@@ -47,3 +47,9 @@
 
 - Which variant combos are already used by other clients (so this one differs):
   - fontPairing / hero / shape of previous sites:
+
+## Signature moment (optional — see docs/CREATIVE-CONTRACT.md)
+
+- Anything iconic about this business a visitor would instantly recognize?
+  (an object, a motion, a ritual — e.g. vinyl records, steam, clipper lines):
+- Client's appetite for a bold creative flourish (none / subtle / go wild):

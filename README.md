@@ -5,8 +5,9 @@ content, branding, and SEO live in a single file — `src/content/business/busin
 validated by Zod at build time. Hebrew/RTL by default, flips to LTR with one flag.
 
 Ships with: Astro 7 (static output), Tailwind CSS 4 (CSS-first), GSAP + ScrollTrigger + Lenis
-(reduced-motion safe), self-hosted Heebo + Assistant, JSON-LD (LocalBusiness / Organization /
-FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky, Playwright, Lighthouse CI.
+(reduced-motion safe), six self-hosted Hebrew-capable font pairings, JSON-LD (LocalBusiness /
+Organization / WebSite / FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky,
+Playwright, Lighthouse CI.
 
 ## One-time agency setup (owner, ~15 minutes)
 
@@ -46,9 +47,11 @@ A new client asked for a website. Step by step:
    `client-name` (private). Then `git clone <client-repo-url> && cd client-name && npm install`.
 3. **Fill the site**: open the folder in Claude Code and run **`/new-client`**, pasting the
    brief. It fills `business.json` (facts, voice, palette, every visible string), picks a
-   distinct **design variant combo** (`design` block: font pairing × hero layout × shape ×
-   section order — so no two client sites share a skeleton), enforces the WCAG palette
-   contract, regenerates the OG image, and runs the full test gate.
+   distinct **design variant combo** (`design` block: six independent dials — font pairing,
+   hero layout, shape, density, services/gallery layouts, section order — so no two client
+   sites share a skeleton), proposes a **signature moment** (one bespoke creative flourish
+   per site, built under [docs/CREATIVE-CONTRACT.md](./docs/CREATIVE-CONTRACT.md)), enforces
+   the WCAG palette contract, regenerates the OG image, and runs the full test gate.
    Doing it by hand instead: edit `src/content/business/business.json`, then
    `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
 4. **Real photos**: drop client photos into `src/assets/images/` keeping the filenames (or
@@ -81,6 +84,7 @@ A new client asked for a website. Step by step:
 | `npm run preview`          | Serve the built site                               |
 | `npm run test`             | Content validation + Biome + `astro check`         |
 | `npm run test:e2e`         | Playwright smoke + axe a11y tests (builds + serves itself) |
+| `npm run test:ltr-build`   | Builds the English/LTR variant and checks its structure    |
 | `npm run test:visual`      | Visual regression snapshots (local; rebaseline with `--update-snapshots`) |
 | `npm run generate:og`      | Regenerate the OG image from business.json name + palette |
 | `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) — run `build` first |
@@ -169,4 +173,7 @@ CLI alternative: `npx wrangler pages deploy dist`.
 ## Where things live
 
 See [AGENTS.md](./AGENTS.md) for the folder map, the business.json contract, RTL rules, and
-coding conventions. `CLAUDE.md` points AI agents at the same contract.
+coding conventions. `CLAUDE.md` points AI agents at the same contract. For humans:
+[docs/CLIENT-SITE-GUIDE.md](./docs/CLIENT-SITE-GUIDE.md) is the new-developer walkthrough for
+building a client site, and [docs/CREATIVE-CONTRACT.md](./docs/CREATIVE-CONTRACT.md) defines
+the per-client "signature moment" creative sandbox (mount points, rules, worked example).
