@@ -1,5 +1,13 @@
 @AGENTS.md
 
+## MCP tools (mandatory)
+
+Declared in `.mcp.json`, pre-allowed in `.claude/settings.json` — use them, don't work from memory:
+
+- **context7** — REQUIRED before writing code against Astro, Tailwind 4, GSAP, Lenis, Zod, or Playwright APIs. These move fast (Astro Fonts API went stable, `astro/zod` is zod v4 — memory will be stale). Resolve the library, query the specific concept, then code.
+- **playwright** — REQUIRED for verifying user-visible changes in a real browser (or run `npm run test:e2e`). Don't claim a visual/RTL/animation change works without one of the two.
+- **chrome-devtools** — use for performance traces, console errors, and Core Web Vitals checks against the dev server.
+
 ## Claude-specific notes
 
 - After editing `business.json` or `business.schema.ts`, run `npm run validate:content` before anything else — it gives the fastest, clearest error messages.
