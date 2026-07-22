@@ -32,8 +32,48 @@ const link = z.object({
   href: z.string().min(1),
 });
 
+/** Middle-of-page sections whose order is configurable (header/hero/footer are fixed). */
+export const orderableSections = [
+  "services",
+  "about",
+  "testimonials",
+  "gallery",
+  "faq",
+  "cta",
+  "contact",
+] as const;
+
 export const businessSchema = z.object({
   locale: z.enum(["he", "en"]),
+
+  /**
+   * Design variants — the anti-sameness system. Each client site should use a
+   * DIFFERENT combination so no two sites share a skeleton. All values are
+   * validated; adding a new variant means: schema here → tokens/markup →
+   * AGENTS.md. Defaults reproduce the original template look.
+   */
+  design: z
+    .object({
+      /** display font / body font — all pairs support Hebrew + Latin. */
+      fontPairing: z.enum(["classic", "modern", "elegant", "warm"]).default("classic"),
+      hero: z.enum(["split", "centered", "full-bleed"]).default("split"),
+      shape: z.enum(["rounded", "sharp", "pill"]).default("rounded"),
+      sectionOrder: z
+        .array(z.enum(orderableSections))
+        .default([...orderableSections])
+        .refine(
+          (order) =>
+            order.length === orderableSections.length &&
+            orderableSections.every((s) => order.includes(s)),
+          "sectionOrder must contain every section exactly once",
+        ),
+    })
+    .default({
+      fontPairing: "classic",
+      hero: "split",
+      shape: "rounded",
+      sectionOrder: [...orderableSections],
+    }),
 
   data: z.object({
     name: z.string().min(1),

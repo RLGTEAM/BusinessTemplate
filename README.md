@@ -44,8 +44,10 @@ A new client asked for a website. Step by step:
 2. **Create the repo**: template repo → **Use this template → Create a new repository** →
    `client-name` (private). Then `git clone <client-repo-url> && cd client-name && npm install`.
 3. **Fill the site**: open the folder in Claude Code and run **`/new-client`**, pasting the
-   brief. It fills `business.json` (facts, voice, palette, every visible string), enforces the
-   WCAG palette contract, regenerates the OG image, and runs the full test gate.
+   brief. It fills `business.json` (facts, voice, palette, every visible string), picks a
+   distinct **design variant combo** (`design` block: font pairing × hero layout × shape ×
+   section order — so no two client sites share a skeleton), enforces the WCAG palette
+   contract, regenerates the OG image, and runs the full test gate.
    Doing it by hand instead: edit `src/content/business/business.json`, then
    `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
 4. **Real photos**: drop client photos into `src/assets/images/` keeping the filenames (or

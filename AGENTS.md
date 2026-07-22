@@ -61,6 +61,17 @@ tests/smoke.spec.ts                ← Playwright smoke suite
   Therefore: `text-primary` only on `bg-surface`; text on `bg-accent` is always `text-secondary`;
   never use `accent` as text on light backgrounds. New color-as-text usage → add the pair to
   `scripts/validate-content.ts` first.
+- **Design variants (`design` block)** — the anti-sameness system; every client site must use a
+  DISTINCT combination:
+  - `fontPairing`: classic (Assistant/Heebo) · modern (Rubik/Assistant) ·
+    elegant (Frank Ruhl Libre/Heebo) · warm (Alef/Rubik). Mapped in astro.config.mjs; components
+    only ever use `font-display`/`font-sans`.
+  - `hero`: split · centered · full-bleed (variants live inside Hero.astro).
+  - `shape`: rounded · sharp · pill — sets `data-shape` on `<html>`; use `rounded-card` /
+    `rounded-button` utilities, never a literal radius.
+  - `sectionOrder`: permutation of the 7 middle sections; index.astro renders from it. Keep
+    `content.nav` link order consistent with it.
+  - Adding a variant = schema enum → tokens/markup → this list. Never fork a section per client.
 
 ## RTL rules (non-negotiable)
 

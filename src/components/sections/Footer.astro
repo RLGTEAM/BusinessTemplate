@@ -40,7 +40,7 @@ const socials = [
     </div>
 
     <nav aria-label={footer.navTitle}>
-      <h2 class="mb-3 font-display font-semibold text-surface">{footer.navTitle}</h2>
+      <h2 class="mb-3 font-display font-bold text-surface">{footer.navTitle}</h2>
       <ul class="space-y-2 text-sm">
         {
           content.nav.map((item) => (
@@ -55,7 +55,7 @@ const socials = [
     </nav>
 
     <div>
-      <h2 class="mb-3 font-display font-semibold text-surface">{footer.contactTitle}</h2>
+      <h2 class="mb-3 font-display font-bold text-surface">{footer.contactTitle}</h2>
       <ul class="space-y-2 text-sm">
         <li>
           <a href={telHref(data.contact.phone)} class="transition-colors hover:text-accent">
@@ -90,14 +90,14 @@ const socials = [
     </div>
 
     <div>
-      <h2 class="mb-3 font-display font-semibold text-surface">{footer.hoursTitle}</h2>
+      <h2 class="mb-3 font-display font-bold text-surface">{footer.hoursTitle}</h2>
       <ul class="space-y-1.5 text-sm">
         {
           data.hours.map((entry) => (
             <li class="flex justify-between gap-4">
               <span>{entry.label}</span>
               <bdi class="force-ltr tabular-nums">
-                {entry.open}–{entry.close}
+                {entry.open}â€“{entry.close}
               </bdi>
             </li>
           ))
@@ -109,8 +109,8 @@ const socials = [
   <div class="border-t border-surface/15">
     <Container class="py-5 text-center text-sm">
       <p>
-        © <bdi class="force-ltr">{year}</bdi>
-        {data.legalName} · {footer.rights}
+        Â© <bdi class="force-ltr">{year}</bdi>
+        {data.legalName} Â· {footer.rights}
       </p>
     </Container>
   </div>

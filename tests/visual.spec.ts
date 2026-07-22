@@ -61,10 +61,15 @@ test.describe("visual regression @visual", () => {
   test("LTR flip has no physical-direction leftovers", async ({ page }) => {
     // Runtime dir flip on the same content: catches accidental physical CSS
     // (left/right/ml/mr) that would not mirror. Not a full en-locale build.
+    // Raster images are masked: full-page capture re-samples them
+    // nondeterministically at high DPR, and they carry no direction info.
     await preparePage(page);
     await page.evaluate(() => {
       document.documentElement.dir = "ltr";
     });
-    await expect(page).toHaveScreenshot("full-page-ltr.png", { fullPage: true });
+    await expect(page).toHaveScreenshot("full-page-ltr.png", {
+      fullPage: true,
+      mask: [page.locator("img")],
+    });
   });
 });

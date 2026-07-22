@@ -28,14 +28,14 @@ const brandVars = [
 ---
 
 <!doctype html>
-<html lang={business.locale} dir={dir} style={brandVars}>
+<html lang={business.locale} dir={dir} style={brandVars} data-shape={business.design.shape}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <SEO business={business} title={Astro.props.title} description={Astro.props.description} />
-    <Font cssVariable="--font-heebo" preload />
-    <Font cssVariable="--font-assistant" preload />
+    <Font cssVariable="--font-brand-display" preload />
+    <Font cssVariable="--font-brand-body" preload />
     {preloadImage && <link rel="preload" as="image" href={preloadImage} />}
     <JsonLd data={localBusinessJsonLd(business)} />
     <JsonLd data={organizationJsonLd(business)} />

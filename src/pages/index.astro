@@ -9,25 +9,37 @@ import Header from "@/components/sections/Header.astro";
 import Hero from "@/components/sections/Hero.astro";
 import Services from "@/components/sections/Services.astro";
 import Testimonials from "@/components/sections/Testimonials.astro";
+import type { orderableSections } from "@/content/business.schema";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getBusiness } from "@/lib/business";
 import { resolveImage } from "@/lib/images";
 
 const business = await getBusiness();
 const heroImage = resolveImage(business.content.hero.image.src);
+
+// Composition is data-driven: design.sectionOrder decides the page flow.
+// Header/Hero/Footer are fixed; everything else reorders per client.
+const sections: Record<(typeof orderableSections)[number], typeof Services> = {
+  services: Services,
+  about: About,
+  testimonials: Testimonials,
+  gallery: Gallery,
+  faq: FAQ,
+  cta: CTA,
+  contact: ContactForm,
+};
 ---
 
 <BaseLayout preloadImage={heroImage.src}>
   <Header />
   <main id="main">
     <Hero />
-    <Services />
-    <About />
-    <Testimonials />
-    <Gallery />
-    <FAQ />
-    <CTA />
-    <ContactForm />
+    {
+      business.design.sectionOrder.map((key) => {
+        const Section = sections[key];
+        return <Section />;
+      })
+    }
   </main>
   <Footer />
 </BaseLayout>

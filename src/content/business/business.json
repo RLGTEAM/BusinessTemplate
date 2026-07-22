@@ -1,5 +1,11 @@
 {
   "locale": "he",
+  "design": {
+    "fontPairing": "classic",
+    "hero": "split",
+    "shape": "rounded",
+    "sectionOrder": ["services", "about", "testimonials", "gallery", "faq", "cta", "contact"]
+  },
   "data": {
     "name": "סטודיו אוֹר",
     "legalName": "סטודיו אור עיצוב שיער בע\"מ",

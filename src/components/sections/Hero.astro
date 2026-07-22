@@ -8,49 +8,133 @@ import { resolveImage } from "@/lib/images";
 const business = await getBusiness();
 const { hero } = business.content;
 const heroImage = resolveImage(hero.image.src);
+const variant = business.design.hero;
+
+const primaryHref = resolveHref(hero.primaryCta.href, business);
+const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, business) : null;
 ---
 
-<section id="hero" class="hero-bg overflow-hidden py-16 sm:py-24">
-  <Container class="grid items-center gap-12 lg:grid-cols-2">
-    <div class="max-w-xl">
-      {/* Eyebrow uses text-secondary, not text-primary: it sits on bg-surface-alt, and
-          only the pairs checked in scripts/validate-content.ts are contrast-safe. */}
-      {
-        hero.eyebrow && (
+{
+  variant === "split" && (
+    <section id="hero" class="hero-bg overflow-hidden py-16 sm:py-24">
+      <Container class="grid items-center gap-12 lg:grid-cols-2">
+        <div class="max-w-xl">
+          {/* Eyebrow uses text-secondary, not text-primary: it sits on bg-surface-alt, and
+              only the pairs checked in scripts/validate-content.ts are contrast-safe. */}
+          {hero.eyebrow && (
+            <p class="mb-4 inline-block rounded-full bg-surface-alt px-4 py-1.5 text-sm font-semibold text-secondary">
+              {hero.eyebrow}
+            </p>
+          )}
+          <h1 class="text-4xl font-bold leading-tight text-secondary sm:text-5xl lg:text-6xl">
+            {hero.headline}
+          </h1>
+          <p class="mt-5 text-lg text-ink-muted sm:text-xl">{hero.subheadline}</p>
+          <div class="mt-8 flex flex-wrap gap-4">
+            <Button href={primaryHref}>{hero.primaryCta.label}</Button>
+            {hero.secondaryCta && secondaryHref && (
+              <Button href={secondaryHref} variant="outline">
+                {hero.secondaryCta.label}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div data-reveal="slide-end">
+          <Image
+            src={heroImage}
+            alt={hero.image.alt}
+            widths={[480, 800, 1200]}
+            sizes="(max-width: 1023px) 100vw, 50vw"
+            loading="eager"
+            fetchpriority="high"
+            class="w-full rounded-card object-cover shadow-card"
+          />
+        </div>
+      </Container>
+    </section>
+  )
+}
+
+{
+  variant === "centered" && (
+    <section id="hero" class="hero-bg overflow-hidden py-16 sm:py-24">
+      <Container class="flex flex-col items-center text-center">
+        {hero.eyebrow && (
           <p class="mb-4 inline-block rounded-full bg-surface-alt px-4 py-1.5 text-sm font-semibold text-secondary">
             {hero.eyebrow}
           </p>
-        )
-      }
-      <h1 class="text-4xl font-bold leading-tight text-secondary sm:text-5xl lg:text-6xl">
-        {hero.headline}
-      </h1>
-      <p class="mt-5 text-lg text-ink-muted sm:text-xl">{hero.subheadline}</p>
-      <div class="mt-8 flex flex-wrap gap-4">
-        <Button href={resolveHref(hero.primaryCta.href, business)}>{hero.primaryCta.label}</Button>
-        {
-          hero.secondaryCta && (
-            <Button href={resolveHref(hero.secondaryCta.href, business)} variant="outline">
+        )}
+        <h1 class="max-w-3xl text-4xl font-bold leading-tight text-secondary sm:text-5xl lg:text-6xl">
+          {hero.headline}
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg text-ink-muted sm:text-xl">{hero.subheadline}</p>
+        <div class="mt-8 flex flex-wrap justify-center gap-4">
+          <Button href={primaryHref}>{hero.primaryCta.label}</Button>
+          {hero.secondaryCta && secondaryHref && (
+            <Button href={secondaryHref} variant="outline">
               {hero.secondaryCta.label}
             </Button>
-          )
-        }
-      </div>
-    </div>
+          )}
+        </div>
+        <div class="mt-14 w-full max-w-4xl" data-reveal="scale">
+          <Image
+            src={heroImage}
+            alt={hero.image.alt}
+            widths={[480, 800, 1200]}
+            sizes="(max-width: 1023px) 100vw, 896px"
+            loading="eager"
+            fetchpriority="high"
+            class="aspect-[2/1] w-full rounded-card object-cover shadow-card"
+          />
+        </div>
+      </Container>
+    </section>
+  )
+}
 
-    <div data-reveal="slide-end">
+{
+  variant === "full-bleed" && (
+    <section id="hero" class="relative overflow-hidden">
       <Image
         src={heroImage}
-        alt={hero.image.alt}
-        widths={[480, 800, 1200]}
-        sizes="(max-width: 1023px) 100vw, 50vw"
+        alt=""
+        widths={[768, 1280, 1920]}
+        sizes="100vw"
         loading="eager"
         fetchpriority="high"
-        class="w-full rounded-card object-cover shadow-card"
+        class="absolute inset-0 size-full object-cover"
       />
-    </div>
-  </Container>
-</section>
+      {/* Overlay keeps text on the validated secondary↔surface contrast pair. */}
+      <div class="hero-overlay absolute inset-0" aria-hidden="true" />
+      <Container class="relative flex min-h-[70vh] flex-col items-start justify-center py-24 sm:min-h-[80vh]">
+        {hero.eyebrow && (
+          <p class="mb-4 inline-block rounded-full bg-surface/15 px-4 py-1.5 text-sm font-semibold text-surface">
+            {hero.eyebrow}
+          </p>
+        )}
+        <h1 class="max-w-2xl text-4xl font-bold leading-tight text-surface sm:text-5xl lg:text-6xl">
+          {hero.headline}
+        </h1>
+        <p class="mt-5 max-w-xl text-lg text-surface/85 sm:text-xl">{hero.subheadline}</p>
+        <div class="mt-8 flex flex-wrap gap-4">
+          <Button href={primaryHref} class="bg-accent text-secondary hover:bg-surface">
+            {hero.primaryCta.label}
+          </Button>
+          {hero.secondaryCta && secondaryHref && (
+            <Button
+              href={secondaryHref}
+              variant="outline"
+              class="border-surface/50 text-surface hover:border-surface hover:text-surface"
+            >
+              {hero.secondaryCta.label}
+            </Button>
+          )}
+        </div>
+      </Container>
+    </section>
+  )
+}
 
 <style>
   .hero-bg {
@@ -59,6 +143,14 @@ const heroImage = resolveImage(hero.image.src);
       var(--angle-brand),
       color-mix(in oklab, var(--color-primary) 8%, var(--color-surface)),
       var(--color-surface) 55%
+    );
+  }
+
+  .hero-overlay {
+    background-image: linear-gradient(
+      var(--angle-brand),
+      color-mix(in srgb, var(--color-secondary) 92%, transparent),
+      color-mix(in srgb, var(--color-secondary) 55%, transparent)
     );
   }
 </style>

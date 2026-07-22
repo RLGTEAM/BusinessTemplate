@@ -43,6 +43,19 @@ doesn't exist, extend the schema first, then the JSON. Never add unvalidated fie
   is the shape that usually works.
 - If the client's brand color fails, darken/lighten it until it passes and note the change.
 
+## Step 3.5 — Design variants (make it look like a different site)
+
+Set the `design` block so this client does NOT share a skeleton with previous clients:
+
+- Pick `fontPairing`, `hero`, `shape` to match the brief's mood — e.g. lawyer/clinic →
+  elegant + centered + sharp; fitness/food → modern + full-bleed + rounded; boutique/care →
+  warm or classic + split + pill.
+- Shuffle `sectionOrder` meaningfully (e.g. testimonials-first for trust-driven businesses,
+  gallery-first for visual ones). Keep `contact` last or second-to-last; keep `content.nav`
+  order consistent with the section order.
+- If other client sites are known (ask the user which combos are already in use), choose a
+  combination that differs in at least two of: fontPairing, hero, shape.
+
 ## Step 4 — Images
 
 - Replace `src/assets/images/*.png` with client photos (keep filenames, or update

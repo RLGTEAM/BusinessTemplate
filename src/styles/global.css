@@ -12,8 +12,13 @@
   --color-secondary: var(--brand-secondary);
   --color-accent: var(--brand-accent);
 
-  --font-sans: var(--font-heebo);
-  --font-display: var(--font-assistant);
+  /* Families come from design.fontPairing (astro.config.mjs registers them
+     under these fixed variables) — components never name a font directly. */
+  --font-sans: var(--font-brand-body);
+  --font-display: var(--font-brand-display);
+
+  --radius-card: var(--shape-radius-card);
+  --radius-button: var(--shape-radius-button);
 }
 
 @theme {
@@ -26,8 +31,26 @@
   /* Elevation. X offsets use --dir-factor so shadows mirror in RTL. */
   --shadow-card: calc(0px * var(--dir-factor)) 2px 12px rgb(33 28 46 / 0.06);
   --shadow-card-hover: calc(-4px * var(--dir-factor)) 8px 28px rgb(33 28 46 / 0.12);
+}
 
-  --radius-card: 1.25rem;
+/*
+ * Shape personality — design.shape sets data-shape on <html> (BaseLayout).
+ * rounded-card / rounded-button utilities resolve through these vars.
+ */
+:root,
+[data-shape="rounded"] {
+  --shape-radius-card: 1.25rem;
+  --shape-radius-button: 9999px;
+}
+
+[data-shape="sharp"] {
+  --shape-radius-card: 0.375rem;
+  --shape-radius-button: 0.5rem;
+}
+
+[data-shape="pill"] {
+  --shape-radius-card: 2rem;
+  --shape-radius-button: 9999px;
 }
 
 /*

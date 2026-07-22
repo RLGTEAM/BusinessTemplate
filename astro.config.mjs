@@ -9,6 +9,16 @@ const business = JSON.parse(
   readFileSync(new URL("./src/content/business/business.json", import.meta.url), "utf-8"),
 );
 
+// design.fontPairing → actual families (all support Hebrew + Latin).
+// Registered under fixed cssVariables so components/CSS never change per client.
+const FONT_PAIRINGS = {
+  classic: { display: "Assistant", body: "Heebo" },
+  modern: { display: "Rubik", body: "Assistant" },
+  elegant: { display: "Frank Ruhl Libre", body: "Heebo" },
+  warm: { display: "Alef", body: "Rubik" },
+};
+const pairing = FONT_PAIRINGS[business.design?.fontPairing ?? "classic"];
+
 export default defineConfig({
   site: business.data.seo.siteUrl,
   output: "static",
@@ -30,9 +40,9 @@ export default defineConfig({
     {
       // Downloaded at build time and served from this origin (self-hosted).
       provider: fontProviders.google(),
-      name: "Heebo",
-      cssVariable: "--font-heebo",
-      weights: [400, 500, 700],
+      name: pairing.display,
+      cssVariable: "--font-brand-display",
+      weights: [400, 700],
       styles: ["normal"],
       subsets: ["hebrew", "latin"],
       display: "swap",
@@ -40,9 +50,9 @@ export default defineConfig({
     },
     {
       provider: fontProviders.google(),
-      name: "Assistant",
-      cssVariable: "--font-assistant",
-      weights: [400, 600, 700],
+      name: pairing.body,
+      cssVariable: "--font-brand-body",
+      weights: [400, 500, 700],
       styles: ["normal"],
       subsets: ["hebrew", "latin"],
       display: "swap",
