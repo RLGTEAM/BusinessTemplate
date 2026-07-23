@@ -1,5 +1,4 @@
 ---
-import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -16,7 +15,6 @@ const { layout = "cards" } = Astro.props;
 ---
 
 <section id="services" class="relative isolate scroll-mt-20 section-pad">
-  <SectionDecor section="services" />
   <Container>
     <SectionHeading title={copy.title} subtitle={copy.subtitle} />
 

@@ -1,5 +1,4 @@
 ---
-import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -15,7 +14,6 @@ const fields = [
 ---
 
 <section id="contact" class="relative isolate scroll-mt-20 bg-surface-alt section-pad">
-  <SectionDecor section="contact" />
   <Container class="max-w-2xl">
     <SectionHeading title={copy.title} subtitle={copy.subtitle} />
 

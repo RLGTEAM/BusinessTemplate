@@ -1,6 +1,5 @@
 ---
 import { Image } from "astro:assets";
-import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -12,7 +11,6 @@ const aboutImage = resolveImage(about.image.src);
 ---
 
 <section id="about" class="relative isolate scroll-mt-20 bg-surface-alt section-pad">
-  <SectionDecor section="about" />
   <Container class="grid items-center gap-12 lg:grid-cols-2">
     <div data-reveal="slide-start">
       <Image

@@ -1,5 +1,4 @@
 ---
-import SectionDecor from "@/components/custom/SectionDecor.astro";
 import Container from "@/components/ui/Container.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { getBusiness } from "@/lib/business";
@@ -9,7 +8,6 @@ const { testimonials } = business.content;
 ---
 
 <section id="testimonials" class="relative isolate scroll-mt-20 section-pad">
-  <SectionDecor section="testimonials" />
   <Container>
     <SectionHeading title={testimonials.title} subtitle={testimonials.subtitle} />
     <ul class="grid gap-6 md:grid-cols-3" data-reveal-group>
