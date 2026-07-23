@@ -2,15 +2,21 @@
 
 /*
  * Theme tokens.
- * Brand colors are NOT hardcoded here — they arrive as --brand-* custom
- * properties set on <html> by BaseLayout.astro, sourced from
- * business.json → voice.palette. Re-theming a client = editing business.json.
+ * Brand colors AND neutrals are NOT hardcoded here — they arrive as
+ * --brand-* custom properties set on <html> by BaseLayout.astro, sourced
+ * from business.json → voice.palette. Re-theming a client (including dark
+ * sites) = editing business.json.
  * `@theme inline` lets Tailwind utilities reference those runtime vars.
  */
 @theme inline {
   --color-primary: var(--brand-primary);
   --color-secondary: var(--brand-secondary);
   --color-accent: var(--brand-accent);
+  --color-surface: var(--brand-surface);
+  --color-surface-alt: var(--brand-surface-alt);
+  --color-ink: var(--brand-ink);
+  --color-ink-muted: var(--brand-ink-muted);
+  --color-line: var(--brand-line);
 
   /* Families come from design.fontPairing (astro.config.mjs registers them
      under these fixed variables) — components never name a font directly. */
@@ -19,18 +25,13 @@
 
   --radius-card: var(--shape-radius-card);
   --radius-button: var(--shape-radius-button);
-}
 
-@theme {
-  --color-surface: #faf9f7;
-  --color-surface-alt: #f1eeea;
-  --color-ink: #211c2e;
-  --color-ink-muted: #5d5670;
-  --color-line: #e2ddd6;
-
-  /* Elevation. X offsets use --dir-factor so shadows mirror in RTL. */
-  --shadow-card: calc(0px * var(--dir-factor)) 2px 12px rgb(33 28 46 / 0.06);
-  --shadow-card-hover: calc(-4px * var(--dir-factor)) 8px 28px rgb(33 28 46 / 0.12);
+  /* Elevation derives from ink so it follows dark/tinted themes.
+     X offsets use --dir-factor so shadows mirror in RTL. */
+  --shadow-card: calc(0px * var(--dir-factor)) 2px 12px
+    color-mix(in srgb, var(--brand-ink) 6%, transparent);
+  --shadow-card-hover: calc(-4px * var(--dir-factor)) 8px 28px
+    color-mix(in srgb, var(--brand-ink) 12%, transparent);
 }
 
 /*

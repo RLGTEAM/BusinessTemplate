@@ -24,16 +24,11 @@ console.log("✓ business.json is valid");
 /*
  * WCAG contrast validation for voice.palette.
  *
- * The template only ever uses brand colors as text/background in these pairs
- * (see AGENTS.md → "Palette contract"), so a palette passing here is safe for
- * every component. Neutral values mirror the static tokens in
- * src/styles/global.css — keep them in sync.
+ * Pairs are computed against the ACTUAL palette (neutrals included, schema
+ * defaults applied) — dark themes are validated for real. `line` is
+ * border-only decoration, not text, so it is deliberately not
+ * contrast-checked. See AGENTS.md → "Palette contract".
  */
-const NEUTRALS = {
-  surface: "#faf9f7",
-  surfaceAlt: "#f1eeea",
-};
-
 const MIN_TEXT_CONTRAST = 4.5; // WCAG AA, normal text
 
 function luminance(hex: string): number {
@@ -49,30 +44,51 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-const { palette } = result.data.voice;
+const p = result.data.voice.palette;
 const pairs: Array<{ label: string; a: string; b: string; usage: string }> = [
+  { label: "ink ↔ surface", a: p.ink, b: p.surface, usage: "body copy on the base background" },
+  {
+    label: "ink ↔ surface-alt",
+    a: p.ink,
+    b: p.surfaceAlt,
+    usage: "body copy on alternate sections",
+  },
+  { label: "ink-muted ↔ surface", a: p.inkMuted, b: p.surface, usage: "muted/secondary text" },
+  {
+    label: "ink-muted ↔ surface-alt",
+    a: p.inkMuted,
+    b: p.surfaceAlt,
+    usage: "muted text on alternate sections",
+  },
   {
     label: "primary ↔ surface",
-    a: palette.primary,
-    b: NEUTRALS.surface,
-    usage: "prices/link text on light bg; light text on primary buttons",
+    a: p.primary,
+    b: p.surface,
+    usage: "links/prices on base bg; surface text on primary buttons",
+  },
+  {
+    label: "primary ↔ surface-alt",
+    a: p.primary,
+    b: p.surfaceAlt,
+    usage: "primary-colored text on alternate sections",
   },
   {
     label: "secondary ↔ surface",
-    a: palette.secondary,
-    b: NEUTRALS.surface,
-    usage: "headings on light bg; light text on footer",
+    a: p.secondary,
+    b: p.surface,
+    usage:
+      "headings on base bg; symmetric, so also covers text-surface on bg-secondary (footer, skip link)",
   },
   {
     label: "secondary ↔ surface-alt",
-    a: palette.secondary,
-    b: NEUTRALS.surfaceAlt,
-    usage: "headings/labels on alternate section bg",
+    a: p.secondary,
+    b: p.surfaceAlt,
+    usage: "headings/labels on alternate bg",
   },
   {
     label: "accent ↔ secondary",
-    a: palette.accent,
-    b: palette.secondary,
+    a: p.accent,
+    b: p.secondary,
     usage: "CTA button text on accent bg",
   },
 ];

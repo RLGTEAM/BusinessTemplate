@@ -141,6 +141,14 @@ export const businessSchema = z.object({
       primary: hexColor,
       secondary: hexColor,
       accent: hexColor,
+      /** Neutrals — optional; defaults reproduce the reference light theme.
+       *  Set them for tinted or dark sites (dark is first-class: pick a dark
+       *  surface + light ink and the validator checks the real combinations). */
+      surface: hexColor.default("#faf9f7"),
+      surfaceAlt: hexColor.default("#f1eeea"),
+      ink: hexColor.default("#211c2e"),
+      inkMuted: hexColor.default("#5d5670"),
+      line: hexColor.default("#e2ddd6"),
       mood: z.string(),
     }),
   }),
