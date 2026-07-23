@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Static Astro template for small-business sites. Cloned once per client, then filled by editing **one file**: `src/content/business/business.json`. Hebrew/RTL-first; flips to LTR via `locale`.
+Static Astro template for small-business sites. Cloned once per client, then designed 0→100 per client on a fixed quality floor — see `docs/DESIGN-DOCTRINE.md`. Facts, voice, and copy live in `src/content/business/business.json`. Hebrew/RTL-first; flips to LTR via `locale`.
 
 ## Stack
 
@@ -38,19 +38,18 @@ src/
   lib/jsonld.ts                    ← LocalBusiness / Organization / WebSite / FAQPage JSON-LD
   lib/animation/                   ← GSAP+Lenis lifecycle (index.ts) + reveal helpers
   layouts/BaseLayout.astro         ← html lang/dir, brand CSS vars, SEO, fonts, JSON-LD
-  components/sections/             ← Header, Hero, Services, About, Testimonials,
-                                     Gallery, FAQ, CTA, ContactForm, Footer
-  components/custom/               ← per-client experience layer (no-op stubs; docs/CREATIVE-CONTRACT.md)
+  components/sections/             ← reference library: tested, RTL-correct worked examples
+                                     (use, gut, or ignore per client)
   components/seo/  components/ui/  ← SEO/JsonLd · Container/SectionHeading/Button
   styles/global.css                ← @theme tokens + RTL direction plumbing
-  styles/custom.css                ← per-client atmosphere/color story (empty in template)
-  pages/index.astro                ← composes all sections
+  styles/custom.css                ← per-client design surface (color story, token overrides)
+  pages/index.astro                ← per-client page composition (ships a default that passes the gate)
   pages/404.astro                  ← not-found page (copy from content.notFound)
   pages/{accessibility-statement,privacy}.astro ← legal pages (content.legal)
   pages/{llms.txt,site.webmanifest,robots.txt}.ts ← generated endpoints
   assets/images/                   ← images referenced by filename in business.json
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
-                                     CREATIVE-CONTRACT.md (signature sandbox) · examples/ (demo salon)
+                                     DESIGN-DOCTRINE.md (design doctrine) · examples/ (demo salon)
 scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts,
                                      check-ltr-build.ts
 tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright)
@@ -75,34 +74,13 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
   Therefore: `text-primary` only on `bg-surface`; text on `bg-accent` is always `text-secondary`;
   never use `accent` as text on light backgrounds. New color-as-text usage → add the pair to
   `scripts/validate-content.ts` first.
-- **Design variants (`design` block)** — the anti-sameness system; every client site must use a
-  DISTINCT combination:
-  - `fontPairing`: classic (Assistant/Heebo) · modern (Rubik/Assistant) ·
-    elegant (Frank Ruhl Libre/Heebo) · warm (Alef/Rubik) · bold (Karantina/Heebo, condensed
-    display) · editorial (David Libre/Assistant, serif display). Mapped in astro.config.mjs;
-    components only ever use `font-display`/`font-sans`.
-  - `hero`: split · centered · full-bleed (variants live inside Hero.astro).
-  - `shape`: rounded · sharp · pill — sets `data-shape` on `<html>`; use `rounded-card` /
-    `rounded-button` utilities, never a literal radius.
-  - `density`: airy · regular · compact — sets `data-density`; sections use the `section-pad`
-    utility, never a literal `py-*` on a `<section>`.
-  - `servicesLayout`: cards · list · panels (inside Services.astro).
-  - `galleryLayout`: grid · masonry · featured (inside Gallery.astro).
-  - `sectionOrder`: permutation of the 7 middle sections; index.astro renders from it. Keep
-    `content.nav` link order consistent with it.
-  - Adding a variant = schema enum → tokens/markup → this list. Never fork a section per client.
-- **Experience layer (`src/components/custom/` + `src/styles/custom.css`)** — the sanctioned
-  per-client creative surfaces; full contract in `docs/CREATIVE-CONTRACT.md`. Principle:
-  ONE concept, expressed everywhere it helps (coherence, not quantity, is the constraint).
-  Surfaces: `custom.css` (color story / atmosphere, loaded after global.css),
-  `SectionDecor.astro` (first child of every content section; section roots are
-  `relative isolate` so `-z-10` decor sits between background and content),
-  `SignatureBackdrop.astro` (hero layer), `Signature.astro` (custom section via `"signature"`
-  in `sectionOrder`), `signature.ts` (`registerSignature()`, runs inside the
-  reduced-motion-guarded matchMedia context). All ship as no-ops. Strings from
-  `content.signature`, colors from tokens (use `color-mix()` for tints), text only on
-  validated contrast pairs, same RTL/animation rules, same test gate. Custom code lives
-  ONLY in these files — sections are still never forked.
+- **Model-first design** — the page is designed per client under `docs/DESIGN-DOCTRINE.md`:
+  composition, section design, shape/rhythm tokens, color story are all code decisions. The
+  only design data in `business.json` is `design.fontPairing` (six self-hosted Hebrew-capable
+  pairings mapped in astro.config.mjs; components only use `font-display`/`font-sans`).
+- **Content split** — `data` + `voice` + the `content` frozen core (`nav`, `ui`, `consent`,
+  `notFound`, `legal`) are identical in every repo; the rest of `content` is reshaped per
+  client, schema-first. Components still read ONLY via `getBusiness()`.
 
 ## RTL rules (non-negotiable)
 
@@ -120,7 +98,7 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 
 ## Conventions (one canonical way)
 
-- Sections: one `.astro` file in `components/sections/`, `<section id="...">` matching a `content.nav` href, `scroll-mt-20`, heading via `<SectionHeading>`, exactly one `<h1>` per page (Hero owns it).
+- Sections: one `.astro` file in `components/sections/`, `<section id="...">` matching a `content.nav` href, `scroll-mt-20`, `section-pad`, heading via `<SectionHeading>`, one `<h1>` per page (Hero owns it in the reference composition).
 - Client scripts: bind inside a named `setup*()` called from `document.addEventListener("astro:page-load", ...)`; pass strings from JSON via `data-*` attributes, never literals in scripts.
 - TypeScript: no `any` (use `unknown` + narrowing), no non-null `!`. Zod at every runtime boundary.
 - SEO: per-page overrides via BaseLayout props; JSON-LD only in `lib/jsonld.ts`.
@@ -129,6 +107,7 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 
 - DO pin dependency versions; DO keep `npm run test` + `test:e2e` green before committing.
 - DO update `tests/smoke.spec.ts` when adding user-visible behavior.
+- DO write new user-visible behavior a test in the client repo (the contract smoke suite is never edited, only added to).
 - DON'T add `tailwind.config.js`, styled-components, or CSS-in-JS — tokens live in `global.css`.
 - DON'T add React/islands, a CMS, or i18n libraries without an explicit request.
 - DON'T write physical-direction CSS, hardcode copy/colors, or bypass `getBusiness()`/`resolveImage()`.

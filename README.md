@@ -46,13 +46,12 @@ A new client asked for a website. Step by step:
 2. **Create the repo**: template repo → **Use this template → Create a new repository** →
    `client-name` (private). Then `git clone <client-repo-url> && cd client-name && npm install`.
 3. **Fill the site**: open the folder in Claude Code and run **`/new-client`**, pasting the
-   brief. It fills `business.json` (facts, voice, palette, every visible string), picks a
-   distinct **design variant combo** (`design` block: six independent dials — font pairing,
-   hero layout, shape, density, services/gallery layouts, section order — so no two client
-   sites share a skeleton), designs an **experience concept** (one metaphor from the client's
-   world expressed as a color story, per-section motifs, and a motion identity — built under
-   [docs/CREATIVE-CONTRACT.md](./docs/CREATIVE-CONTRACT.md)), enforces the WCAG palette
-   contract, regenerates the OG image, and runs the full test gate.
+   brief. It reads the brief (including the scraped raw-texture material), generates three
+   design concepts and self-critiques them, commits the chosen concept to `docs/concept.md`,
+   reshapes the per-client part of `business.json` + schema, designs and builds the page
+   0→100 on the quality floor (see [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md)),
+   enforces the WCAG palette contract, regenerates the OG image, and runs the full test
+   gate — autonomously, surfacing every provisional fact and placeholder in its final report.
    Doing it by hand instead: edit `src/content/business/business.json`, then
    `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
 4. **Real photos**: drop client photos into `src/assets/images/` keeping the filenames (or
@@ -176,5 +175,6 @@ CLI alternative: `npx wrangler pages deploy dist`.
 See [AGENTS.md](./AGENTS.md) for the folder map, the business.json contract, RTL rules, and
 coding conventions. `CLAUDE.md` points AI agents at the same contract. For humans:
 [docs/CLIENT-SITE-GUIDE.md](./docs/CLIENT-SITE-GUIDE.md) is the new-developer walkthrough for
-building a client site, and [docs/CREATIVE-CONTRACT.md](./docs/CREATIVE-CONTRACT.md) defines
-the per-client "signature moment" creative sandbox (mount points, rules, worked example).
+building a client site, and [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md) is the design
+contract — the quality floor, the toolkit, and the required design process for building each
+client site 0→100.

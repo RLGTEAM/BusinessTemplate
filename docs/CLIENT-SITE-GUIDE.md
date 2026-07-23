@@ -1,8 +1,10 @@
 # Building a client landing page from this template
 
 A practical guide for a developer picking up this repo for the first time to ship a
-landing page for a real customer. It's a fill-in-the-blanks machine: **you edit one
-JSON file, swap images, and validate**. You should almost never touch a component.
+landing page for a real customer. `business.json` holds the facts, voice, and copy;
+the page itself — composition, section design, color story, motion — is a design
+decision made in code, on the quality floor set out in
+[docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md).
 
 > Working with Claude Code? Run the `/new-client` skill — it walks the whole flow
 > below interactively (brief → business.json → theme → validation → tests).
@@ -20,8 +22,8 @@ JSON file, swap images, and validate**. You should almost never touch a componen
    - `content` — every visible string, section by section.
 
    A fully-filled reference lives at `docs/examples/demo-salon.business.json`.
-3. **Pick the design variants** (see "Making it look unique" below) in the
-   `design` block.
+3. **Pick a font pairing** (`design.fontPairing` in `business.json`) and set the
+   section variant props in `src/pages/index.astro` (see "Making it look unique" below).
 4. **Swap images**: drop the client's photos into `src/assets/images/` keeping the
    same filenames (or update the filenames in `business.json`). Until you have real
    photos: `npx tsx scripts/generate-placeholders.ts`.
@@ -38,34 +40,37 @@ JSON file, swap images, and validate**. You should almost never touch a componen
      the accessibility statement is a legal requirement in Israel (ת"י 5568).
    - `data.seo.siteUrl` points at the real domain (it feeds the sitemap + JSON-LD).
 
-## Making it look unique (the anti-sameness system)
+## Making it look unique (design is a code decision)
 
 Two sites from this template should never look like siblings. Uniqueness comes from
-**combinations**, not custom code. The `design` block gives you six independent dials:
+combining variant props in `src/pages/index.astro`, tokens in `src/styles/custom.css`,
+and the design process in [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) — not from
+picking values out of a `business.json` block. The only design field left in
+`business.json` is `design.fontPairing`.
 
-| Dial | Options | What it changes |
+| What | Where | Options |
 |---|---|---|
-| `fontPairing` | `classic` · `modern` · `elegant` · `warm` · `bold` · `editorial` | Display + body fonts (all Hebrew-capable) |
-| `hero` | `split` · `centered` · `full-bleed` | Above-the-fold layout |
-| `shape` | `rounded` · `sharp` · `pill` | Corner radius of cards/buttons |
-| `density` | `airy` · `regular` · `compact` | Vertical rhythm of sections |
-| `servicesLayout` | `cards` · `list` · `panels` | Services section |
-| `galleryLayout` | `grid` · `masonry` · `featured` | Gallery section |
-| `sectionOrder` | any permutation of the 7 middle sections | Page narrative |
+| Font pairing | `design.fontPairing` in `business.json` | `classic` · `modern` · `elegant` · `warm` · `bold` · `editorial` (all Hebrew-capable) |
+| Hero layout | `<Hero variant="...">` prop in `index.astro` | `split` · `centered` · `full-bleed` |
+| Services layout | `<Services layout="...">` prop in `index.astro` | `cards` · `list` · `panels` |
+| Gallery layout | `<Gallery layout="...">` prop in `index.astro` | `grid` · `masonry` · `featured` |
+| Section order | the order components appear in `index.astro` | any order; keep `content.nav` links in sync |
+| Shape / rhythm | `--shape-radius-card`, `--shape-radius-button`, `--section-py` tokens, overridden in `src/styles/custom.css` | any value — never a literal radius or `py-*` |
 
-That's **thousands of combinations before you even pick colors**. Tips for choosing well:
+That's still thousands of combinations before you even pick colors. Tips for choosing well:
 
 - **Start from the client's character, not from what looks good in the demo.**
-  A law office: `elegant` or `editorial` + `sharp` + `airy` + `list`. A kids' party
-  business: `warm` or `bold` + `pill` + `regular` + `cards`. A hair salon:
-  `modern` + `rounded` + `masonry` gallery + `full-bleed` hero of their space.
+  A law office: `elegant` or `editorial` fonts + sharp tokens + a `list` services layout.
+  A kids' party business: `warm` or `bold` fonts + pill tokens + a `cards` layout. A
+  hair salon: `modern` fonts + rounded tokens + `masonry` gallery + `full-bleed` hero
+  of their space.
 - **`bold` (Karantina) is a condensed display font — it shouts.** Great for
   gyms/food trucks; wrong for clinics. `editorial` (David Libre serif) reads
   premium/established.
-- **Change the section order to match the sales story.** Trust-first business
-  (therapist, accountant): `about` → `testimonials` early. Visual business
-  (renovations, catering): `gallery` right after services. Price-driven:
-  `services` → `faq` → `cta`. Keep `content.nav` link order in sync.
+- **Reorder the sections in `index.astro` to match the sales story.** Trust-first
+  business (therapist, accountant): `About` → `Testimonials` early. Visual business
+  (renovations, catering): `Gallery` right after `Services`. Price-driven:
+  `Services` → `FAQ` → `CTA`. Keep `content.nav` link order in sync.
 - **`full-bleed` hero lives or dies by the photo.** Only use it with a genuinely
   good, wide client photo; with mediocre photos, `split` flatters more.
 - **Palette: pull it from something real** — the client's logo, their storefront,
@@ -76,18 +81,19 @@ That's **thousands of combinations before you even pick colors**. Tips for choos
 - **The copy is half the design.** `voice.persona`, `keywords`, and `doNotSay`
   exist so headlines don't sound templated. Write the hero headline the way this
   specific business owner would say it to a customer, not "ברוכים הבאים לאתר שלנו".
-- **Photos beat every other dial.** Real photos of the client's work, lightly
+- **Photos beat every other choice.** Real photos of the client's work, lightly
   edited for consistent warmth/exposure, are the single biggest anti-template
   signal. Placeholder-quality stock kills the effect of every choice above.
-- **Then build the experience layer.** Beyond the dials, every client site gets
-  ONE creative concept expressed across the page: a color story in
-  `src/styles/custom.css` (tinted/dark/gradient sections from the client's own
-  colors), motifs per section in `SectionDecor.astro`, a hero statement piece in
-  `SignatureBackdrop.astro`, optionally a fully custom section, and one
-  characteristic motion in `signature.ts`. This is what turns "a clean page"
-  into "feels like walking into their shop." Strict contract (tokens, contrast
-  pairs, RTL, reduced-motion, same test gate) — read `docs/CREATIVE-CONTRACT.md`
-  first. One coherent concept beats ten scattered effects.
+- **Then design the page 0→100 following the doctrine.** Beyond variant props,
+  every client site gets ONE creative concept expressed everywhere it helps:
+  composition and section design as code, a color story in `src/styles/custom.css`
+  (tinted/dark/gradient sections from the client's own colors, via `color-mix()`),
+  and one characteristic motion reused via `data-reveal` and the `setup*()` hooks
+  in `src/lib/animation/index.ts`. This is what turns "a clean page" into "feels
+  like walking into their shop." Full contract (the floor, the toolkit, the
+  four-line design process) lives in
+  [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) — read it first. One coherent
+  concept beats ten scattered effects.
 
 ## Rules that keep you out of trouble
 
