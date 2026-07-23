@@ -106,7 +106,6 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 ## Do / Don't
 
 - DO pin dependency versions; DO keep `npm run test` + `test:e2e` green before committing.
-- DO update `tests/smoke.spec.ts` when adding user-visible behavior.
 - DO write new user-visible behavior a test in the client repo (the contract smoke suite is never edited, only added to).
 - DON'T add `tailwind.config.js`, styled-components, or CSS-in-JS — tokens live in `global.css`.
 - DON'T add React/islands, a CMS, or i18n libraries without an explicit request.

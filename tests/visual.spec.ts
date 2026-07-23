@@ -19,6 +19,9 @@ const TARGETS = [
   { name: "header", selector: "body > header" },
   { name: "hero", selector: "#hero" },
   ...navSectionIds.map((id) => ({ name: id, selector: `#${id}` })),
+  // Not in the nav, but part of the reference composition — the runtime
+  // skip handles bespoke pages without it.
+  { name: "cta", selector: "#cta" },
   { name: "footer", selector: "body > footer" },
 ];
 

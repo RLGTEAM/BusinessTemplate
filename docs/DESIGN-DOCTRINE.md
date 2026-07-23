@@ -37,9 +37,12 @@ gate, not a list of allowed layouts, decides what ships.
   `legal`. Hebrew sites keep a bidi test line (Hebrew + Latin + ₪) in visible
   body copy.
 - A clear contact path (form, WhatsApp, or phone) reachable from the nav.
-- `lib/jsonld.ts` reads `content.faq` for FAQPage JSON-LD — if your design has
-  no FAQ, keep the field with real Q&A anyway (it still feeds AEO) or adapt
-  `faqJsonLd` and the smoke JSON-LD count together, in the same commit.
+- Several per-client `content` fields are load-bearing for the SEO/AEO
+  machine: `content.services.title` (LocalBusiness OfferCatalog name in
+  `lib/jsonld.ts`) and `content.faq.items` (read by BOTH `faqJsonLd` and
+  the `llms.txt` endpoint). The typecheck gate flags any you remove — keep
+  them with real content, or adapt every reader (and the smoke JSON-LD
+  count) in the same commit.
 - The contract-driven smoke suite passes with ZERO edits. New user-visible
   behavior gets **added** tests in the client repo; never weaken the suite.
 
