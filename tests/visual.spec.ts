@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { navSectionIds } from "./contract";
 
 /**
  * Visual regression snapshots, tagged @visual.
@@ -12,18 +13,14 @@ import { expect, test } from "@playwright/test";
  * fully respects — so every element is in its final, visible state.
  */
 
+// Targets derive from the nav contract; header/hero/footer are conventional
+// (a target whose selector is absent on a bespoke page is skipped).
 const TARGETS = [
   { name: "header", selector: "body > header" },
   { name: "hero", selector: "#hero" },
-  { name: "services", selector: "#services" },
-  { name: "about", selector: "#about" },
-  { name: "testimonials", selector: "#testimonials" },
-  { name: "gallery", selector: "#gallery" },
-  { name: "faq", selector: "#faq" },
-  { name: "cta", selector: "#cta" },
-  { name: "contact", selector: "#contact" },
+  ...navSectionIds.map((id) => ({ name: id, selector: `#${id}` })),
   { name: "footer", selector: "body > footer" },
-] as const;
+];
 
 async function preparePage(page: import("@playwright/test").Page): Promise<void> {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -57,6 +54,10 @@ test.describe("visual regression @visual", () => {
   for (const target of TARGETS) {
     test(`${target.name} looks right (RTL)`, async ({ page }) => {
       await preparePage(page);
+      test.skip(
+        (await page.locator(target.selector).count()) === 0,
+        `no ${target.selector} on this site`,
+      );
       await expect(page.locator(target.selector)).toHaveScreenshot(`${target.name}.png`);
     });
   }

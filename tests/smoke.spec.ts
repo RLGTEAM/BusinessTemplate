@@ -1,28 +1,46 @@
 import { expect, test } from "@playwright/test";
 import business from "../src/content/business/business.json" with { type: "json" };
+import { collectStrings, navSectionIds } from "./contract";
+
+/**
+ * Contract-driven smoke tests. Expectations derive from the frozen parts of
+ * business.json plus generic invariants that hold for every site. Per-client
+ * content shapes (hero copy, section strings) are off-limits here — a bespoke
+ * page must pass this suite without edits. Site-specific behavior gets ADDED
+ * tests in the client repo, never edits to these.
+ */
 
 test.describe("home page", () => {
   test("renders with correct language and direction", async ({ page }) => {
     await page.goto("/");
     const html = page.locator("html");
     await expect(html).toHaveAttribute("lang", business.locale);
-    await expect(html).toHaveAttribute("dir", "rtl");
+    await expect(html).toHaveAttribute("dir", business.locale === "he" ? "rtl" : "ltr");
   });
 
-  test("has exactly one h1, sourced from business.json", async ({ page }) => {
+  test("has exactly one non-empty h1", async ({ page }) => {
     await page.goto("/");
     const h1 = page.locator("h1");
     await expect(h1).toHaveCount(1);
-    await expect(h1).toHaveText(business.content.hero.headline);
+    await expect(h1).not.toBeEmpty();
   });
 
-  test("renders the bidi test string", async ({ page }) => {
-    // The about body must contain a mixed Hebrew/Latin/number/currency line
-    // (the /new-client skill keeps one) — assert it renders, whatever it says.
-    const bidiLine = business.content.about.body.find(
-      (paragraph) => /[A-Za-z]/.test(paragraph) && /₪/.test(paragraph),
-    );
-    expect(bidiLine, "business.json must keep a bidi test line in content.about.body").toBeTruthy();
+  test("every nav link resolves to a real section id", async ({ page }) => {
+    expect(navSectionIds.length, "nav must contain at least one #section link").toBeGreaterThan(0);
+    await page.goto("/");
+    for (const id of navSectionIds) {
+      await expect(page.locator(`#${id}`), `nav promises #${id}`).toBeAttached();
+    }
+  });
+
+  test("renders a bidi test string (Hebrew sites)", async ({ page }) => {
+    test.skip(business.locale !== "he", "bidi line only required for Hebrew sites");
+    // Longest qualifying string — bidi test lines are full sentences kept in
+    // visible body copy (the /new-client skill maintains one).
+    const bidiLine = collectStrings(business.content)
+      .filter((s) => /[א-ת]/.test(s) && /[A-Za-z]/.test(s) && /₪/.test(s))
+      .sort((a, b) => b.length - a.length)[0];
+    expect(bidiLine, "content must keep a bidi test line (Hebrew + Latin + ₪)").toBeTruthy();
     await page.goto("/");
     await expect(page.getByText(bidiLine as string)).toBeVisible();
   });
@@ -36,22 +54,29 @@ test.describe("home page", () => {
     expect(first).toContain("LocalBusiness");
   });
 
-  test("all sections are present", async ({ page }) => {
-    await page.goto("/");
-    for (const id of ["services", "about", "testimonials", "gallery", "faq", "contact"]) {
-      await expect(page.locator(`#${id}`)).toBeAttached();
-    }
-  });
-
-  test("contact form blocks empty submit and shows field errors", async ({ page }) => {
+  test("contact form blocks an empty submit", async ({ page }) => {
     await page.goto("/");
     const form = page.locator("#contact-form");
+    test.skip((await form.count()) === 0, "site has no #contact-form");
     await form.scrollIntoViewIfNeeded();
     await form.locator('button[type="submit"]').click();
-    await expect(form.locator("#name-error")).toHaveText(
-      business.content.contactForm.requiredError,
-    );
-    await expect(form.locator("#name")).toBeFocused();
+    await expect(form.locator('[id$="-error"]').first()).not.toBeEmpty();
+  });
+
+  test("contact form flags an invalid email", async ({ page }) => {
+    await page.goto("/");
+    const form = page.locator("#contact-form");
+    test.skip((await form.count()) === 0, "site has no #contact-form");
+    test.skip((await form.locator("#email").count()) === 0, "form has no #email field");
+    for (const field of ["#name", "#phone", "#message"]) {
+      const input = form.locator(field);
+      if ((await input.count()) > 0) {
+        await input.fill("בדיקה 050-1234567");
+      }
+    }
+    await form.locator("#email").fill("not-an-email");
+    await form.locator('button[type="submit"]').click();
+    await expect(form.locator("#email-error")).not.toBeEmpty();
   });
 
   test("404 page renders", async ({ page }) => {
@@ -100,17 +125,5 @@ test.describe("home page", () => {
     expect(manifest.status()).toBe(200);
     const parsed = (await manifest.json()) as { name: string };
     expect(parsed.name).toBe(business.data.name);
-  });
-
-  test("contact form flags an invalid email", async ({ page }) => {
-    await page.goto("/");
-    const form = page.locator("#contact-form");
-    await form.scrollIntoViewIfNeeded();
-    await form.locator("#name").fill("ישראל ישראלי");
-    await form.locator("#email").fill("not-an-email");
-    await form.locator("#phone").fill("0501234567");
-    await form.locator("#message").fill("בדיקה");
-    await form.locator('button[type="submit"]').click();
-    await expect(form.locator("#email-error")).toHaveText(business.content.contactForm.emailError);
   });
 });
