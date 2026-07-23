@@ -5,7 +5,7 @@ content, branding, and SEO live in a single file — `src/content/business/busin
 validated by Zod at build time. Hebrew/RTL by default, flips to LTR with one flag.
 
 Ships with: Astro 7 (static output), Tailwind CSS 4 (CSS-first), GSAP + ScrollTrigger + Lenis
-(reduced-motion safe), six self-hosted Hebrew-capable font pairings, JSON-LD (LocalBusiness /
+(reduced-motion safe), fifteen self-hosted Hebrew-capable font pairings, JSON-LD (LocalBusiness /
 Organization / WebSite / FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky,
 Playwright, Lighthouse CI.
 
@@ -50,7 +50,8 @@ A new client asked for a website. Step by step:
    design concepts and self-critiques them, commits the chosen concept to `docs/concept.md`,
    reshapes the per-client part of `business.json` + schema, designs and builds the page
    0→100 on the quality floor (see [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md)),
-   enforces the WCAG palette contract, regenerates the OG image, and runs the full test
+   enforces the WCAG palette contract, judges the result against the design-review rubric
+   (screenshots, max 3 fix rounds), regenerates the OG image, and runs the full test
    gate — autonomously, surfacing every provisional fact and placeholder in its final report.
    Doing it by hand instead: edit `src/content/business/business.json`, then
    `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
@@ -176,5 +177,7 @@ See [AGENTS.md](./AGENTS.md) for the folder map, the business.json contract, RTL
 coding conventions. `CLAUDE.md` points AI agents at the same contract. For humans:
 [docs/CLIENT-SITE-GUIDE.md](./docs/CLIENT-SITE-GUIDE.md) is the new-developer walkthrough for
 building a client site, and [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md) is the design
-contract — the quality floor, the toolkit, and the required design process for building each
-client site 0→100.
+contract — the quality floor, the toolkit, the divergence hard rules, and the required design
+process for building each client site 0→100. The `design-review` skill
+(`.claude/skills/design-review/`) is the judge that scores the built result against that
+doctrine's rubric — client repos only, it never ships a `docs/design-review.md` in the template.

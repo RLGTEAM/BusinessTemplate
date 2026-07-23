@@ -18,7 +18,10 @@ decision made in code, on the quality floor set out in
 2. **Fill `src/content/business/business.json`** — the single source of truth.
    Every `[bracketed]` placeholder must be replaced. Three blocks:
    - `data` — facts: name, NAP, hours, services, prices, SEO, socials.
-   - `voice` — tone, keywords, `palette` (3 hex colors + mood).
+   - `voice` — tone, keywords, `palette` (brand hexes + neutrals — `surface`,
+     `surfaceAlt`, `ink`, `inkMuted`, `line` — + mood). Neutrals default to a
+     light theme but are fully configurable; a dark or deep-tinted site is
+     just as valid a palette choice.
    - `content` — every visible string, section by section.
 
    A fully-filled reference lives at `docs/examples/demo-salon.business.json`.
@@ -50,7 +53,7 @@ picking values out of a `business.json` block. The only design field left in
 
 | What | Where | Options |
 |---|---|---|
-| Font pairing | `design.fontPairing` in `business.json` | `classic` · `modern` · `elegant` · `warm` · `bold` · `editorial` (all Hebrew-capable) |
+| Font pairing | `design.fontPairing` in `business.json` | `classic` · `modern` · `elegant` · `warm` · `bold` · `editorial` · `playful` · `rounded` · `impact` · `poster` · `refined` · `techsans` · `serifnote` · `retro` · `handmade` (all Hebrew-capable; `handmade`/Amatic SC is display-only — short headings) |
 | Hero layout | `<Hero variant="...">` prop in `index.astro` | `split` · `centered` · `full-bleed` |
 | Services layout | `<Services layout="...">` prop in `index.astro` | `cards` · `list` · `panels` |
 | Gallery layout | `<Gallery layout="...">` prop in `index.astro` | `grid` · `masonry` · `featured` |
@@ -74,10 +77,12 @@ That's still thousands of combinations before you even pick colors. Tips for cho
 - **`full-bleed` hero lives or dies by the photo.** Only use it with a genuinely
   good, wide client photo; with mediocre photos, `split` flatters more.
 - **Palette: pull it from something real** — the client's logo, their storefront,
-  their product. Three colors: `primary` (brand/CTAs), `secondary` (dark ink for
-  headings), `accent` (highlights). The validator enforces WCAG AA contrast on all
-  pairs the template actually uses, so a failing palette is caught immediately —
-  adjust lightness, don't fight it.
+  their product. Brand colors: `primary` (CTAs), `secondary` (headings), `accent`
+  (highlights); neutrals: `surface`, `surfaceAlt`, `ink`, `inkMuted`, `line` — a
+  dark or deep-tinted site is a legitimate palette, not just the light default.
+  The validator enforces WCAG AA contrast on 9 pairs computed against the real
+  palette, so a failing combination is caught immediately — adjust lightness,
+  don't fight it.
 - **The copy is half the design.** `voice.persona`, `keywords`, and `doNotSay`
   exist so headlines don't sound templated. Write the hero headline the way this
   specific business owner would say it to a customer, not "ברוכים הבאים לאתר שלנו".
@@ -88,12 +93,18 @@ That's still thousands of combinations before you even pick colors. Tips for cho
   every client site gets ONE creative concept expressed everywhere it helps:
   composition and section design as code, a color story in `src/styles/custom.css`
   (tinted/dark/gradient sections from the client's own colors, via `color-mix()`),
-  and one characteristic motion reused via `data-reveal` and the `setup*()` hooks
-  in `src/lib/animation/index.ts`. This is what turns "a clean page" into "feels
-  like walking into their shop." Full contract (the floor, the toolkit, the
-  four-line design process) lives in
-  [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) — read it first. One coherent
-  concept beats ten scattered effects.
+  and one characteristic motion — tuned `data-reveal` presets (including the
+  `blur`/`clip` exceptions to transforms/opacity-only) plus, for a true signature
+  move, `registerCustomAnimations()` in `src/lib/animation/custom.ts`. This is
+  what turns "a clean page" into "feels like walking into their shop." Full
+  contract (the floor, the toolkit, the divergence hard rules, the four-line
+  design process) lives in [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) —
+  read it first. One coherent concept beats ten scattered effects.
+- **Judge it before calling it done.** Run the `design-review` skill (or
+  `/design-review` in Claude Code) against the built site — it screenshots the
+  real page and scores it against the doctrine's rubric. Rerun it any time
+  after client feedback changes the design; it's built to be re-invoked, not
+  a one-shot gate.
 
 ## Rules that keep you out of trouble
 

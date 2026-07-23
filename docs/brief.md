@@ -39,6 +39,7 @@
 - CTA style (pushy ↔ gentle):
 - Existing brand colors (hex if known, otherwise mood words):
 - Mood (e.g. boutique, energetic, calm, premium):
+- Light or dark site? Surface mood (bright / warm tinted / deep dark):
 
 ## Content material
 

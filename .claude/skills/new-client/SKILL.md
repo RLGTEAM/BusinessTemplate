@@ -28,7 +28,22 @@ Generate THREE distinct concept candidates in the doctrine's four-line format
 Self-critique each against: (a) would this client's customers recognize it
 instantly, (b) feasibility on the floor (contrast pairs, RTL, reduced-motion
 still frame), (c) distance from the reference-template look and from previous
-clients if known. Pick the strongest. Write `docs/concept.md` containing the
+clients if known. Pick the strongest.
+
+The chosen concept MUST specify, binding for every build:
+
+1. A bespoke hero treatment — not a stock `Hero` variant left untouched.
+2. At least one fully bespoke section (not a reference section with props
+   changed).
+3. A signature motion implemented in `src/lib/animation/custom.ts`
+   (`registerCustomAnimations`) — not just default `data-reveal` presets.
+4. A non-default color story: the page cannot ship all-default-white
+   surfaces unless `docs/concept.md` explicitly argues why light-minimal
+   serves THIS client.
+5. A composition order different from the reference default (Hero →
+   Services → About → Testimonials → Gallery → FAQ → CTA → ContactForm).
+
+Write `docs/concept.md` containing the
 chosen concept in full plus the two rejected candidates with one line each on
 why they lost. Commit it alone: `feat: design concept for <client>`.
 
@@ -53,9 +68,13 @@ why they lost. Commit it alone: `feat: design concept for <client>`.
 
 ## Step 3 — Palette
 
-`voice.palette` drives the theme. `npm run validate:content` enforces WCAG AA
-(≥ 4.5:1) on primary↔surface, secondary↔surface, secondary↔surface-alt,
-accent↔secondary. If a brand color fails, adjust until it passes and note the
+`voice.palette` drives the theme, including the neutrals: `surface`,
+`surfaceAlt`, `ink`, `inkMuted`, `line` — schema defaults are the reference
+light theme, but a dark or deep-tinted site is a first-class choice, not a
+workaround. `npm run validate:content` enforces WCAG AA (≥ 4.5:1) on all 9
+pairs the template actually uses (ink/ink-muted × surface/surface-alt,
+primary/secondary × surface/surface-alt, accent↔secondary) against the REAL
+palette values. If a brand color fails, adjust until it passes and note the
 change in the report. New color-as-text pairs → add to
 `scripts/validate-content.ts` in the same commit.
 
@@ -72,9 +91,13 @@ Execute the committed concept, 0→100:
 - Honor the page contract: one `h1`, nav `#id` links all resolve, footer with
   legal links, contact path reachable, decorative = `aria-hidden` +
   `pointer-events-none`.
-- Motion: the concept's ONE motion identity via `data-reveal` choices and, if
-  needed, a `setup*()` registered inside the matchMedia context in
-  `src/lib/animation/index.ts`.
+- Motion: the concept's ONE motion identity. Default entrances via
+  `data-reveal` choices, tuned with `data-reveal-duration` /
+  `data-reveal-delay` / `data-reveal-distance` / `data-reveal-start` (and
+  `data-reveal-stagger` on groups); the `blur` and `clip` presets are the two
+  sanctioned exceptions to transforms/opacity-only. Bespoke motion goes in
+  `registerCustomAnimations()` in `src/lib/animation/custom.ts` — the entry
+  point called inside the reduced-motion-guarded matchMedia context.
 - New user-visible behavior → ADD a test in the client repo. The contract
   smoke suite is never edited.
 
@@ -83,6 +106,14 @@ Execute the committed concept, 0→100:
 Client photos into `src/assets/images/` (keep filenames or update refs).
 Regenerate: `npm run generate:og`. Every image still showing a placeholder
 goes in the report.
+
+## Step 5.5 — Design review (the judge)
+
+Invoke the `design-review` skill against the built site. It owns the rubric
+and the automatic-fail checks — do not inline them here. The build must reach
+PASS, or exhaust the skill's 3 rounds with every round's verdict logged to
+`docs/design-review.md`, before moving to the final gate. A site that hasn't
+run through this skill isn't finished, even if Step 6 is green.
 
 ## Step 6 — Gate (all must pass; fix, don't skip)
 

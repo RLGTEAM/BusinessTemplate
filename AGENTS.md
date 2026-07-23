@@ -69,14 +69,17 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 - Images: `business.json` references filenames; files live in `src/assets/images/`; resolve with `resolveImage()`. OG image lives in `public/`.
 - Link fields may use the sentinel `"whatsapp"` — always pass hrefs through `resolveHref()`.
 - Schema failures fail the build. Run `npm run validate:content` after editing.
-- **Palette contract**: `validate:content` enforces WCAG AA (≥ 4.5:1) on the pairs the template
-  actually uses — primary↔surface, secondary↔surface, secondary↔surface-alt, accent↔secondary.
-  Therefore: `text-primary` only on `bg-surface`; text on `bg-accent` is always `text-secondary`;
+- **Palette contract**: `validate:content` enforces WCAG AA (≥ 4.5:1) on 9 pairs computed against
+  the REAL palette, neutrals included — `ink`↔`surface`, `ink`↔`surface-alt`, `ink-muted`↔`surface`,
+  `ink-muted`↔`surface-alt`, `primary`↔`surface`, `primary`↔`surface-alt`, `secondary`↔`surface`,
+  `secondary`↔`surface-alt`, `accent`↔`secondary`. Neutrals (`surface`/`surfaceAlt`/`ink`/`inkMuted`/
+  `line`) come from `voice.palette` with light-theme defaults; dark sites are first-class, not a
+  workaround. `text-primary` only on `bg-surface`; text on `bg-accent` is always `text-secondary`;
   never use `accent` as text on light backgrounds. New color-as-text usage → add the pair to
   `scripts/validate-content.ts` first.
 - **Model-first design** — the page is designed per client under `docs/DESIGN-DOCTRINE.md`:
   composition, section design, shape/rhythm tokens, color story are all code decisions. The
-  only design data in `business.json` is `design.fontPairing` (six self-hosted Hebrew-capable
+  only design data in `business.json` is `design.fontPairing` (fifteen self-hosted Hebrew-capable
   pairings mapped in astro.config.mjs; components only use `font-display`/`font-sans`).
 - **Content split** — `data` + `voice` + the `content` frozen core (`nav`, `ui`, `consent`,
   `notFound`, `legal`) are identical in every repo; the rest of `content` is reshaped per
@@ -91,10 +94,11 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 
 ## Animation rules
 
-- One way to animate content in: `data-reveal` / `data-reveal="slide-start|slide-end|scale"` / `data-reveal-group` (staggers children). Defined in `src/lib/animation/reveal.ts`.
+- One way to animate content in: `data-reveal` / `data-reveal="slide-start|slide-end|scale|blur|clip"` / `data-reveal-group` (staggers children). Defined in `src/lib/animation/reveal.ts`. Per-element tuning via `data-reveal-duration` / `-delay` / `-distance` / `-start` (and `-stagger` on groups).
+- Bespoke motion goes in `registerCustomAnimations()` in `src/lib/animation/custom.ts` — the entry point called inside the reduced-motion-guarded matchMedia context. Ships as a no-op in the template.
 - Everything lives inside `gsap.matchMedia()` guarded by `prefers-reduced-motion` — reduced motion = static page, no exceptions.
 - Lifecycle is wired once in BaseLayout: init on `astro:page-load`, full teardown on `astro:before-swap`. Never create GSAP/Lenis instances elsewhere.
-- Animate transforms/opacity only. Content must be visible without JS.
+- Animate transforms/opacity only, with TWO sanctioned exceptions: the `blur` preset (animates `filter`) and the `clip` preset (animates `clip-path`, dir-aware). Content must be visible without JS.
 
 ## Conventions (one canonical way)
 

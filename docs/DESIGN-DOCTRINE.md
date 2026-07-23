@@ -15,9 +15,12 @@ gate, not a list of allowed layouts, decides what ships.
 - Copy lives in `business.json`, read via `getBusiness()` — never hardcoded.
   Images via `resolveImage()`; hrefs via `resolveHref()`.
 - Colors are tokens (`--color-primary|secondary|accent|surface|…`); tints via
-  `color-mix()`. Text sits only on validated contrast pairs (`text-primary` on
-  `bg-surface`; on dark surfaces use `text-surface`). New color-as-text pair →
-  add it to `scripts/validate-content.ts` first.
+  `color-mix()`. Text sits only on validated contrast pairs, computed against
+  the REAL palette values (9 pairs built into `scripts/validate-content.ts`:
+  ink/ink-muted × surface/surface-alt, primary/secondary × surface/surface-alt,
+  accent↔secondary) — `text-primary` on `bg-surface`; on dark surfaces use
+  `text-surface`. New color-as-text pair → add it to
+  `scripts/validate-content.ts` first.
 - Reduced motion = static page. Design the still frame first. All motion lives
   inside the matchMedia context in `src/lib/animation/index.ts`; entrances via
   `data-reveal`; animate transforms/opacity only.
@@ -46,13 +49,37 @@ gate, not a list of allowed layouts, decides what ships.
 - The contract-driven smoke suite passes with ZERO edits. New user-visible
   behavior gets **added** tests in the client repo; never weaken the suite.
 
+## Divergence (hard rules)
+
+A site that passes the floor and the page contract can still be the
+reference template with different words on it. These five are binding for
+every client build (enforced at the concept stage in `/new-client` Step 1):
+
+1. A bespoke hero treatment — not a stock `Hero` variant left untouched.
+2. At least one fully bespoke section.
+3. A signature motion implemented in `registerCustomAnimations()`
+   (`src/lib/animation/custom.ts`).
+4. A non-default color story — no all-default-white page unless
+   `docs/concept.md` explicitly argues light-minimal serves THIS client.
+5. A composition order different from the reference default.
+
+The design-review skill (`.claude/skills/design-review/SKILL.md`) is the
+single source for how the built result is judged against these rules and the
+rest of the rubric — this doc doesn't restate the scoring. A site that fails
+that review isn't finished, even with a green test gate.
+
 ## The toolkit
 
-- **Tokens** (`global.css`): brand colors from `voice.palette`; shape/rhythm
-  via `--shape-radius-card`, `--shape-radius-button`, `--section-py` —
-  override per client in `custom.css`, never literal radii or `py-*`.
-- **Fonts**: `design.fontPairing` — six self-hosted Hebrew-capable pairings
-  (the one design decision that stays data; fonts register at build time).
+- **Tokens** (`global.css`): brand colors from `voice.palette`, neutrals
+  included (`surface`, `surfaceAlt`, `ink`, `inkMuted`, `line` — defaults are
+  the reference light theme; a dark site is a first-class palette, not a
+  hack). Shadows derive from `ink`. Shape/rhythm via `--shape-radius-card`,
+  `--shape-radius-button`, `--section-py` — override per client in
+  `custom.css`, never literal radii or `py-*`.
+- **Fonts**: `design.fontPairing` — fifteen self-hosted Hebrew-capable
+  pairings, each with its own weight set (the one design decision that stays
+  data; fonts register at build time). `handmade` (Amatic SC) is
+  display-only — headings, never body copy, and never long headings.
   Components only use `font-display` / `font-sans`.
 - **Reference sections** (`src/components/sections/`): tested, RTL-correct
   worked examples. Use them as-is, pass their variant props
@@ -62,11 +89,17 @@ gate, not a list of allowed layouts, decides what ships.
 - **Composition**: `src/pages/index.astro` is yours. The shipped default
   composes the references so a fresh clone builds green.
 - **UI primitives**: `Container`, `SectionHeading`, `Button`.
-- **Animation**: `data-reveal` presets for entrances; bespoke GSAP/ScrollTrigger
-  registered from a `setup*()` you add inside the matchMedia context in
-  `src/lib/animation/index.ts` (tweens created synchronously revert on swap;
-  return cleanup only for listeners/observers you own). Lenis + ScrollTrigger
-  are pre-synced; importing gsap adds ~0 bytes.
+- **Animation**: `data-reveal` presets for entrances (`slide-start`,
+  `slide-end`, `scale`, `blur`, `clip`), each tunable per-element via
+  `data-reveal-duration` / `-delay` / `-distance` / `-start` (and `-stagger`
+  on `data-reveal-group`). `blur` (animates `filter`) and `clip` (animates
+  `clipPath`, dir-aware) are the TWO sanctioned exceptions to
+  transforms/opacity-only — everything else stays on transforms/opacity.
+  Bespoke GSAP/ScrollTrigger goes in `registerCustomAnimations()` in
+  `src/lib/animation/custom.ts` — the entry point, called inside the
+  reduced-motion-guarded matchMedia context (tweens created synchronously
+  revert on swap; return cleanup only for listeners/observers you own). Lenis
+  + ScrollTrigger are pre-synced; importing gsap adds ~0 bytes.
 - **Schema**: `data` + `voice` are frozen. The per-client region of `content`
   is reshaped schema-first: `business.schema.ts` → `business.json` →
   components via `getBusiness()`.
