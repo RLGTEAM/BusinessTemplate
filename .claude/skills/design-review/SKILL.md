@@ -28,6 +28,10 @@ the Playwright MCP browser tools, not a manual eyeball:
 3. `browser_resize` to `390x844`, `browser_take_screenshot` with `fullPage: true`.
 4. Read both screenshots before scoring anything — the verdict is evidence-based.
 
+Caveat: full-page screenshots downsample heavily on long pages. When judging
+a specific band (color story, section treatment), take an additional
+viewport-sized or element screenshot of that section.
+
 ## Automatic fails
 
 Any ONE of these fails the round regardless of scores:
@@ -35,13 +39,18 @@ Any ONE of these fails the round regardless of scores:
 1. **Stock composition** — `src/pages/index.astro` order is still the
    reference default (Hero → Services → About → Testimonials → Gallery → FAQ
    → CTA → ContactForm) with every section at its stock variant.
-2. **All-default palette** — every neutral in `voice.palette` sits at its
-   schema default AND no section anywhere carries a tinted or dark treatment
-   (the all-default-white page).
+2. **All-default palette** — fails when ALL palette neutrals
+   (surface/surfaceAlt/ink/inkMuted/line) are at schema defaults AND
+   `src/styles/custom.css` contains no client-authored surface/color-story
+   treatment — i.e. the client added no color story of their own. What stock
+   components ship (including the stock CTA's dark gradient) doesn't count.
 3. **Unskinned footer** — `Footer.astro` renders stock: no palette, no
    `custom.css`, no markup change reaches it.
-4. **Zero bespoke motion** — `src/lib/animation/custom.ts` is still the
-   no-op AND no non-default `data-reveal` preset or attribute is used anywhere.
+4. **Zero bespoke motion** — fails when `src/lib/animation/custom.ts` is
+   still the template no-op AND the client added no reveal choices of their
+   own (no `data-reveal` attributes/presets beyond what the stock reference
+   sections — Hero/About/CTA — already ship). Stock sections' built-in
+   presets don't count as bespoke motion.
 
 ## Scored rubric
 
