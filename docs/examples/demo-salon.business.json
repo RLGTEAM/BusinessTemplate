@@ -1,13 +1,7 @@
 {
   "locale": "he",
   "design": {
-    "fontPairing": "classic",
-    "hero": "split",
-    "shape": "rounded",
-    "density": "regular",
-    "servicesLayout": "cards",
-    "galleryLayout": "grid",
-    "sectionOrder": ["services", "about", "testimonials", "gallery", "faq", "cta", "contact"]
+    "fontPairing": "classic"
   },
   "data": {
     "name": "סטודיו אוֹר",

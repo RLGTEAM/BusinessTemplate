@@ -5,9 +5,8 @@ import { z } from "astro/zod";
  *
  * - `data`    — factual business information (NAP, services, SEO). Feeds JSON-LD.
  * - `voice`   — tone + palette. `voice.palette` drives the Tailwind theme tokens.
- * - `content` — every piece of visible copy, section by section. Components must
- *   not contain hardcoded business content; if a section needs a new string, it
- *   is added here first.
+ * - `content` — every piece of visible copy. A frozen core (nav/ui/consent/notFound/legal)
+ *   is identical in every repo; the rest is reshaped per client to match the designed page.
  *
  * A schema failure fails the build (see src/content.config.ts and
  * scripts/validate-content.ts).
@@ -32,33 +31,14 @@ const link = z.object({
   href: z.string().min(1),
 });
 
-/** Middle-of-page sections whose order is configurable (header/hero/footer are fixed). */
-export const orderableSections = [
-  "services",
-  "about",
-  "testimonials",
-  "gallery",
-  "faq",
-  "cta",
-  "contact",
-] as const;
-
-/**
- * Everything sectionOrder may contain: the core sections plus the optional
- * per-client "signature" section (src/components/custom/Signature.astro —
- * see docs/CREATIVE-CONTRACT.md).
- */
-export const sectionKeys = [...orderableSections, "signature"] as const;
-export type SectionKey = (typeof sectionKeys)[number];
-
 export const businessSchema = z.object({
   locale: z.enum(["he", "en"]),
 
   /**
-   * Design variants — the anti-sameness system. Each client site should use a
-   * DIFFERENT combination so no two sites share a skeleton. All values are
-   * validated; adding a new variant means: schema here → tokens/markup →
-   * AGENTS.md. Defaults reproduce the original template look.
+   * The one design decision that must be data (astro.config.mjs registers
+   * fonts at build time): a self-hosted, Hebrew-capable font pairing.
+   * Every other design decision — layout, composition, shape, rhythm,
+   * color story — is made in code per client (docs/DESIGN-DOCTRINE.md).
    */
   design: z
     .object({
@@ -66,31 +46,8 @@ export const businessSchema = z.object({
       fontPairing: z
         .enum(["classic", "modern", "elegant", "warm", "bold", "editorial"])
         .default("classic"),
-      hero: z.enum(["split", "centered", "full-bleed"]).default("split"),
-      shape: z.enum(["rounded", "sharp", "pill"]).default("rounded"),
-      /** Vertical rhythm of sections. */
-      density: z.enum(["airy", "regular", "compact"]).default("regular"),
-      servicesLayout: z.enum(["cards", "list", "panels"]).default("cards"),
-      galleryLayout: z.enum(["grid", "masonry", "featured"]).default("grid"),
-      sectionOrder: z
-        .array(z.enum(sectionKeys))
-        .default([...orderableSections])
-        .refine(
-          (order) =>
-            orderableSections.every((s) => order.filter((x) => x === s).length === 1) &&
-            order.filter((x) => x === "signature").length <= 1,
-          'sectionOrder must contain every core section exactly once (plus "signature" at most once)',
-        ),
     })
-    .default({
-      fontPairing: "classic",
-      hero: "split",
-      shape: "rounded",
-      density: "regular",
-      servicesLayout: "cards",
-      galleryLayout: "grid",
-      sectionOrder: [...orderableSections],
-    }),
+    .default({ fontPairing: "classic" }),
 
   data: z.object({
     name: z.string().min(1),
@@ -189,7 +146,61 @@ export const businessSchema = z.object({
   }),
 
   content: z.object({
+    /* ────────────────────────────────────────────────────────────────────
+     * FROZEN CORE — never remove or rename these fields; infrastructure
+     * (Header nav, legal pages, 404, consent banner, skip link) and the
+     * contract-driven smoke tests depend on them in every client repo.
+     * ──────────────────────────────────────────────────────────────────── */
     nav: z.array(link).min(1),
+    ui: z.object({
+      skipToContent: z.string().min(1),
+      openMenu: z.string().min(1),
+      closeMenu: z.string().min(1),
+    }),
+    /** Cookie-consent banner strings. Rendered only when data.analytics declares
+     *  a cookie-based tracker (gtagId / metaPixelId). */
+    consent: z.object({
+      message: z.string().min(1),
+      acceptLabel: z.string().min(1),
+      declineLabel: z.string().min(1),
+      /** Link text to the privacy policy page. */
+      privacyLabel: z.string().min(1),
+    }),
+    notFound: z.object({
+      title: z.string().min(1),
+      body: z.string().min(1),
+      backLabel: z.string().min(1),
+    }),
+    /**
+     * Legal pages. The accessibility statement is legally required for Israeli
+     * businesses (תקן 5568 / WCAG 2.2) — coordinator details must be real.
+     */
+    legal: z.object({
+      accessibility: z.object({
+        title: z.string().min(1),
+        intro: z.array(z.string().min(1)).min(1),
+        /** What the site implements (bullet list). */
+        adjustments: z.array(z.string().min(1)).min(1),
+        coordinator: z.object({
+          name: z.string().min(1),
+          phone: z.string().min(1),
+          email: z.email(),
+        }),
+        /** ISO date, e.g. "2026-07-22". */
+        statementDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      }),
+      privacy: z.object({
+        title: z.string().min(1),
+        body: z.array(z.string().min(1)).min(1),
+      }),
+    }),
+
+    /* ────────────────────────────────────────────────────────────────────
+     * PER-CLIENT — this region describes the default reference composition.
+     * When designing a client site, reshape it freely (schema first, then
+     * JSON, then components via getBusiness()) to match the page you
+     * designed. Copy still NEVER lives in components.
+     * ──────────────────────────────────────────────────────────────────── */
     hero: z.object({
       eyebrow: z.string(),
       headline: z.string().min(1),
@@ -271,62 +282,6 @@ export const businessSchema = z.object({
       navTitle: z.string().min(1),
       areasTitle: z.string().min(1),
     }),
-    ui: z.object({
-      skipToContent: z.string().min(1),
-      openMenu: z.string().min(1),
-      closeMenu: z.string().min(1),
-    }),
-    /** Cookie-consent banner strings. Rendered only when data.analytics declares
-     *  a cookie-based tracker (gtagId / metaPixelId). */
-    consent: z.object({
-      message: z.string().min(1),
-      acceptLabel: z.string().min(1),
-      declineLabel: z.string().min(1),
-      /** Link text to the privacy policy page. */
-      privacyLabel: z.string().min(1),
-    }),
-    notFound: z.object({
-      title: z.string().min(1),
-      body: z.string().min(1),
-      backLabel: z.string().min(1),
-    }),
-    /**
-     * Legal pages. The accessibility statement is legally required for Israeli
-     * businesses (תקן 5568 / WCAG 2.2) — coordinator details must be real.
-     */
-    legal: z.object({
-      accessibility: z.object({
-        title: z.string().min(1),
-        intro: z.array(z.string().min(1)).min(1),
-        /** What the site implements (bullet list). */
-        adjustments: z.array(z.string().min(1)).min(1),
-        coordinator: z.object({
-          name: z.string().min(1),
-          phone: z.string().min(1),
-          email: z.email(),
-        }),
-        /** ISO date, e.g. "2026-07-22". */
-        statementDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      }),
-      privacy: z.object({
-        title: z.string().min(1),
-        body: z.array(z.string().min(1)).min(1),
-      }),
-    }),
-
-    /**
-     * Strings for the per-client signature moment (docs/CREATIVE-CONTRACT.md).
-     * Custom components read copy ONLY from here — never hardcoded literals.
-     * Absent in the template skeleton; add it when a client site builds a
-     * signature section/backdrop that shows text.
-     */
-    signature: z
-      .object({
-        title: z.string().optional(),
-        /** Arbitrary named strings, e.g. { "marqueeText": "...", "badge": "..." }. */
-        strings: z.record(z.string(), z.string()).default({}),
-      })
-      .optional(),
   }),
 });
 
