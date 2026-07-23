@@ -7,8 +7,8 @@ import ConsentBanner from "@/components/ui/ConsentBanner.astro";
 import { getBusiness, getDir } from "@/lib/business";
 import { faqJsonLd, localBusinessJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import "@/styles/global.css";
-// Per-client experience layer — loaded after global.css so it can re-skin
-// section surfaces (docs/CREATIVE-CONTRACT.md). Empty in the template.
+// Per-client design surface — loaded after global.css so it can re-skin
+// sections and override tokens (docs/DESIGN-DOCTRINE.md). Empty in the template.
 import "@/styles/custom.css";
 
 interface Props {
