@@ -1,5 +1,4 @@
 ---
-import Signature from "@/components/custom/Signature.astro";
 import About from "@/components/sections/About.astro";
 import ContactForm from "@/components/sections/ContactForm.astro";
 import CTA from "@/components/sections/CTA.astro";
@@ -10,36 +9,29 @@ import Header from "@/components/sections/Header.astro";
 import Hero from "@/components/sections/Hero.astro";
 import Services from "@/components/sections/Services.astro";
 import Testimonials from "@/components/sections/Testimonials.astro";
-import type { SectionKey } from "@/content/business.schema";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getBusiness } from "@/lib/business";
 
-const business = await getBusiness();
-
-// Composition is data-driven: design.sectionOrder decides the page flow.
-// Header/Hero/Footer are fixed; everything else reorders per client.
-const sections: Record<SectionKey, typeof Services> = {
-  services: Services,
-  about: About,
-  testimonials: Testimonials,
-  gallery: Gallery,
-  faq: FAQ,
-  cta: CTA,
-  contact: ContactForm,
-  signature: Signature,
-};
+/*
+ * Per-client page composition (docs/DESIGN-DOCTRINE.md).
+ * This default composes the reference sections in a sensible order so a fresh
+ * clone builds and passes the gate. For a client: reorder, swap variants, gut
+ * or replace sections, add bespoke ones — keep content.nav consistent (every
+ * "#id" nav link must resolve; the smoke suite enforces it), keep exactly one
+ * h1, and keep the footer with its legal links.
+ */
 ---
 
 <BaseLayout>
   <Header />
   <main id="main">
-    <Hero />
-    {
-      business.design.sectionOrder.map((key) => {
-        const Section = sections[key];
-        return <Section />;
-      })
-    }
+    <Hero variant="split" />
+    <Services layout="cards" />
+    <About />
+    <Testimonials />
+    <Gallery layout="grid" />
+    <FAQ />
+    <CTA />
+    <ContactForm />
   </main>
   <Footer />
 </BaseLayout>

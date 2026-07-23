@@ -9,7 +9,12 @@ import { resolveImage } from "@/lib/images";
 const business = await getBusiness();
 const { hero } = business.content;
 const heroImage = resolveImage(hero.image.src);
-const variant = business.design.hero;
+
+interface Props {
+  /** Layout variant — a composition-time choice made in index.astro. */
+  variant?: "split" | "centered" | "full-bleed";
+}
+const { variant = "split" } = Astro.props;
 
 const primaryHref = resolveHref(hero.primaryCta.href, business);
 const secondaryHref = hero.secondaryCta ? resolveHref(hero.secondaryCta.href, business) : null;

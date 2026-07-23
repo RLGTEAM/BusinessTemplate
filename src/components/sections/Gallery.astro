@@ -8,7 +8,12 @@ import { resolveImage } from "@/lib/images";
 
 const business = await getBusiness();
 const { gallery } = business.content;
-const layout = business.design.galleryLayout;
+
+interface Props {
+  /** Layout variant — a composition-time choice made in index.astro. */
+  layout?: "grid" | "masonry" | "featured";
+}
+const { layout = "grid" } = Astro.props;
 
 // masonry: vary aspect ratios in a fixed pattern so columns interlock.
 const masonryAspects = ["aspect-square", "aspect-[3/4]", "aspect-[4/3]"];

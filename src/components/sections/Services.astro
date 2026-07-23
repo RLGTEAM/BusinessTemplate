@@ -7,7 +7,12 @@ import { getBusiness } from "@/lib/business";
 const business = await getBusiness();
 const { services } = business.data;
 const copy = business.content.services;
-const layout = business.design.servicesLayout;
+
+interface Props {
+  /** Layout variant — a composition-time choice made in index.astro. */
+  layout?: "cards" | "list" | "panels";
+}
+const { layout = "cards" } = Astro.props;
 ---
 
 <section id="services" class="relative isolate scroll-mt-20 section-pad">
