@@ -36,7 +36,8 @@ src/
   lib/business.ts                  ← getBusiness(), telHref(), whatsappHref(), resolveHref()
   lib/images.ts                    ← resolveImage("name.png") → src/assets/images/
   lib/jsonld.ts                    ← LocalBusiness / Organization / WebSite / FAQPage JSON-LD
-  lib/animation/                   ← GSAP+Lenis lifecycle (index.ts) + reveal helpers
+  lib/animation/                   ← GSAP+Lenis lifecycle (index.ts) + reveal helpers;
+                                     custom.ts for per-client motion
   layouts/BaseLayout.astro         ← html lang/dir, brand CSS vars, SEO, fonts, JSON-LD
   components/sections/             ← reference library: tested, RTL-correct worked examples
                                      (use, gut, or ignore per client)

@@ -52,7 +52,8 @@ Choices made during brainstorming:
   islands by default.
 - RTL rules (logical properties only, `--dir-factor` and friends), WCAG
   contrast validation in `validate-content`, reduced-motion = static page,
-  animate transforms/opacity only, `<bdi>` / `force-ltr` conventions.
+  animate transforms/opacity only (with `blur` / `clip` exceptions defined
+  in the floor), `<bdi>` / `force-ltr` conventions.
 - Content only through `getBusiness()` / `resolveImage()` / `resolveHref()`.
 - The SEO/AEO machine: JSON-LD (`lib/jsonld.ts`), sitemap, robots, llms.txt,
   manifest + icons, legal pages, OG generation.

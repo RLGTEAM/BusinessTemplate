@@ -665,9 +665,12 @@ gate, not a list of allowed layouts, decides what ships.
   `color-mix()`. Text sits only on validated contrast pairs (`text-primary` on
   `bg-surface`; on dark surfaces use `text-surface`). New color-as-text pair →
   add it to `scripts/validate-content.ts` first.
-- Reduced motion = static page. Design the still frame first. All motion lives
-  inside the matchMedia context in `src/lib/animation/index.ts`; entrances via
-  `data-reveal`; animate transforms/opacity only.
+- Reduced motion = static page. Design the still frame first. Motion lives
+  inside the matchMedia context (`src/lib/animation/index.ts`; bespoke motion
+  via `registerCustomAnimations` in `src/lib/animation/custom.ts`); entrances
+  via `data-reveal`; animate transforms/opacity only — with exactly two
+  sanctioned exceptions: the `blur` preset (filter) and the `clip` preset
+  (dir-aware clip-path).
 - Decorative elements: `aria-hidden="true"` + `pointer-events-none`.
 - No new dependencies. TypeScript strict, no `any`, Zod at runtime boundaries.
 - The gate: `npm run test` + `npm run test:e2e` + `npm run test:ltr-build`
