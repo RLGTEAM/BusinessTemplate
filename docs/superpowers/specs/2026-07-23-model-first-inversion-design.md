@@ -92,7 +92,30 @@ rewrite `AGENTS.md` and the `/new-client` skill accordingly:
 - The promote loop: client-repo ideas that prove broadly useful get
   generalized and absorbed into the template's reference library via PR.
 - "ONE concept, many expressions" survives as craft guidance, not a fence.
-- `/new-client` demands and reviews the written concept before building.
+- `/new-client` runs **autonomous with self-critique** (owner's workflow is
+  scrape → brief.md → `/new-client`, unattended): it generates 2–3 concept
+  candidates, critiques them itself, picks the strongest, builds, and leaves
+  the written concept + rejected alternatives in the client repo
+  (`docs/concept.md`) for after-the-fact review on the deployed preview.
+
+## Brief pipeline (owner's workflow, feeds the doctrine)
+
+The owner fills `docs/brief.md` by scraping the client's real web presence
+(socials, Google Business, reviews) with a browser agent, then runs
+`/new-client`. The template must support this:
+
+- `docs/brief.md` gains a **raw texture** section: verbatim review quotes,
+  the business's own words from its posts, visual observations from its
+  photos, apparent customer base — the unstructured material a 0→100 design
+  concept is built from.
+- Facts in the brief carry provenance: `[scraped]` vs `[client-confirmed]`.
+  `/new-client` treats scraped-only NAP/prices/hours as provisional and lists
+  them in its final report for client confirmation before launch.
+- `/new-client` refuses to finish silently if
+  `content.legal.accessibility.coordinator` is placeholder (legal requirement,
+  ת"י 5568) — it must flag it loudly in the final report.
+- Real client photos remain a manual step (rights + download); the skill's
+  report lists which images are still placeholders.
 
 ## Tests must generalize (the real engineering)
 
