@@ -3,6 +3,10 @@
 > Fill during the sales call / intake. Paste the whole file to Claude Code with `/new-client`.
 > Fields marked * are required; the skill will ask about anything left blank.
 
+> Tag every fact with its provenance: `[scraped]` (found online, unverified) or
+> `[client-confirmed]`. `/new-client` treats scraped-only NAP, prices, and hours
+> as provisional and lists them for client confirmation before launch.
+
 ## Business facts
 
 - Business name*:
@@ -43,13 +47,18 @@
 - FAQ topics the client gets asked a lot:
 - Anything the about section must mention (story, years, certifications):
 
-## Design differentiation
+## Raw texture (from scraping — the design material)
 
-- Which variant combos are already used by other clients (so this one differs):
-  - fontPairing / hero / shape of previous sites:
+> Paste unstructured findings here verbatim. This is what the design concept
+> gets built from — more is better.
 
-## Signature moment (optional — see docs/CREATIVE-CONTRACT.md)
+- Verbatim review quotes (with star rating if visible):
+- How the business describes itself in its own posts/bio:
+- What their photos look like (materials, light, colors, mood):
+- Who their customers appear to be:
+- Anything iconic a visitor would instantly recognize (object, ritual, motion):
 
-- Anything iconic about this business a visitor would instantly recognize?
-  (an object, a motion, a ritual — e.g. vinyl records, steam, clipper lines):
-- Client's appetite for a bold creative flourish (none / subtle / go wild):
+## Creative appetite
+
+- Client's appetite for a bold design (subtle / confident / go wild):
+- Existing sites the client likes or hates (URLs + why, if known):

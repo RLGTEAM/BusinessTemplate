@@ -1,117 +1,110 @@
 ---
 name: new-client
-description: Fill this template for a new client end-to-end — interview/brief → business.json → theme + OG image → validation → full test gate. Use when starting a new client site, rebranding an existing one, or when the user provides a client brief to apply.
+description: Build a client site 0→100 from a brief — concept generation + self-critique → schema-first content → bespoke page design → validation → full test gate. Runs autonomously without stopping for input. Use when starting a new client site, rebranding one, or applying a client brief.
 ---
 
-# New client setup
+# New client build (autonomous)
 
-Turn a client brief into a finished, validated site. Everything flows through
-`src/content/business/business.json` — never edit copy, colors, or contact info anywhere else.
+Turn `docs/brief.md` into a designed, validated site. Run WITHOUT stopping for
+user input: make the best call, record it, and surface every assumption in the
+final report. Read `docs/DESIGN-DOCTRINE.md` first — it is the contract for
+everything below (the floor, the page contract, the toolkit, the process).
 
-## Step 0 — Gather the brief
+## Step 0 — Ingest the brief
 
-If any of these are missing, ask before writing anything:
+- Facts are tagged `[scraped]` or `[client-confirmed]`. Scraped-only NAP,
+  prices, and hours are PROVISIONAL: use them, and list each in the final
+  report under "confirm with client before launch".
+- Missing required facts: do NOT stall. Insert a clearly-marked placeholder
+  and add it to the report's blocking list.
+- The "raw texture" section is your design material — read it before
+  inventing anything. The concept must come from the client's world, not from
+  a generic industry stereotype.
 
-- Business: name, legal name, what they do, address, phone, email, WhatsApp number
-- Offering: 3–6 services with prices (or "hide price")
-- Hours, service areas, socials
-- Voice: tone, formality, 3–5 keywords, words to avoid, CTA style
-- Brand colors if they exist (otherwise propose a palette that fits the mood)
-- Production domain (drives `data.seo.siteUrl`)
-- Language: `he` (RTL) or `en` (LTR)
+## Step 1 — Concept (before any code)
 
-## Step 1 — Schema first
+Generate THREE distinct concept candidates in the doctrine's four-line format
+(metaphor / color story / composition / motion identity + still frame).
+Self-critique each against: (a) would this client's customers recognize it
+instantly, (b) feasibility on the floor (contrast pairs, RTL, reduced-motion
+still frame), (c) distance from the reference-template look and from previous
+clients if known. Pick the strongest. Write `docs/concept.md` containing the
+chosen concept in full plus the two rejected candidates with one line each on
+why they lost. Commit it alone: `feat: design concept for <client>`.
 
-Read `src/content/business.schema.ts` before writing JSON. If the brief needs a field that
-doesn't exist, extend the schema first, then the JSON. Never add unvalidated fields.
+## Step 2 — Schema-first content
 
-## Step 2 — Write business.json
-
-- The shipped file is a `[bracketed]` placeholder skeleton — replace EVERY placeholder in
-  `data`, `voice`, and `content`, including nav labels, form labels, FAQ, testimonials
-  (mark clearly if awaiting real ones), footer strings, `notFound`, and `legal`.
-  A fully-filled reference: `docs/examples/demo-salon.business.json`.
-- `legal.accessibility.coordinator` needs the client's REAL accessibility coordinator
-  (name/phone/email) and today's date in `statementDate` — this page is a legal requirement
-  in Israel. `legal.privacy` should reflect what the form actually collects.
-- Trackers: only set `analytics.gtagId` / `metaPixelId` if the client explicitly wants
-  GA4/Meta Pixel — this auto-enables the consent banner (strings in `content.consent`,
-  keep them in the client's voice). If enabled, REWRITE `legal.privacy` to disclose the
-  tracker; the default text claims the site is cookieless.
-- Final sweep: `rg "\[" src/content/business/business.json` — only the bidi test line may remain.
-- Respect `voice`: tone/formality/doNotSay apply to every sentence you write.
-- Keep the bidi test line pattern in `content.about.body` when locale is `he`
-  (Hebrew + Latin name + phone + ₪ price) — the smoke test asserts it renders.
-- **Windows caveat: save as UTF-8 WITHOUT BOM** — a BOM breaks the build.
+- `data` + `voice` + the frozen content core (`nav`, `ui`, `consent`,
+  `notFound`, `legal`): fill completely, never reshape.
+- The per-client `content` region: reshape `business.schema.ts` to match the
+  page you designed in Step 1, then write the JSON. Copy NEVER lives in
+  components.
+- `legal.accessibility.coordinator` needs REAL details (legal requirement,
+  ת"י 5568). If the brief lacks them, use a placeholder AND flag it as
+  BLOCKING — first line of the final report.
+- Trackers only if explicitly requested (auto-enables consent banner; rewrite
+  `legal.privacy` to disclose them).
+- Hebrew sites keep a bidi test line (Hebrew + Latin name + ₪ price) in
+  visible body copy — the smoke suite scans for it.
+- Respect `voice` in every sentence. Save UTF-8 WITHOUT BOM.
+- Sweep: `rg "\[" src/content/business/business.json` — only the bidi line
+  and deliberate flagged placeholders may remain, and every one of the
+  latter goes in the report.
 
 ## Step 3 — Palette
 
-`voice.palette` drives the entire theme. Constraints (enforced by `npm run validate:content`):
+`voice.palette` drives the theme. `npm run validate:content` enforces WCAG AA
+(≥ 4.5:1) on primary↔surface, secondary↔surface, secondary↔surface-alt,
+accent↔secondary. If a brand color fails, adjust until it passes and note the
+change in the report. New color-as-text pairs → add to
+`scripts/validate-content.ts` in the same commit.
 
-- primary↔surface, secondary↔surface, secondary↔surface-alt, accent↔secondary
-  must all be ≥ 4.5:1 (WCAG AA). Dark secondary + mid-dark primary + warm light accent
-  is the shape that usually works.
-- If the client's brand color fails, darken/lighten it until it passes and note the change.
+## Step 4 — Design and build the page
 
-## Step 3.5 — Design variants (make it look like a different site)
+Execute the committed concept, 0→100:
 
-Set the `design` block so this client does NOT share a skeleton with previous clients:
+- Compose `src/pages/index.astro` yourself. Reference sections
+  (`src/components/sections/`) are examples: use as-is with their variant
+  props, gut and redesign, or replace with bespoke sections.
+- Shape/rhythm: override `--shape-radius-card`, `--shape-radius-button`,
+  `--section-py` in `src/styles/custom.css`; color story with tokens +
+  `color-mix()` there too. Pick `design.fontPairing` to match the concept.
+- Honor the page contract: one `h1`, nav `#id` links all resolve, footer with
+  legal links, contact path reachable, decorative = `aria-hidden` +
+  `pointer-events-none`.
+- Motion: the concept's ONE motion identity via `data-reveal` choices and, if
+  needed, a `setup*()` registered inside the matchMedia context in
+  `src/lib/animation/index.ts`.
+- New user-visible behavior → ADD a test in the client repo. The contract
+  smoke suite is never edited.
 
-- Pick `fontPairing`, `hero`, `shape` to match the brief's mood — e.g. lawyer/clinic →
-  elegant or editorial + centered + sharp; fitness/food → modern or bold + full-bleed +
-  rounded; boutique/care → warm or classic + split + pill.
-- Pick `density` (airy = premium/calm, compact = practical/dense), `servicesLayout`
-  (cards = equal offerings, list = menu/price-list feel, panels = few flagship services),
-  and `galleryLayout` (grid = uniform, masonry = organic/craft, featured = one hero shot).
-- Shuffle `sectionOrder` meaningfully (e.g. testimonials-first for trust-driven businesses,
-  gallery-first for visual ones). Keep `contact` last or second-to-last; keep `content.nav`
-  order consistent with the section order.
-- If other client sites are known (ask the user which combos are already in use), choose a
-  combination that differs in at least three axes overall.
+## Step 5 — Images + OG
 
-## Step 3.75 — Experience concept (this is where the site becomes an experience)
+Client photos into `src/assets/images/` (keep filenames or update refs).
+Regenerate: `npm run generate:og`. Every image still showing a placeholder
+goes in the report.
 
-Before touching images, design ONE bold concept from the client's world — a metaphor their
-customers instantly recognize (record store → vinyl, bakery → flour dust, barber → clipper
-lines) — and let it permeate the page. Write the four-line concept from
-`docs/CREATIVE-CONTRACT.md` and present it to the user:
-
-1. **Metaphor** — one sentence.
-2. **Color story** — which sections go light/tinted/dark, where the accent burns brightest
-   (implemented in `src/styles/custom.css` with tokens + `color-mix()`).
-3. **Motif system** — 1–2 shapes derived from the metaphor, and which sections show them
-   (implemented in `SectionDecor.astro`, branching on the `section` prop; hero statement
-   piece in `SignatureBackdrop.astro`; optionally a full custom section via `"signature"`
-   in `sectionOrder`).
-4. **Motion identity** — the ONE characteristic movement reused wherever motion appears
-   (implemented in `signature.ts`; entrances via `data-reveal`).
-
-Also state what the reduced-motion still frame looks like — it must stand on its own.
-
-Rules: one concept, coherent everywhere (incoherence, not quantity, is what's forbidden);
-strings via `content.signature`; tokens only; text only on validated contrast pairs; the
-same test gate applies. Scale ambition to the client's appetite from the brief
-(none / subtle / go wild). If they want none, skip — the dials alone are a complete design.
-
-## Step 4 — Images
-
-- Replace `src/assets/images/*.png` with client photos (keep filenames, or update
-  `business.json` refs). Keep explicit aspect ratios reasonable (hero 4:3, gallery square).
-- Regenerate the OG image from the new name + palette: `npm run generate:og`
-  (replace later with a designed one if provided).
-
-## Step 5 — Gate (all must pass)
+## Step 6 — Gate (all must pass; fix, don't skip)
 
 ```
-npm run validate:content   # schema + contrast — fix before anything else
-npm run test               # + lint + typecheck
-npm run test:e2e           # smoke + axe accessibility
-npx playwright test --grep @visual --update-snapshots   # rebaseline visuals for new brand
-npm run test:visual        # confirm new baselines are stable
+npm run validate:content
+npm run test
+npm run test:e2e
+npm run test:ltr-build
+npx playwright test --grep @visual --update-snapshots
+npm run test:visual
 ```
 
-## Step 6 — Report
+## Step 7 — Report
 
-Summarize: what was filled, palette decisions (especially contrast adjustments), placeholders
-still awaiting real content (photos, testimonials), and the deploy checklist from README
-(Cloudflare Pages + `PUBLIC_WEB3FORMS_KEY` + `data.seo.siteUrl` matches the domain).
+End with exactly these sections:
+
+1. **BLOCKING** — placeholder accessibility coordinator, missing legal facts.
+2. **Confirm with client before launch** — every `[scraped]`-only NAP /
+   price / hours fact, verbatim.
+3. **Placeholders remaining** — images, testimonials, copy awaiting real
+   content.
+4. **Design decisions** — the concept (link `docs/concept.md`), palette
+   adjustments, fontPairing, composition summary.
+5. **Deploy checklist** — Cloudflare Pages + `PUBLIC_WEB3FORMS_KEY` (created
+   with the CLIENT's email) + `data.seo.siteUrl` matches the domain.
