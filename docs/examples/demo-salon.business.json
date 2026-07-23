@@ -1,4 +1,4 @@
-{
+﻿{
   "locale": "he",
   "design": {
     "fontPairing": "classic"
@@ -71,7 +71,7 @@
     "doNotSay": ["הכי זול", "מבצע", "חיסול"],
     "ctaStyle": "הזמנה אישית וחמה, לא לוחצת",
     "palette": {
-      "primary": "#7c5cbf",
+      "primary": "#75519f",
       "secondary": "#2b2140",
       "accent": "#e8b04b",
       "mood": "חמים ובוטיקי עם נגיעת זהב"
