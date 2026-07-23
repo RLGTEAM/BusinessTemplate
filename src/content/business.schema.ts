@@ -42,9 +42,33 @@ export const businessSchema = z.object({
    */
   design: z
     .object({
-      /** display font / body font — all pairs support Hebrew + Latin. */
+      /**
+       * display font / body font — all 15 pairs support Hebrew + Latin.
+       * classic (warm neutral, default) · modern (geometric) · elegant (literary serif) ·
+       * warm (soft humanist) · bold (condensed impact) · editorial (magazine serif) ·
+       * playful (rounded, friendly) · rounded (soft geometric display) ·
+       * impact (humanist display) · poster (serif display) · refined (serif-sans) ·
+       * techsans (technical/engineering) · serifnote (literary serif, wide weights) ·
+       * retro (understated serif display) · handmade (handwritten display — headings only).
+       */
       fontPairing: z
-        .enum(["classic", "modern", "elegant", "warm", "bold", "editorial"])
+        .enum([
+          "classic",
+          "modern",
+          "elegant",
+          "warm",
+          "bold",
+          "editorial",
+          "playful",
+          "rounded",
+          "impact",
+          "poster",
+          "refined",
+          "techsans",
+          "serifnote",
+          "retro",
+          "handmade",
+        ])
         .default("classic"),
     })
     .default({ fontPairing: "classic" }),
