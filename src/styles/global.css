@@ -34,41 +34,16 @@
 }
 
 /*
- * Shape personality — design.shape sets data-shape on <html> (BaseLayout).
- * rounded-card / rounded-button utilities resolve through these vars.
+ * Shape + rhythm tokens — per-client design decisions.
+ * Defaults give the reference look; override per client in
+ * src/styles/custom.css (see docs/DESIGN-DOCTRINE.md).
+ * Components use rounded-card / rounded-button / section-pad utilities,
+ * never a literal radius or py-* on a section.
  */
-:root,
-[data-shape="rounded"] {
+:root {
   --shape-radius-card: 1.25rem;
   --shape-radius-button: 9999px;
-}
-
-[data-shape="sharp"] {
-  --shape-radius-card: 0.375rem;
-  --shape-radius-button: 0.5rem;
-}
-
-[data-shape="pill"] {
-  --shape-radius-card: 2rem;
-  --shape-radius-button: 9999px;
-}
-
-/*
- * Vertical rhythm — design.density sets data-density on <html> (BaseLayout).
- * Sections use the `section-pad` utility, never a literal py-*.
- * "regular" matches the original py-16 sm:py-24 at phone and desktop widths.
- */
-:root,
-[data-density="regular"] {
   --section-py: clamp(4rem, 8vw, 6rem);
-}
-
-[data-density="airy"] {
-  --section-py: clamp(5.5rem, 11vw, 8.5rem);
-}
-
-[data-density="compact"] {
-  --section-py: clamp(2.75rem, 5.5vw, 4rem);
 }
 
 @utility section-pad {
