@@ -1,6 +1,7 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { registerCustomAnimations } from "./custom";
 import { setupReveals } from "./reveal";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -16,7 +17,6 @@ gsap.registerPlugin(ScrollTrigger);
  */
 
 let mm: gsap.MatchMedia | null = null;
-let lenis: Lenis | null = null;
 let rafCallback: ((time: number) => void) | null = null;
 
 export function initAnimations(): void {
@@ -24,24 +24,29 @@ export function initAnimations(): void {
 
   mm = gsap.matchMedia();
   mm.add("(prefers-reduced-motion: no-preference)", () => {
-    lenis = new Lenis({ autoRaf: false, anchors: true });
-    lenis.on("scroll", ScrollTrigger.update);
+    const lenisInstance = new Lenis({ autoRaf: false, anchors: true });
+    lenisInstance.on("scroll", ScrollTrigger.update);
 
     rafCallback = (time: number) => {
-      lenis?.raf(time * 1000);
+      lenisInstance.raf(time * 1000);
     };
     gsap.ticker.add(rafCallback);
     gsap.ticker.lagSmoothing(0);
 
     setupReveals();
+    // Per-client signature motion (no-op in the template) — runs inside this
+    // matchMedia context, so synchronous tweens revert with everything else.
+    const customCleanup = registerCustomAnimations({ gsap, ScrollTrigger, lenis: lenisInstance });
 
     return () => {
+      if (typeof customCleanup === "function") {
+        customCleanup();
+      }
       if (rafCallback) {
         gsap.ticker.remove(rafCallback);
         rafCallback = null;
       }
-      lenis?.destroy();
-      lenis = null;
+      lenisInstance.destroy();
     };
   });
 }
