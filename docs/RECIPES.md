@@ -130,14 +130,18 @@ Minimal shape:
 
   <label for="email">{copy.emailLabel}</label>
   <input id="email" name="email" type="email" dir="ltr" required aria-describedby="email-error" />
-  <p id="email-error" data-field-error hidden></p>
+  <p id="email-error" data-field-error class="hidden"></p>
 
   <button type="submit">{copy.submitLabel}</button>
-  <p data-form-status role="status" aria-live="polite" hidden></p>
+  <p data-form-status role="status" aria-live="polite" class="hidden"></p>
 </form>
 ```
 
 Rules:
+
+- The helper toggles the `hidden` CSS class (Tailwind's), never the HTML `hidden` attribute
+  — don't use the bare `hidden` attribute on these elements, or errors stay permanently
+  invisible regardless of form state.
 
 - Every string is `data-*` from client-authored content (a form section you
   add to the schema yourself — there is no canonical `content.contactForm`

@@ -32,7 +32,7 @@ clients if known. Pick the strongest.
 
 The chosen concept MUST specify, binding for every build:
 
-1. A bespoke hero treatment — not a stock `Hero` variant left untouched.
+1. A bespoke hero treatment — a hero designed for this client, not a generic centered-headline default.
 2. At least one fully bespoke section.
 3. A signature motion implemented in `src/lib/animation/custom.ts`
    (`registerCustomAnimations`) — not just default `data-reveal` presets.
