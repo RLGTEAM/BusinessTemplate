@@ -20,12 +20,6 @@ const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected HH:MM (24h)
 
 const urlOrEmpty = z.union([z.url(), z.literal("")]);
 
-/** Image reference: a filename inside src/assets/images/, e.g. "hero.svg". */
-const imageRef = z.object({
-  src: z.string().min(1),
-  alt: z.string(),
-});
-
 const link = z.object({
   label: z.string().min(1),
   href: z.string().min(1),
@@ -228,92 +222,30 @@ export const businessSchema = z.object({
     }),
 
     /* ────────────────────────────────────────────────────────────────────
-     * PER-CLIENT — this region describes the default reference composition.
-     * When designing a client site, reshape it freely (schema first, then
-     * JSON, then components via getBusiness()) to match the page you
-     * designed. Copy still NEVER lives in components.
+     * PER-CLIENT — the template ships NO content shapes here beyond two
+     * optional canonical blocks. When building a client site, author the
+     * content model to match the page you designed (schema first, then
+     * JSON, then components via getBusiness()). Copy NEVER lives in
+     * components.
+     *
+     * - `faq` is the canonical shape for FAQPage JSON-LD + llms.txt (AEO):
+     *   include it whenever the business has real FAQs.
+     * - `shell` exists ONLY for the template's unbuilt starter page —
+     *   delete it (schema + JSON) when building the real site.
      * ──────────────────────────────────────────────────────────────────── */
-    hero: z.object({
-      eyebrow: z.string(),
-      headline: z.string().min(1),
-      subheadline: z.string(),
-      primaryCta: link,
-      secondaryCta: link.optional(),
-      image: imageRef,
-    }),
-    services: z.object({
-      title: z.string().min(1),
-      subtitle: z.string(),
-    }),
-    about: z.object({
-      title: z.string().min(1),
-      subtitle: z.string(),
-      /** Paragraphs. */
-      body: z.array(z.string().min(1)).min(1),
-      highlights: z.array(
-        z.object({
-          value: z.string().min(1),
-          label: z.string().min(1),
-        }),
-      ),
-      image: imageRef,
-    }),
-    testimonials: z.object({
-      title: z.string().min(1),
-      subtitle: z.string(),
-      items: z
-        .array(
-          z.object({
-            quote: z.string().min(1),
-            author: z.string().min(1),
-            role: z.string(),
-          }),
-        )
-        .min(1),
-    }),
-    gallery: z.object({
-      title: z.string().min(1),
-      subtitle: z.string(),
-      items: z.array(imageRef).min(1),
-    }),
-    faq: z.object({
-      title: z.string().min(1),
-      subtitle: z.string(),
-      items: z
-        .array(
-          z.object({
-            question: z.string().min(1),
-            answer: z.string().min(1),
-          }),
-        )
-        .min(1),
-    }),
-    cta: z.object({
-      title: z.string().min(1),
-      subtitle: z.string(),
-      button: link,
-    }),
-    contactForm: z.object({
-      title: z.string().min(1),
-      subtitle: z.string(),
-      nameLabel: z.string().min(1),
-      emailLabel: z.string().min(1),
-      phoneLabel: z.string().min(1),
-      messageLabel: z.string().min(1),
-      submitLabel: z.string().min(1),
-      sendingLabel: z.string().min(1),
-      successMessage: z.string().min(1),
-      errorMessage: z.string().min(1),
-      requiredError: z.string().min(1),
-      emailError: z.string().min(1),
-    }),
-    footer: z.object({
-      rights: z.string().min(1),
-      contactTitle: z.string().min(1),
-      hoursTitle: z.string().min(1),
-      navTitle: z.string().min(1),
-      areasTitle: z.string().min(1),
-    }),
+    faq: z
+      .object({
+        title: z.string().optional(),
+        items: z.array(z.object({ question: z.string().min(1), answer: z.string().min(1) })).min(1),
+      })
+      .optional(),
+    shell: z
+      .object({
+        headline: z.string().min(1),
+        note: z.string().min(1),
+        bidiSample: z.string().min(1),
+      })
+      .optional(),
   }),
 });
 

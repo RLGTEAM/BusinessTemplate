@@ -9,15 +9,7 @@ import { getBusiness, telHref, whatsappHref } from "@/lib/business";
 export const GET: APIRoute = async ({ site }) => {
   const business = await getBusiness();
   const { data, content } = business;
-
-  const contentUnknown = content as Record<string, unknown>;
-  const faq =
-    typeof contentUnknown.faq === "object" && contentUnknown.faq !== null
-      ? contentUnknown.faq
-      : null;
-  const faqItems = Array.isArray((faq as Record<string, unknown> | null)?.items)
-    ? ((faq as Record<string, unknown>).items as Array<{ question: string; answer: string }>)
-    : [];
+  const faqItems = content.faq?.items ?? [];
 
   const lines = [
     `# ${data.name}`,
