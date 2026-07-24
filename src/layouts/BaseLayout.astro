@@ -63,9 +63,11 @@ const brandVars = [
     <ConsentBanner />
     <script>
       import { destroyAnimations, initAnimations } from "@/lib/animation";
+      import { setupContactForms } from "@/lib/form";
 
       document.addEventListener("astro:page-load", initAnimations);
       document.addEventListener("astro:before-swap", destroyAnimations);
+      document.addEventListener("astro:page-load", setupContactForms);
     </script>
     {
       business.data.analytics.cloudflareToken && (
