@@ -38,19 +38,21 @@ src/
   lib/jsonld.ts                    ← LocalBusiness / Organization / WebSite / FAQPage JSON-LD
   lib/animation/                   ← GSAP+Lenis lifecycle (index.ts) + reveal helpers;
                                      custom.ts for per-client motion
+  lib/form.ts                      ← headless contact-form logic; setupContactForms() binds
+                                     any form[data-contact-form] (markup contract in docs/RECIPES.md)
   layouts/BaseLayout.astro         ← html lang/dir, brand CSS vars, SEO, fonts, JSON-LD
-  components/sections/             ← reference library: tested, RTL-correct worked examples
-                                     (use, gut, or ignore per client)
-  components/seo/  components/ui/  ← SEO/JsonLd · Container/SectionHeading/Button
+  components/seo/                  ← SEO/JsonLd
+  components/ui/                   ← ConsentBanner only (legal machinery)
   styles/global.css                ← @theme tokens + RTL direction plumbing
   styles/custom.css                ← per-client design surface (color story, token overrides)
-  pages/index.astro                ← per-client page composition (ships a default that passes the gate)
+  pages/index.astro                ← unbuilt starter shell — replace entirely per client
   pages/404.astro                  ← not-found page (copy from content.notFound)
   pages/{accessibility-statement,privacy}.astro ← legal pages (content.legal)
   pages/{llms.txt,site.webmanifest,robots.txt}.ts ← generated endpoints
   assets/images/                   ← images referenced by filename in business.json
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
-                                     DESIGN-DOCTRINE.md (design doctrine) · examples/ (demo salon)
+                                     DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
+                                     patterns for nav/forms/sections)
 scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts,
                                      check-ltr-build.ts
 tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright)
@@ -61,7 +63,7 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 - `data` = facts (NAP, hours, services, SEO). `voice` = tone + palette. `content` = every visible string, per section.
 - **The shipped file is a placeholder skeleton**: every `[bracketed]` value must be replaced for a
   real client. Final sweep: `rg "\[" src/content/business/business.json` must return nothing
-  except the bidi test line. A fully-filled reference lives at `docs/examples/demo-salon.business.json`.
+  except the bidi test line.
 - `content.legal.accessibility.coordinator` must contain REAL contact details before launch —
   the accessibility statement is a legal requirement in Israel (ת"י 5568).
 - **No hardcoded business content in components.** New copy → add a field to `business.schema.ts`, then to `business.json`, then read it via `getBusiness()`.
@@ -83,8 +85,12 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
   only design data in `business.json` is `design.fontPairing` (fifteen self-hosted Hebrew-capable
   pairings mapped in astro.config.mjs; components only use `font-display`/`font-sans`).
 - **Content split** — `data` + `voice` + the `content` frozen core (`nav`, `ui`, `consent`,
-  `notFound`, `legal`) are identical in every repo; the rest of `content` is reshaped per
-  client, schema-first. Components still read ONLY via `getBusiness()`.
+  `notFound`, `legal`) are identical in every repo. The per-client region ships NO content
+  shapes beyond two optional canonical blocks: `faq` (the canonical shape for FAQPage
+  JSON-LD + llms.txt — include it whenever the business has real FAQs) and `shell`
+  (the template's unbuilt starter page only — delete it, schema + JSON, when building the
+  real site). Everything else is authored from scratch per client, schema-first. Components
+  still read ONLY via `getBusiness()`.
 
 ## RTL rules (non-negotiable)
 
@@ -103,7 +109,7 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 
 ## Conventions (one canonical way)
 
-- Sections: one `.astro` file in `components/sections/`, `<section id="...">` matching a `content.nav` href, `scroll-mt-20`, `section-pad`, heading via `<SectionHeading>`, one `<h1>` per page (Hero owns it in the reference composition).
+- Sections: `<section id="...">` matching a `content.nav` href, `scroll-mt-20`, `section-pad`, one `<h1>` per page (the hero section owns it). Patterns in `docs/RECIPES.md`.
 - Client scripts: bind inside a named `setup*()` called from `document.addEventListener("astro:page-load", ...)`; pass strings from JSON via `data-*` attributes, never literals in scripts.
 - TypeScript: no `any` (use `unknown` + narrowing), no non-null `!`. Zod at every runtime boundary.
 - SEO: per-page overrides via BaseLayout props; JSON-LD only in `lib/jsonld.ts`.

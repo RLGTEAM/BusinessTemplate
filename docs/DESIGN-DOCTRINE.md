@@ -1,8 +1,8 @@
 # Design doctrine — constrain quality, never form
 
 The template ships a **floor** (mechanical, testable rules) and a **toolkit**
-(tokens, primitives, animation system, content pipeline, reference sections).
-You — the model building a client site — design the page 0→100 on top of them.
+(tokens, animation system, content pipeline, recipes). You — the model
+building a client site — design the page 0→100 on top of them.
 Nothing structural is prescribed; everything structural is available. The test
 gate, not a list of allowed layouts, decides what ships.
 
@@ -43,12 +43,9 @@ gate, not a list of allowed layouts, decides what ships.
   `legal`. Hebrew sites keep a bidi test line (Hebrew + Latin + ₪) in visible
   body copy.
 - A clear contact path (form, WhatsApp, or phone) reachable from the nav.
-- Several per-client `content` fields are load-bearing for the SEO/AEO
-  machine: `content.services.title` (LocalBusiness OfferCatalog name in
-  `lib/jsonld.ts`) and `content.faq.items` (read by BOTH `faqJsonLd` and
-  the `llms.txt` endpoint). The typecheck gate flags any you remove — keep
-  them with real content, or adapt every reader (and the smoke JSON-LD
-  count) in the same commit.
+- `content.faq` is the canonical OPTIONAL shape feeding FAQPage JSON-LD +
+  llms.txt — include it (real Q&A) whenever the business has FAQs; without
+  it the site emits 3 JSON-LD blocks and that is fine.
 - The contract-driven smoke suite passes with ZERO edits. New user-visible
   behavior gets **added** tests in the client repo; never weaken the suite.
 
@@ -64,7 +61,7 @@ every client build (enforced at the concept stage in `/new-client` Step 1):
    (`src/lib/animation/custom.ts`).
 4. A non-default color story — no all-default-white page unless
    `docs/concept.md` explicitly argues light-minimal serves THIS client.
-5. A composition order different from the reference default.
+5. The page must not contain shell markup or `content.shell`.
 
 The design-review skill (`.claude/skills/design-review/SKILL.md`) is the
 single source for how the built result is judged against these rules and the
@@ -84,14 +81,10 @@ that review isn't finished, even with a green test gate.
   data; fonts register at build time). `handmade` (Amatic SC) is
   display-only — headings, never body copy, and never long headings.
   Components only use `font-display` / `font-sans`.
-- **Reference sections** (`src/components/sections/`): tested, RTL-correct
-  worked examples. Use them as-is, pass their variant props
-  (`Hero variant`, `Services layout`, `Gallery layout`), gut and redesign
-  them, or ignore them and build fresh — per client, per section. They are
-  examples of the rules, not the product.
-- **Composition**: `src/pages/index.astro` is yours. The shipped default
-  composes the references so a fresh clone builds green.
-- **UI primitives**: `Container`, `SectionHeading`, `Button`.
+- **Recipes** (`docs/RECIPES.md`) — RTL/a11y-correct patterns distilled from
+  experience; consult before building nav, forms, sections.
+- **Composition**: `src/pages/index.astro` ships as an unbuilt contract
+  shell — replace it entirely; delete `content.shell`.
 - **Animation**: `data-reveal` presets for entrances (`slide-start`,
   `slide-end`, `scale`, `blur`, `clip`), each tunable per-element via
   `data-reveal-duration` / `-delay` / `-distance` / `-start` (and `-stagger`
@@ -126,7 +119,8 @@ quantity, is what reads as noise.
 
 ## The promote loop
 
-When a client-repo idea proves broadly useful, generalize it (tokens, props,
-`data-reveal` preset, or a new reference section) and PR it into the template.
+When a client-repo idea proves broadly useful, generalize it (tokens, a
+`data-reveal` preset, or a new recipe in `docs/RECIPES.md`) and PR it into
+the template.
 Client repos stay free to be weird; the template absorbs only the winners.
 Never copy client-specific code between client repos.

@@ -33,15 +33,13 @@ clients if known. Pick the strongest.
 The chosen concept MUST specify, binding for every build:
 
 1. A bespoke hero treatment — not a stock `Hero` variant left untouched.
-2. At least one fully bespoke section (not a reference section with props
-   changed).
+2. At least one fully bespoke section.
 3. A signature motion implemented in `src/lib/animation/custom.ts`
    (`registerCustomAnimations`) — not just default `data-reveal` presets.
 4. A non-default color story: the page cannot ship all-default-white
    surfaces unless `docs/concept.md` explicitly argues why light-minimal
    serves THIS client.
-5. A composition order different from the reference default (Hero →
-   Services → About → Testimonials → Gallery → FAQ → CTA → ContactForm).
+5. No shell markup / `content.shell` remains.
 
 Write `docs/concept.md` containing the
 chosen concept in full plus the two rejected candidates with one line each on
@@ -51,9 +49,10 @@ why they lost. Commit it alone: `feat: design concept for <client>`.
 
 - `data` + `voice` + the frozen content core (`nav`, `ui`, `consent`,
   `notFound`, `legal`): fill completely, never reshape.
-- The per-client `content` region: reshape `business.schema.ts` to match the
-  page you designed in Step 1, then write the JSON. Copy NEVER lives in
-  components.
+- Author the per-client content region from scratch (only canonical optional
+  `faq` is predefined): reshape `business.schema.ts` to match the page you
+  designed in Step 1, then write the JSON. DELETE `content.shell` from
+  schema+JSON. Copy NEVER lives in components.
 - `legal.accessibility.coordinator` needs REAL details (legal requirement,
   ת"י 5568). If the brief lacks them, use a placeholder AND flag it as
   BLOCKING — first line of the final report.
@@ -82,9 +81,11 @@ change in the report. New color-as-text pairs → add to
 
 Execute the committed concept, 0→100:
 
-- Compose `src/pages/index.astro` yourself. Reference sections
-  (`src/components/sections/`) are examples: use as-is with their variant
-  props, gut and redesign, or replace with bespoke sections.
+- Compose `src/pages/index.astro` yourself, replacing the starter shell
+  entirely. Build every component from zero. Consult `docs/RECIPES.md` for
+  the RTL/a11y-correct patterns (nav, form contract, section skeleton).
+  Forms are optional — only if the client wants one, wired to the headless
+  helper.
 - Shape/rhythm: override `--shape-radius-card`, `--shape-radius-button`,
   `--section-py` in `src/styles/custom.css`; color story with tokens +
   `color-mix()` there too. Pick `design.fontPairing` to match the concept.

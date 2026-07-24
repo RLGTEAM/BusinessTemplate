@@ -36,29 +36,25 @@ viewport-sized or element screenshot of that section.
 
 Any ONE of these fails the round regardless of scores:
 
-1. **Stock composition** — `src/pages/index.astro` order is still the
-   reference default (Hero → Services → About → Testimonials → Gallery → FAQ
-   → CTA → ContactForm) with every section at its stock variant.
+1. **Starter shell present** — `src/pages/index.astro` still renders the
+   starter-shell markup, or `content.shell` still exists in schema/JSON.
 2. **All-default palette** — fails when ALL palette neutrals
    (surface/surfaceAlt/ink/inkMuted/line) are at schema defaults AND
    `src/styles/custom.css` contains no client-authored surface/color-story
-   treatment — i.e. the client added no color story of their own. What stock
-   components ship (including the stock CTA's dark gradient) doesn't count.
-3. **Unskinned footer** — `Footer.astro` renders stock: no palette, no
-   `custom.css`, no markup change reaches it.
-4. **Zero bespoke motion** — fails when `src/lib/animation/custom.ts` is
-   still the template no-op AND the client added no reveal choices of their
-   own (no `data-reveal` attributes/presets beyond what the stock reference
-   sections — Hero/About/CTA — already ship). Stock sections' built-in
-   presets don't count as bespoke motion.
+   treatment — i.e. the client added no color story of their own.
+3. **Zero bespoke motion** — fails when `src/lib/animation/custom.ts` is
+   still the template no-op AND there is no `data-reveal` usage anywhere on
+   the page. There are no stock sections any more — any reveal usage found is
+   client-authored.
 
 ## Scored rubric
 
 Score each 1–5 with one line of evidence — cite what you SAW in a screenshot
 or read in the code, never an assumption:
 
-- **Distinctiveness** — would someone who has seen the reference template
-  recognize this as a different site immediately?
+- **Distinctiveness** — would someone who has seen previous client sites (if
+  known) and the generic AI-site look recognize this as a different site
+  immediately?
 - **Concept expression** — is the concept from `docs/concept.md` visible on
   the page (motifs, color story, composition), not just claimed in prose?
 - **Color story** — do sections carry rhythm (light / tinted / dark

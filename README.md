@@ -48,8 +48,9 @@ A new client asked for a website. Step by step:
 3. **Fill the site**: open the folder in Claude Code and run **`/new-client`**, pasting the
    brief. It reads the brief (including the scraped raw-texture material), generates three
    design concepts and self-critiques them, commits the chosen concept to `docs/concept.md`,
-   reshapes the per-client part of `business.json` + schema, designs and builds the page
-   0→100 on the quality floor (see [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md)),
+   reshapes the per-client part of `business.json` + schema, builds every component from
+   zero (see [docs/RECIPES.md](./docs/RECIPES.md)) on the quality floor (see
+   [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md)),
    enforces the WCAG palette contract, judges the result against the design-review rubric
    (screenshots, max 3 fix rounds), regenerates the OG image, and runs the full test
    gate — autonomously, surfacing every provisional fact and placeholder in its final report.
@@ -98,9 +99,10 @@ the three jobs to pass before merge.
 
 Notes:
 
-- **The template ships as a placeholder skeleton** — business.json contains `[bracketed]`
-  placeholders and a neutral palette. A fully-filled example lives at
-  `docs/examples/demo-salon.business.json`.
+- **The template ships as an unbuilt starter shell** — `src/pages/index.astro` is a
+  deliberately unstyled contract shell (satisfies the page contract, nothing more) and
+  business.json contains `[bracketed]` placeholders plus a neutral palette. `/new-client`
+  replaces the shell entirely and deletes `content.shell`.
 - Every site auto-generates its SEO/AEO surface from business.json: meta/OG/canonical,
   4 JSON-LD blocks (LocalBusiness + OfferCatalog, Organization, WebSite, FAQPage), sitemap,
   robots.txt, **llms.txt** (AI answer engines), web manifest + icon set, 404 page, and

@@ -22,11 +22,15 @@ decision made in code, on the quality floor set out in
      `surfaceAlt`, `ink`, `inkMuted`, `line` — + mood). Neutrals default to a
      light theme but are fully configurable; a dark or deep-tinted site is
      just as valid a palette choice.
-   - `content` — every visible string, section by section.
-
-   A fully-filled reference lives at `docs/examples/demo-salon.business.json`.
-3. **Pick a font pairing** (`design.fontPairing` in `business.json`) and set the
-   section variant props in `src/pages/index.astro` (see "Making it look unique" below).
+   - `content` — every visible string, section by section. The shipped file
+     has only the frozen core (`nav`, `ui`, `consent`, `notFound`, `legal`)
+     plus two optional canonical blocks (`faq`, `shell`). Author the rest
+     yourself, schema-first: reshape `business.schema.ts` to match the page
+     you're designing, then write the JSON. Delete `content.shell` once you
+     replace the starter page (step 3).
+3. **Pick a font pairing** (`design.fontPairing` in `business.json`) and build
+   the page (see "Building the page" below) — `src/pages/index.astro` ships
+   as an unbuilt contract shell; replace it entirely.
 4. **Swap images**: drop the client's photos into `src/assets/images/` keeping the
    same filenames (or update the filenames in `business.json`). Until you have real
    photos: `npx tsx scripts/generate-placeholders.ts`.
@@ -43,39 +47,42 @@ decision made in code, on the quality floor set out in
      the accessibility statement is a legal requirement in Israel (ת"י 5568).
    - `data.seo.siteUrl` points at the real domain (it feeds the sitemap + JSON-LD).
 
-## Making it look unique (design is a code decision)
+## Building the page (design is a code decision)
 
-Two sites from this template should never look like siblings. Uniqueness comes from
-combining variant props in `src/pages/index.astro`, tokens in `src/styles/custom.css`,
-and the design process in [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) — not from
-picking values out of a `business.json` block. The only design field left in
-`business.json` is `design.fontPairing`.
+The template ships **no** prebuilt sections or UI primitives — every component is
+built from zero, per client. Two sites from this template should never look like
+siblings; there's nothing to reskin into sameness because there's nothing prebuilt
+to start from. Before building, read:
 
-| What | Where | Options |
-|---|---|---|
-| Font pairing | `design.fontPairing` in `business.json` | `classic` · `modern` · `elegant` · `warm` · `bold` · `editorial` · `playful` · `rounded` · `impact` · `poster` · `refined` · `techsans` · `serifnote` · `retro` · `handmade` (all Hebrew-capable; `handmade`/Amatic SC is display-only — short headings) |
-| Hero layout | `<Hero variant="...">` prop in `index.astro` | `split` · `centered` · `full-bleed` |
-| Services layout | `<Services layout="...">` prop in `index.astro` | `cards` · `list` · `panels` |
-| Gallery layout | `<Gallery layout="...">` prop in `index.astro` | `grid` · `masonry` · `featured` |
-| Section order | the order components appear in `index.astro` | any order; keep `content.nav` links in sync |
-| Shape / rhythm | `--shape-radius-card`, `--shape-radius-button`, `--section-py` tokens, overridden in `src/styles/custom.css` | any value — never a literal radius or `py-*` |
+- [docs/RECIPES.md](./RECIPES.md) — the RTL/a11y-correct PATTERNS (not full
+  components) for the things worth not re-deriving each time: section skeleton,
+  accessible mobile nav, the contact-form headless contract, the RTL survival kit,
+  images via `resolveImage()`, footer with legal links.
+- [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) — the floor, the page contract,
+  the toolkit (tokens, animation, recipes), and the four-line design process.
 
-That's still thousands of combinations before you even pick colors. Tips for choosing well:
+The only design field left in `business.json` is `design.fontPairing`; everything
+else — composition, section design, shape/rhythm tokens, color story — is a code
+decision.
 
-- **Start from the client's character, not from what looks good in the demo.**
-  A law office: `elegant` or `editorial` fonts + sharp tokens + a `list` services layout.
-  A kids' party business: `warm` or `bold` fonts + pill tokens + a `cards` layout. A
-  hair salon: `modern` fonts + rounded tokens + `masonry` gallery + `full-bleed` hero
-  of their space.
-- **`bold` (Karantina) is a condensed display font — it shouts.** Great for
-  gyms/food trucks; wrong for clinics. `editorial` (David Libre serif) reads
-  premium/established.
-- **Reorder the sections in `index.astro` to match the sales story.** Trust-first
-  business (therapist, accountant): `About` → `Testimonials` early. Visual business
-  (renovations, catering): `Gallery` right after `Services`. Price-driven:
-  `Services` → `FAQ` → `CTA`. Keep `content.nav` link order in sync.
-- **`full-bleed` hero lives or dies by the photo.** Only use it with a genuinely
-  good, wide client photo; with mediocre photos, `split` flatters more.
+Tips for choosing well:
+
+- **Start from the client's character, not from a generic industry stereotype.**
+  A law office reads premium with a serif display pairing, sharp-edged tokens, and
+  a text-forward services layout. A kids' party business wants a loud display
+  pairing, pill-shaped tokens, and a visual, card-heavy layout. Let the metaphor
+  (docs/DESIGN-DOCTRINE.md's four-line process) drive every one of these choices.
+- **`handmade` (Amatic SC) is a display-only font — headings, never body copy,
+  never long headings** (it turns illegible past a few words). Condensed/impact
+  pairings shout — great for gyms/food trucks, wrong for clinics. Serif pairings
+  read premium/established.
+- **Order sections to match the sales story**, then keep `content.nav` link
+  order in sync. Trust-first business (therapist, accountant): testimonials and
+  credentials early. Visual business (renovations, catering): gallery right after
+  services. Price-driven: services → FAQ → CTA.
+- **A full-bleed hero photo lives or dies by the photo.** Only use one with a
+  genuinely good, wide client photo; with mediocre photos, a contained/split
+  treatment flatters more.
 - **Palette: pull it from something real** — the client's logo, their storefront,
   their product. Brand colors: `primary` (CTAs), `secondary` (headings), `accent`
   (highlights); neutrals: `surface`, `surfaceAlt`, `ink`, `inkMuted`, `line` — a
@@ -89,8 +96,8 @@ That's still thousands of combinations before you even pick colors. Tips for cho
 - **Photos beat every other choice.** Real photos of the client's work, lightly
   edited for consistent warmth/exposure, are the single biggest anti-template
   signal. Placeholder-quality stock kills the effect of every choice above.
-- **Then design the page 0→100 following the doctrine.** Beyond variant props,
-  every client site gets ONE creative concept expressed everywhere it helps:
+- **Then design the page 0→100 following the doctrine.** Every client site gets
+  ONE creative concept expressed everywhere it helps:
   composition and section design as code, a color story in `src/styles/custom.css`
   (tinted/dark/gradient sections from the client's own colors, via `color-mix()`),
   and one characteristic motion — tuned `data-reveal` presets (including the
@@ -129,7 +136,6 @@ That's still thousands of combinations before you even pick colors. Tips for cho
 |---|---|
 | `src/content/business/business.json` | Everything you edit |
 | `src/content/business.schema.ts` | The contract (edit first when adding fields) |
-| `docs/examples/demo-salon.business.json` | Filled reference |
-| `src/components/sections/` | One `.astro` per section (variants live inside) |
+| `docs/RECIPES.md` | RTL/a11y-correct patterns for nav, forms, section skeleton |
 | `src/styles/global.css` | Design tokens — extend here, never inline |
 | `tests/smoke.spec.ts` | Update when adding user-visible behavior |
