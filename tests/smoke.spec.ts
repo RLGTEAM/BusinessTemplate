@@ -47,9 +47,14 @@ test.describe("home page", () => {
 
   test("renders JSON-LD structured data", async ({ page }) => {
     await page.goto("/");
-    // LocalBusiness, Organization, WebSite, FAQPage
+    // LocalBusiness, Organization, WebSite, + FAQPage when content.faq has items
     const scripts = page.locator('script[type="application/ld+json"]');
-    await expect(scripts).toHaveCount(4);
+    const content = business.content as Record<string, unknown>;
+    const faq = typeof content.faq === "object" && content.faq !== null ? content.faq : null;
+    const hasFaq =
+      Array.isArray((faq as Record<string, unknown> | null)?.items) &&
+      ((faq as Record<string, unknown>).items as unknown[]).length > 0;
+    await expect(scripts).toHaveCount(hasFaq ? 4 : 3);
     const first = await scripts.first().textContent();
     expect(first).toContain("LocalBusiness");
   });

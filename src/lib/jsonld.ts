@@ -14,6 +14,12 @@ function absoluteUrl(siteUrl: string, path: string): string {
 
 export function localBusinessJsonLd(business: Business): JsonLd {
   const { data } = business;
+  const content = business.content as Record<string, unknown>;
+  const services =
+    typeof content.services === "object" && content.services !== null
+      ? (content.services as Record<string, unknown>)
+      : null;
+  const offerCatalogName = typeof services?.title === "string" ? services.title : data.name;
   const sameAs = [data.socials.instagram, data.socials.facebook, data.socials.tiktok].filter(
     (url) => url !== "",
   );
@@ -49,7 +55,7 @@ export function localBusinessJsonLd(business: Business): JsonLd {
     priceRange: data.priceRange !== "" ? data.priceRange : undefined,
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: business.content.services.title,
+      name: offerCatalogName,
       itemListElement: data.services.map((service) => ({
         "@type": "Offer",
         itemOffered: {
@@ -97,11 +103,17 @@ export function websiteJsonLd(business: Business): JsonLd {
   };
 }
 
-export function faqJsonLd(business: Business): JsonLd {
+export function faqJsonLd(business: Business): JsonLd | null {
+  const content = business.content as Record<string, unknown>;
+  const faq = typeof content.faq === "object" && content.faq !== null ? content.faq : null;
+  const items = Array.isArray((faq as Record<string, unknown> | null)?.items)
+    ? ((faq as Record<string, unknown>).items as Array<{ question: string; answer: string }>)
+    : [];
+  if (items.length === 0) return null;
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: business.content.faq.items.map((item) => ({
+    mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
       acceptedAnswer: { "@type": "Answer", text: item.answer },

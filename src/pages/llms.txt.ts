@@ -10,6 +10,15 @@ export const GET: APIRoute = async ({ site }) => {
   const business = await getBusiness();
   const { data, content } = business;
 
+  const contentUnknown = content as Record<string, unknown>;
+  const faq =
+    typeof contentUnknown.faq === "object" && contentUnknown.faq !== null
+      ? contentUnknown.faq
+      : null;
+  const faqItems = Array.isArray((faq as Record<string, unknown> | null)?.items)
+    ? ((faq as Record<string, unknown>).items as Array<{ question: string; answer: string }>)
+    : [];
+
   const lines = [
     `# ${data.name}`,
     "",
@@ -29,10 +38,14 @@ export const GET: APIRoute = async ({ site }) => {
     "## Services",
     "",
     ...data.services.map((s) => `- ${s.title}${s.price ? ` (${s.price})` : ""}: ${s.description}`),
-    "",
-    "## Frequently asked questions",
-    "",
-    ...content.faq.items.flatMap((item) => [`### ${item.question}`, "", item.answer, ""]),
+    ...(faqItems.length > 0
+      ? [
+          "",
+          "## Frequently asked questions",
+          "",
+          ...faqItems.flatMap((item) => [`### ${item.question}`, "", item.answer, ""]),
+        ]
+      : []),
   ];
 
   return new Response(lines.join("\n"), {

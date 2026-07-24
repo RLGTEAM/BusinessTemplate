@@ -19,6 +19,7 @@ interface Props {
 const business = await getBusiness();
 const dir = getDir(business.locale);
 const { palette } = business.voice;
+const faq = faqJsonLd(business);
 
 // Brand tokens flow: business.json → these vars → @theme inline (global.css).
 const brandVars = [
@@ -49,7 +50,7 @@ const brandVars = [
     <JsonLd data={localBusinessJsonLd(business)} />
     <JsonLd data={organizationJsonLd(business)} />
     <JsonLd data={websiteJsonLd(business)} />
-    <JsonLd data={faqJsonLd(business)} />
+    {faq && <JsonLd data={faq} />}
     <ClientRouter />
   </head>
   <body>
