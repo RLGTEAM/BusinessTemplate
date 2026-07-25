@@ -35,7 +35,8 @@ Do this once; every client site afterwards starts from here.
 
 ## New client → live site (the per-client flow)
 
-A new client asked for a website. Step by step:
+A new client asked for a website. Step by step (the condensed operating
+procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 
 1. **Collect the brief** (sales call / intake form) — copy [docs/brief.md](./docs/brief.md)
    and fill it in; it's paste-ready for `/new-client`. Minimum needed — this list mirrors

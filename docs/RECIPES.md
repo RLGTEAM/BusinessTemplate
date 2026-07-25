@@ -2,7 +2,7 @@
 
 Every prebuilt section was deleted (`docs/superpowers/specs/2026-07-24-primitives-only-design.md`).
 There is nothing to gut or reskin — you build every component from zero, per
-client. These six recipes are the RTL/a11y-correct patterns worth not
+client. These nine recipes are the RTL/a11y-correct patterns worth not
 re-deriving from scratch each time. Each is a **minimal snippet plus the rules
 that make it correct** — deliberately incomplete, never a paste-able
 component. Consult `docs/DESIGN-DOCTRINE.md` for the floor and page contract
@@ -260,3 +260,183 @@ Rules:
   change.
 - `telHref()` / `whatsappHref()` from `src/lib/business.ts` build the href —
   never hand-format a `tel:`/`wa.me` URL.
+
+## 7. Scroll-aware header
+
+Why: `docs/DESIGN-DOCTRINE.md`'s header bar mandates two attribute-driven
+behaviors — a scroll-past-threshold state and an active-section indicator —
+so the client's own CSS owns every visual response; JS only ever flips an
+attribute.
+
+```ts
+// src/lib/animation/custom.ts
+export function registerCustomAnimations({ ScrollTrigger }: CustomAnimationContext): undefined {
+  const header = document.querySelector("header");
+  if (header instanceof HTMLElement) {
+    ScrollTrigger.create({
+      start: "top -80",
+      onToggle: ({ isActive }) => header.toggleAttribute("data-scrolled", isActive),
+    });
+  }
+
+  for (const section of document.querySelectorAll<HTMLElement>("section[id]")) {
+    const link = document.querySelector(`a[href="#${section.id}"]`);
+    if (!(link instanceof HTMLElement)) continue;
+    ScrollTrigger.create({
+      trigger: section,
+      start: "top center",
+      end: "bottom center",
+      onToggle: ({ isActive }) => {
+        if (isActive) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      },
+    });
+  }
+
+  return undefined;
+}
+```
+
+```css
+/* the component's own <style>, or custom.css */
+header[data-scrolled] {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+a[aria-current] {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+```
+
+Rules:
+
+- The header stays `position: sticky; top: 0` regardless of `data-scrolled` —
+  the attribute changes appearance, never position.
+- Attribute-driven toggles only: JS calls `setAttribute`/`toggleAttribute`,
+  never `el.style.*` — ALL visual response lives in CSS via
+  `header[data-scrolled]` (the component's own `<style>` or `custom.css`) and
+  `a[aria-current]`.
+- Both `ScrollTrigger`s are created synchronously inside
+  `registerCustomAnimations` — no manual cleanup; `mm.revert()` on
+  `astro:before-swap` tears them down automatically.
+- This recipe is the MECHANISM only. The drawer's own design — staggered
+  entrance, full styling — is the client's work per DESIGN-DOCTRINE's header
+  bar requirement; this pattern doesn't touch the drawer.
+
+## 8. Motion helpers
+
+Why: `src/lib/animation/helpers.ts` ships three headless "aliveness"
+primitives — `marquee`, `parallax`, `counter` — no markup opinions, same
+category as `form.ts`/`reveal.ts`. Quote the contract, don't reinvent it.
+
+```ts
+// src/lib/animation/custom.ts
+import { counter, marquee, parallax } from "@/lib/animation/helpers";
+
+export function registerCustomAnimations(_ctx: CustomAnimationContext): undefined {
+  const ticker = document.querySelector<HTMLElement>("[data-marquee]");
+  if (ticker) marquee(ticker, { speed: 40 });
+
+  const hero = document.querySelector<HTMLElement>("[data-parallax]");
+  if (hero) parallax(hero, { speed: 0.3 });
+
+  for (const stat of document.querySelectorAll<HTMLElement>("[data-counter-target]")) {
+    counter(stat);
+  }
+
+  return undefined;
+}
+```
+
+Rules:
+
+- Import `{ marquee, parallax, counter }` from `@/lib/animation/helpers`
+  INSIDE `registerCustomAnimations` only — never from a component's own
+  inline script.
+- Still-frame contract, verbatim from the file's doc comment: "the
+  server-rendered markup must already show the FINAL state, because
+  reduced-motion and no-JS visitors only ever see it as-is" — `counter()`
+  "only re-animates a value that was already correct at rest"; `marquee()`'s
+  children, before duplication, "must already read as the complete,
+  correctly-ordered content".
+- `marquee()` layout precondition, verbatim: "el must already lay out as a
+  single non-wrapping row — e.g. `flex w-max flex-nowrap`, or
+  `whitespace-nowrap` with inline children — inside an ancestor viewport with
+  `overflow-hidden`." The function walks the ancestor chain from
+  `el.parentElement` up to `document.body` (inclusive) to find that clipping
+  viewport; if none is found it `console.warn`s once and skips the tween
+  rather than animating a no-op. Duplicated children are marked
+  `aria-hidden` automatically (ids stripped) so screen readers never read the
+  content twice — if the marquee's own content repeats text already visible
+  elsewhere on the page (a purely decorative ticker), the AUTHOR must
+  `aria-hidden` the whole element too; the helper only hides the duplicate
+  half.
+- `counter()`: the element's server-rendered `textContent` must already be
+  the real final formatted number (no placeholder "0"); wrap it in
+  `force-ltr` (numerals read LTR even inside an RTL page); `data-counter-target`
+  holds the numeric value the tween counts up to.
+- `parallax()`: keep `speed` between 0.1 and 0.5; it's a pure `yPercent`
+  transform driven by a scrub `ScrollTrigger` — no layout properties touched,
+  so no CLS.
+
+## 9. Mobile sticky contact bar
+
+Why: DESIGN-DOCTRINE's mobile-first bar requires the primary CTA stay
+thumb-reachable, and the page contract requires a contact path reachable
+from the page — a fixed bottom bar (tel/WhatsApp) is the strong default for
+service businesses on a phone-sized canvas.
+
+```astro
+---
+import { telHref, whatsappHref } from "@/lib/business";
+---
+
+<div
+  class="fixed inset-inline-0 bottom-0 z-40 flex min-h-14 items-center gap-2 border-t border-line bg-surface p-2 md:hidden"
+  style="padding-block-end: env(safe-area-inset-bottom)"
+>
+  <a
+    href={telHref(data.contact.phone)}
+    aria-label={copy.callLabel}
+    class="flex min-h-10 flex-1 items-center justify-center rounded-button bg-primary text-surface"
+  >
+    <bdi class="force-ltr">{data.contact.phone}</bdi>
+  </a>
+  <a
+    href={whatsappHref(data.contact.whatsapp)}
+    aria-label={copy.whatsappLabel}
+    class="flex min-h-10 flex-1 items-center justify-center rounded-button bg-secondary text-surface"
+  >
+    {copy.whatsappLabel}
+  </a>
+</div>
+
+<div class="min-h-14 md:hidden" aria-hidden="true"></div>
+```
+
+Rules:
+
+- `md:hidden fixed inset-inline-0 bottom-0 z-40 min-h-14` — mobile-only,
+  spans the full inline axis; `padding-block-end: env(safe-area-inset-bottom)`
+  clears the iOS home-indicator area.
+- Phone via `telHref()`, WhatsApp via `whatsappHref()` (or
+  `resolveHref("whatsapp", business)` when the href comes from a JSON
+  sentinel) — never hand-format a `tel:`/`wa.me` URL.
+- Labels and `aria-label`s are client-authored content — there's no
+  canonical `content.contactBar` shape shipped (same situation as the
+  contact form: add the field to the schema yourself) — never a literal
+  string.
+- The bar's background sits on one of AGENTS.md's validated contrast pairs
+  (e.g. `bg-surface` with `text-ink`/`text-primary`) — never a color outside
+  the palette contract.
+- Thumb-zone sizing: `min-h-14` on the bar, `min-h-10` (or larger) on each
+  tap target — no target smaller than 44px effective.
+- Add a matching spacer (or bottom padding on the last content block), sized
+  to the bar's height and `md:hidden` — otherwise the fixed bar permanently
+  covers the footer's last lines on mobile.
+- Logical properties only: `inset-inline-0`, never `left-0 right-0`.
+- This bar counts toward the page contract's "clear contact path reachable"
+  — it doesn't replace the nav's own contact link, but on mobile it's
+  usually the one visitors actually use.
