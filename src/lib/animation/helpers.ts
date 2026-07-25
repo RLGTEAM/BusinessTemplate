@@ -41,13 +41,14 @@ import { gsap } from "gsap";
  * non-wrapping row — e.g. `flex w-max flex-nowrap`, or `whitespace-nowrap`
  * with inline children — inside an ancestor viewport with `overflow-hidden`.
  * With default block layout (children wrap/stack instead of running past
- * el's width), el.scrollWidth never exceeds its parent's clientWidth even
+ * el's width), el.scrollWidth never exceeds its ancestor's clientWidth even
  * after duplication, so there's nothing to translate past — the tween would
  * just sit still or jitter. marquee() checks for this after duplicating
- * (against el.parentElement's clientWidth, not el's own — a shrink-to-fit
- * `el` is always exactly as wide as its content, so el's own clientWidth
- * can never usefully signal overflow; the ancestor viewport is what
- * actually clips it) and, if nothing overflows, console.warns once and
+ * by walking the ancestor chain from el.parentElement up to document.body
+ * (inclusive) — a shrink-to-fit `el` is always exactly as wide as its
+ * content, so el's own clientWidth can never usefully signal overflow; an
+ * ancestor viewport is what actually clips it. If any ancestor is narrower
+ * than el.scrollWidth, we proceed; if none is found, console.warns once and
  * skips the tween rather than animating a no-op.
  */
 
@@ -86,16 +87,31 @@ export function marquee(el: HTMLElement, opts?: { speed?: number; reverse?: bool
   // above), typically shrink-to-fit (e.g. `w-max`) so it can be wider than
   // its own parent — which means el's children can never overflow EL's OWN
   // clientWidth (a shrink-to-fit box is, by definition, always exactly as
-  // wide as its content). The actual clipping viewport is el's parent, so
-  // that's what "does the duplicated content overflow" has to be checked
-  // against; falling back to el.clientWidth only if el is unparented. If
-  // nothing overflows, there's nothing to loop — warn once (not on every
+  // wide as its content). The actual clipping viewport is an ancestor, so
+  // walk the chain from el.parentElement up to document.body to find it.
+  // If nothing overflows, there's nothing to loop — warn once (not on every
   // re-init) and bail instead of animating a no-op.
-  const viewportWidth = el.parentElement?.clientWidth ?? el.clientWidth;
-  if (el.scrollWidth <= viewportWidth) {
+  let hasClippingViewport = false;
+
+  if (el.parentElement !== null) {
+    let ancestor: Element | null = el.parentElement;
+    while (ancestor !== null) {
+      const ancestorEl = ancestor as HTMLElement;
+      if (ancestorEl.clientWidth < el.scrollWidth) {
+        hasClippingViewport = true;
+        break;
+      }
+      if (ancestor === document.body) {
+        break;
+      }
+      ancestor = ancestor.parentElement;
+    }
+  }
+
+  if (!hasClippingViewport && el.parentElement !== null) {
     if (el.dataset.marqueeWarned !== "true") {
       console.warn(
-        "[animation/helpers] marquee(): duplicated content doesn't overflow its viewport after duplication — nothing to loop. el must lay out as a single non-wrapping row (e.g. flex w-max flex-nowrap, or whitespace-nowrap inline children) inside an overflow-hidden viewport.",
+        "[animation/helpers] marquee(): duplicated content doesn't overflow its ancestor viewport after duplication — nothing to loop. el must lay out as a single non-wrapping row (e.g. flex w-max flex-nowrap, or whitespace-nowrap inline children) inside an overflow-hidden ancestor.",
         el,
       );
       el.dataset.marqueeWarned = "true";
