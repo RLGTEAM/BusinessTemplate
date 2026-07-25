@@ -280,15 +280,17 @@ export function registerCustomAnimations({ ScrollTrigger }: CustomAnimationConte
   }
 
   for (const section of document.querySelectorAll<HTMLElement>("section[id]")) {
-    const link = document.querySelector(`a[href="#${section.id}"]`);
-    if (!(link instanceof HTMLElement)) continue;
+    const links = document.querySelectorAll<HTMLElement>(`a[href="#${section.id}"]`);
+    if (links.length === 0) continue;
     ScrollTrigger.create({
       trigger: section,
       start: "top center",
       end: "bottom center",
       onToggle: ({ isActive }) => {
-        if (isActive) link.setAttribute("aria-current", "true");
-        else link.removeAttribute("aria-current");
+        for (const link of links) {
+          if (isActive) link.setAttribute("aria-current", "true");
+          else link.removeAttribute("aria-current");
+        }
       },
     });
   }
@@ -318,6 +320,9 @@ Rules:
   never `el.style.*` — ALL visual response lives in CSS via
   `header[data-scrolled]` (the component's own `<style>` or `custom.css`) and
   `a[aria-current]`.
+- Nav links usually exist twice (desktop nav + mobile drawer) — always target
+  all copies with `querySelectorAll`, setting/removing `aria-current` on each
+  match.
 - Both `ScrollTrigger`s are created synchronously inside
   `registerCustomAnimations` — no manual cleanup; `mm.revert()` on
   `astro:before-swap` tears them down automatically.
@@ -364,10 +369,9 @@ Rules:
 - `marquee()` layout precondition, verbatim: "el must already lay out as a
   single non-wrapping row — e.g. `flex w-max flex-nowrap`, or
   `whitespace-nowrap` with inline children — inside an ancestor viewport with
-  `overflow-hidden`." The function walks the ancestor chain from
-  `el.parentElement` up to `document.body` (inclusive) to find that clipping
-  viewport; if none is found it `console.warn`s once and skips the tween
-  rather than animating a no-op. Duplicated children are marked
+  `overflow-hidden`." The guard warns once and skips the tween when the walk
+  finds no clipping ancestor (a detached element with no parent bypasses the
+  guard — always call on connected DOM). Duplicated children are marked
   `aria-hidden` automatically (ids stripped) so screen readers never read the
   content twice — if the marquee's own content repeats text already visible
   elsewhere on the page (a purely decorative ticker), the AUTHOR must
@@ -400,14 +404,14 @@ import { telHref, whatsappHref } from "@/lib/business";
   <a
     href={telHref(data.contact.phone)}
     aria-label={copy.callLabel}
-    class="flex min-h-10 flex-1 items-center justify-center rounded-button bg-primary text-surface"
+    class="flex min-h-11 flex-1 items-center justify-center rounded-button bg-primary text-surface"
   >
     <bdi class="force-ltr">{data.contact.phone}</bdi>
   </a>
   <a
     href={whatsappHref(data.contact.whatsapp)}
     aria-label={copy.whatsappLabel}
-    class="flex min-h-10 flex-1 items-center justify-center rounded-button bg-secondary text-surface"
+    class="flex min-h-11 flex-1 items-center justify-center rounded-button bg-secondary text-surface"
   >
     {copy.whatsappLabel}
   </a>
@@ -431,7 +435,7 @@ Rules:
 - The bar's background sits on one of AGENTS.md's validated contrast pairs
   (e.g. `bg-surface` with `text-ink`/`text-primary`) — never a color outside
   the palette contract.
-- Thumb-zone sizing: `min-h-14` on the bar, `min-h-10` (or larger) on each
+- Thumb-zone sizing: `min-h-14` on the bar, `min-h-11` (or larger) on each
   tap target — no target smaller than 44px effective.
 - Add a matching spacer (or bottom padding on the last content block), sized
   to the bar's height and `md:hidden` — otherwise the fixed bar permanently
