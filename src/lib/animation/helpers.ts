@@ -161,9 +161,9 @@ export function marquee(el: HTMLElement, opts?: { speed?: number; reverse?: bool
 
   // duration = advance / speed keeps ~pixels/second of the original content
   // regardless of gap; xPercent is expressed as a fraction of el's own
-  // (doubled) box, so the measured pixel advance is converted to the
-  // equivalent percentage of el.scrollWidth before applying dirFactor/reverse.
-  const endXPercent = -(advance / el.scrollWidth) * 100 * dirFactor() * (reverse ? -1 : 1);
+  // (doubled) BORDER box — percentage translate resolves against offsetWidth,
+  // not scrollWidth (they differ when el carries inline borders/padding).
+  const endXPercent = -(advance / el.offsetWidth) * 100 * dirFactor() * (reverse ? -1 : 1);
 
   gsap.fromTo(
     el,
