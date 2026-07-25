@@ -40,6 +40,17 @@ The chosen concept MUST specify, binding for every build:
    surfaces unless `docs/concept.md` explicitly argues why light-minimal
    serves THIS client.
 5. No shell markup / `content.shell` remains.
+6. A **nav concept**: how the header expresses the concept, its scroll-aware
+   behavior, and the mobile drawer's design — not just the a11y mechanics
+   (RECIPES covers the mechanism; the design is the concept's job).
+7. A **choreography plan**: the doctrine's five-part aliveness inventory
+   (Craft bar 3, `docs/DESIGN-DOCTRINE.md`) mapped to actual sections — which
+   section gets which scroll-driven moment, what the hero timeline
+   sequences, what the ambient motion is, what the micro-interaction
+   character is.
+
+Sketch concept candidates MOBILE-FIRST: describe the 390px composition
+first, desktop as the adaptation.
 
 Write `docs/concept.md` containing the
 chosen concept in full plus the two rejected candidates with one line each on
@@ -81,6 +92,8 @@ change in the report. New color-as-text pairs → add to
 
 Execute the committed concept, 0→100:
 
+- Build order is mobile-first: compose at 390, then adapt up — never
+  desktop-first.
 - Compose `src/pages/index.astro` yourself, replacing the starter shell
   entirely. Build every component from zero. Consult `docs/RECIPES.md` for
   the RTL/a11y-correct patterns (nav, form contract, section skeleton).
@@ -101,6 +114,9 @@ Execute the committed concept, 0→100:
   point called inside the reduced-motion-guarded matchMedia context.
 - New user-visible behavior → ADD a test in the client repo. The contract
   smoke suite is never edited.
+- Before Step 5.5, SELF-CHECK the aliveness inventory and the anti-AI-tells
+  list (Craft bars 3 and 4, `docs/DESIGN-DOCTRINE.md`) and fix any gaps — the
+  judge automatic-fails an incomplete inventory.
 
 ## Step 5 — Images + OG
 

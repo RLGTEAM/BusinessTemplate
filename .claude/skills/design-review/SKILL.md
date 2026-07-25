@@ -21,12 +21,20 @@ npm run preview
 ```
 
 Preview serves on `:4321`; if occupied, `npm run preview -- --port 4323`. Use
-the Playwright MCP browser tools, not a manual eyeball:
+the Playwright MCP browser tools, not a manual eyeball — mobile-first and
+interactive, matching the doctrine's Craft bars (the phone is the primary
+canvas, the header is a designed component):
 
 1. `browser_navigate` to the preview URL.
-2. `browser_resize` to `1280x900`, `browser_take_screenshot` with `fullPage: true`.
-3. `browser_resize` to `390x844`, `browser_take_screenshot` with `fullPage: true`.
-4. Read both screenshots before scoring anything — the verdict is evidence-based.
+2. `browser_resize` to `390x844` FIRST → `browser_take_screenshot` with
+   `fullPage: true`, AND a viewport-sized screenshot of the hero.
+3. `browser_click` the nav toggle (locate via `[aria-controls]`) →
+   screenshot the OPEN mobile menu. If no `[aria-controls]` toggle exists on
+   the page, do not error — record that absence as Navigation evidence (the
+   axis scores 1).
+4. `browser_resize` to `1280x900` → `browser_take_screenshot` with `fullPage: true`.
+5. Read all screenshots before scoring anything — judge MOBILE evidence
+   before desktop on every axis; the verdict is evidence-based.
 
 Caveat: full-page screenshots downsample heavily on long pages. When judging
 a specific band (color story, section treatment), take an additional
@@ -46,6 +54,11 @@ Any ONE of these fails the round regardless of scores:
    still the template no-op AND there is no `data-reveal` usage anywhere on
    the page. There are no stock sections any more — any reveal usage found is
    client-authored.
+4. **Motion inventory incomplete** — any of the doctrine's five aliveness
+   categories (Craft bar 3, `docs/DESIGN-DOCTRINE.md`) is missing, verified in
+   code: `custom.ts` content, `data-reveal` preset variety (grep which
+   presets are used), `helpers.ts` imports (`marquee`/`parallax`/`counter`),
+   and CSS hover/focus/press transitions on interactive elements.
 
 ## Scored rubric
 
@@ -54,7 +67,8 @@ or read in the code, never an assumption:
 
 - **Distinctiveness** — would someone who has seen previous client sites (if
   known) and the generic AI-site look recognize this as a different site
-  immediately?
+  immediately? Check the anti-AI-tells list in `docs/DESIGN-DOCTRINE.md`'s
+  Craft bars — 2 or more tells present caps this axis at 2.
 - **Concept expression** — is the concept from `docs/concept.md` visible on
   the page (motifs, color story, composition), not just claimed in prose?
 - **Color story** — do sections carry rhythm (light / tinted / dark
@@ -68,13 +82,26 @@ or read in the code, never an assumption:
   coherent motion identity, or default reveals with no signature?
 - **Craft/coherence** — alignment, spacing, contrast comfort; does the page
   read as ONE design rather than a stack of independent sections?
+- **Navigation** — is there a scroll-aware response past a threshold? is
+  there active-section indication (`aria-current` plus a visible state, not
+  color alone)? is the mobile drawer DESIGNED — judged from the open-menu
+  screenshot, never assumed?
+- **Aliveness** — density and coherence of the motion inventory: does the
+  page feel alive in code evidence (choreographed hero timeline,
+  scroll-driven moments, micro-interactions everywhere) while keeping ONE
+  identity?
+- **Mobile craft** — is the primary CTA thumb-reachable? does the type
+  scale hold at 390 — check the mobile screenshot for truncation or
+  horizontal-scroll artifacts? is there a sticky contact bar or equivalent
+  always-reachable contact access?
 
-**PASS bar**: no automatic fail, no score below 3, average ≥ 4.
+**PASS bar**: no automatic fail, no score below 3, average ≥ 4 — now across
+all 9 axes.
 
 ## The loop
 
 On FAIL: pick the 2–3 highest-leverage fixes (not a redesign), apply them,
-rebuild, re-shoot both viewports, re-score. Maximum 3 rounds total.
+rebuild, re-shoot the Setup screenshots, re-score. Maximum 3 rounds total.
 
 After every round (pass or not), append to `docs/design-review.md` — a
 CLIENT-repo artifact; the template repo must never contain this file:
