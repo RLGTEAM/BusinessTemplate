@@ -37,7 +37,8 @@ src/
   lib/images.ts                    ← resolveImage("name.png") → src/assets/images/
   lib/jsonld.ts                    ← LocalBusiness / Organization / WebSite / FAQPage JSON-LD
   lib/animation/                   ← GSAP+Lenis lifecycle (index.ts) + reveal helpers;
-                                     custom.ts for per-client motion
+                                     custom.ts for per-client motion; helpers.ts for
+                                     marquee/parallax/counter aliveness primitives
   lib/form.ts                      ← headless contact-form logic; setupContactForms() binds
                                      any form[data-contact-form] (markup contract in docs/RECIPES.md)
   layouts/BaseLayout.astro         ← html lang/dir, brand CSS vars, SEO, fonts, JSON-LD
@@ -106,6 +107,8 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 - Everything lives inside `gsap.matchMedia()` guarded by `prefers-reduced-motion` — reduced motion = static page, no exceptions.
 - Lifecycle is wired once in BaseLayout: init on `astro:page-load`, full teardown on `astro:before-swap`. Never create GSAP/Lenis instances elsewhere.
 - Animate transforms/opacity only, with TWO sanctioned exceptions: the `blur` preset (animates `filter`) and the `clip` preset (animates `clip-path`, dir-aware). Content must be visible without JS.
+- `src/lib/animation/helpers.ts` ships three headless aliveness primitives — `marquee()`, `parallax()`, `counter()` — RTL-safe and reduced-motion-safe; call them only from `registerCustomAnimations()`. Each keeps the still-frame contract: the markup must already show the final state at rest (read the file's doc comment before use).
+- The aliveness inventory (hero choreography, scroll-driven moments, micro-interactions, ambient motion, varied `data-reveal` presets) is a doctrine requirement, not optional polish — see the Craft bars in `docs/DESIGN-DOCTRINE.md`.
 
 ## Conventions (one canonical way)
 
