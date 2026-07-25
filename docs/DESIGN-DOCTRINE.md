@@ -52,8 +52,10 @@ gate, not a list of allowed layouts, decides what ships.
 ## Divergence (hard rules)
 
 A site that passes the floor and the page contract can still be the
-reference template with different words on it. These five are binding for
-every client build (enforced at the concept stage in `/new-client` Step 1):
+reference template with different words on it. These five, plus the
+Craft-bar concept requirements (the nav concept and the choreography plan —
+see Craft bars 2 and 3, below), are binding for every client build and are
+enforced at the concept stage in `/new-client` Step 1:
 
 1. A bespoke hero treatment — a hero designed for this client, not a generic centered-headline default.
 2. At least one fully bespoke section.

@@ -275,6 +275,7 @@ export function registerCustomAnimations({ ScrollTrigger }: CustomAnimationConte
   if (header instanceof HTMLElement) {
     ScrollTrigger.create({
       start: "top -80",
+      end: () => ScrollTrigger.maxScroll(window) + 1,
       onToggle: ({ isActive }) => header.toggleAttribute("data-scrolled", isActive),
     });
   }
@@ -316,6 +317,13 @@ Rules:
 
 - The header stays `position: sticky; top: 0` regardless of `data-scrolled` —
   the attribute changes appearance, never position.
+- `end: () => ScrollTrigger.maxScroll(window) + 1` on the scrolled-state
+  trigger — a `start`-only ScrollTrigger defaults its `end` to `max` computed
+  ONCE at creation time; on a page shorter than the viewport at load (or one
+  that grows via images/fonts), that stale `max` can fall short of the
+  page's real bottom, so the trigger goes inactive before the user reaches
+  it and the header un-tints at the footer. The `+ 1` guarantees the trigger
+  is still active at the exact bottom of the page.
 - Attribute-driven toggles only: JS calls `setAttribute`/`toggleAttribute`,
   never `el.style.*` — ALL visual response lives in CSS via
   `header[data-scrolled]` (the component's own `<style>` or `custom.css`) and
@@ -380,10 +388,23 @@ Rules:
 - `counter()`: the element's server-rendered `textContent` must already be
   the real final formatted number (no placeholder "0"); wrap it in
   `force-ltr` (numerals read LTR even inside an RTL page); `data-counter-target`
-  holds the numeric value the tween counts up to.
+  holds the numeric value the tween counts up to. `counter()` overwrites the
+  element's ENTIRE `textContent` on every tick — a unit/suffix ("+", "%",
+  "₪") baked into the same text node gets clobbered on the first frame. Put
+  the suffix in a sibling `<span>` outside the counted element, never inside
+  it. `data-counter-target` is also parsed with `Number.parseFloat` but
+  animated toward with `Math.round()` on every write — author integer
+  targets only (counting up to "4.5" reads as a rounding glitch mid-tween,
+  not a design choice).
 - `parallax()`: keep `speed` between 0.1 and 0.5; it's a pure `yPercent`
   transform driven by a scrub `ScrollTrigger` — no layout properties touched,
-  so no CLS.
+  so no CLS. Apply it to a decorative or purely visual inner layer (a
+  background image/shape, never the element carrying the actual copy) —
+  a scrub-driven `ScrollTrigger` renders the element at its scrubbed offset
+  on FIRST paint if the trigger's scroll range is already partially crossed
+  (e.g. the element starts in view), so content whose resting position
+  matters (headings, CTAs, anything read at rest) must never be the
+  parallaxed element itself.
 
 ## 9. Mobile sticky contact bar
 
@@ -417,7 +438,7 @@ import { telHref, whatsappHref } from "@/lib/business";
   </a>
 </div>
 
-<div class="min-h-14 md:hidden" aria-hidden="true"></div>
+<div class="min-h-14 md:hidden" aria-hidden="true" style="padding-block-end: env(safe-area-inset-bottom)"></div>
 ```
 
 Rules:
@@ -439,7 +460,12 @@ Rules:
   tap target — no target smaller than 44px effective.
 - Add a matching spacer (or bottom padding on the last content block), sized
   to the bar's height and `md:hidden` — otherwise the fixed bar permanently
-  covers the footer's last lines on mobile.
+  covers the footer's last lines on mobile. The bar's REAL rendered height is
+  `min-h-14` PLUS `env(safe-area-inset-bottom)` (the bar's own bottom
+  padding) — a spacer that only matches `min-h-14` undercounts on devices
+  with a home-indicator inset, so the spacer needs the same
+  `padding-block-end: env(safe-area-inset-bottom)`, not just the same
+  `min-h-14`.
 - Logical properties only: `inset-inline-0`, never `left-0 right-0`.
 - This bar counts toward the page contract's "clear contact path reachable"
   — it doesn't replace the nav's own contact link, but on mobile it's

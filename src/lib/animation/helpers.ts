@@ -37,6 +37,14 @@ import { gsap } from "gsap";
  * (a stray re-init) skips duplication — Astro page swaps give a fresh DOM
  * anyway, but the guard costs nothing and keeps the function idempotent.
  *
+ * marquee()'s loop distance is MEASURED, not assumed: it reads the actual
+ * pixel gap between the first original child and its cloned duplicate
+ * (`firstDuplicate.offsetLeft - first.offsetLeft`), so children spaced with
+ * flex `gap` OR margins both loop seamlessly — a hardcoded half-scrollWidth
+ * endpoint is wrong the moment `gap` exists (the gap after the last original
+ * child isn't part of scrollWidth/2, so the loop would jump by that gap on
+ * every repeat).
+ *
  * marquee() layout precondition: el must already lay out as a single
  * non-wrapping row — e.g. `flex w-max flex-nowrap`, or `whitespace-nowrap`
  * with inline children — inside an ancestor viewport with `overflow-hidden`.
@@ -69,8 +77,11 @@ export function marquee(el: HTMLElement, opts?: { speed?: number; reverse?: bool
   const speed = opts?.speed ?? 40;
   const reverse = opts?.reverse ?? false;
 
+  let originalCount: number;
+
   if (el.dataset.marqueeDuplicated !== "true") {
     const originalChildren = Array.from(el.querySelectorAll<HTMLElement>(":scope > *"));
+    originalCount = originalChildren.length;
     for (const child of originalChildren) {
       const duplicate = child.cloneNode(true) as HTMLElement;
       duplicate.setAttribute("aria-hidden", "true");
@@ -81,6 +92,11 @@ export function marquee(el: HTMLElement, opts?: { speed?: number; reverse?: bool
       el.append(duplicate);
     }
     el.dataset.marqueeDuplicated = "true";
+  } else {
+    // A stray re-init on an already-duplicated el: the duplicate set was
+    // appended after the originals, so the original count is exactly half
+    // of the current child count.
+    originalCount = el.children.length / 2;
   }
 
   // el must lay out as a single non-wrapping row (see the doc comment
@@ -119,24 +135,42 @@ export function marquee(el: HTMLElement, opts?: { speed?: number; reverse?: bool
     return;
   }
 
-  // el's own box is now the doubled (duplicated) width, and xPercent
-  // resolves against that box — so the seam where the duplicate set lines
-  // up exactly with the original is at 50%/-50% of el's width, not 100%
-  // (100% would translate a full extra original-width past the seam into
-  // blank space). distance is the ORIGINAL content's width (half of the
-  // now-doubled el.scrollWidth), so duration = distance / speed still means
-  // ~pixels/second of the original content: the tween's actual pixel travel
-  // is 50% of el's doubled width, which equals one original-content width.
-  const distance = el.scrollWidth / 2;
+  // The seam is MEASURED, not assumed: a hardcoded 50%/-50% endpoint (half
+  // of el's doubled scrollWidth) is only correct when children are flush
+  // against each other with zero inter-child spacing. The moment children
+  // have a flex `gap` (or margins), the gap AFTER the last original child
+  // isn't included in "half of scrollWidth", so a 50%-based loop jumps by
+  // that gap on every repeat. Instead, read the real pixel distance between
+  // the first original child and its cloned duplicate — offsetLeft is always
+  // a physical (left-edge) measurement, never logical, so it does NOT
+  // auto-flip for RTL: in RTL flex rows the duplicate ends up at a SMALLER
+  // offsetLeft than the original (the row fills right-to-left), the opposite
+  // sign from LTR. Math.abs() of the difference is the correct advance
+  // either way, without needing a direction branch here.
+  const first = el.children[0];
+  const firstDuplicate = el.children[originalCount];
 
-  const endXPercent = -50 * dirFactor() * (reverse ? -1 : 1);
+  if (!(first instanceof HTMLElement) || !(firstDuplicate instanceof HTMLElement)) return;
+
+  const advance = Math.abs(firstDuplicate.offsetLeft - first.offsetLeft);
+
+  // Covers detached/degenerate cases for free: no children, a single child
+  // with nothing to measure against, or a layout that hasn't resolved yet
+  // all yield advance <= 0 — bail instead of animating a zero-distance tween.
+  if (advance <= 0) return;
+
+  // duration = advance / speed keeps ~pixels/second of the original content
+  // regardless of gap; xPercent is expressed as a fraction of el's own
+  // (doubled) box, so the measured pixel advance is converted to the
+  // equivalent percentage of el.scrollWidth before applying dirFactor/reverse.
+  const endXPercent = -(advance / el.scrollWidth) * 100 * dirFactor() * (reverse ? -1 : 1);
 
   gsap.fromTo(
     el,
     { xPercent: 0 },
     {
       xPercent: endXPercent,
-      duration: distance / speed,
+      duration: advance / speed,
       ease: "none",
       repeat: -1,
     },

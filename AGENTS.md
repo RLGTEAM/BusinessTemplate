@@ -53,7 +53,8 @@ src/
   assets/images/                   ← images referenced by filename in business.json
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
                                      DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
-                                     patterns for nav/forms/sections)
+                                     patterns for nav/forms/sections) · PLAYBOOK.md (owner
+                                     operating procedure)
 scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts,
                                      check-ltr-build.ts
 tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright)

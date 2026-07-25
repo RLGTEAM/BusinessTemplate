@@ -1,6 +1,6 @@
 ---
 name: design-review
-description: Judge a built client site against the design rubric: screenshot with a real browser, score distinctiveness/concept/color/typography/motion, iterate targeted fixes (max 3 rounds), log verdicts to docs/design-review.md. Use after building or changing a client site's design, or when asked to review the design.
+description: Judge a built client site against the design rubric: screenshot with a real browser, score distinctiveness/concept/color/typography/motion/navigation/aliveness/mobile-craft, iterate targeted fixes (max 3 rounds), log verdicts to docs/design-review.md. Use after building or changing a client site's design, or when asked to review the design.
 ---
 
 # Design review (the judge)
@@ -31,7 +31,9 @@ canvas, the header is a designed component):
 3. `browser_click` the nav toggle (locate via `[aria-controls]`) →
    screenshot the OPEN mobile menu. If no `[aria-controls]` toggle exists on
    the page, do not error — record that absence as Navigation evidence (the
-   axis scores 1).
+   axis scores 1). If a menu was opened, CLOSE it now — press Escape (or
+   click the toggle again) — before moving to step 4; an open drawer left in
+   the DOM corrupts the desktop screenshot.
 4. `browser_resize` to `1280x900` → `browser_take_screenshot` with `fullPage: true`.
 5. Read all screenshots before scoring anything — judge MOBILE evidence
    before desktop on every axis; the verdict is evidence-based.
@@ -39,6 +41,11 @@ canvas, the header is a designed component):
 Caveat: full-page screenshots downsample heavily on long pages. When judging
 a specific band (color story, section treatment), take an additional
 viewport-sized or element screenshot of that section.
+
+Pass plain relative filenames to `browser_take_screenshot`, not absolute
+paths — an absolute path containing non-ASCII characters (e.g. a Windows
+project path with Hebrew folder segments) is rejected as outside the
+allowed roots even when it's a literal subpath of one.
 
 ## Automatic fails
 

@@ -96,7 +96,9 @@ Execute the committed concept, 0→100:
   desktop-first.
 - Compose `src/pages/index.astro` yourself, replacing the starter shell
   entirely. Build every component from zero. Consult `docs/RECIPES.md` for
-  the RTL/a11y-correct patterns (nav, form contract, section skeleton).
+  the RTL/a11y-correct patterns (nav, form contract, section skeleton) —
+  recipe 7 (scroll-aware header) and recipe 9 (mobile sticky contact bar)
+  are mandatory for the Craft bars above, not optional polish.
   Forms are optional — only if the client wants one, wired to the headless
   helper.
 - Shape/rhythm: override `--shape-radius-card`, `--shape-radius-button`,

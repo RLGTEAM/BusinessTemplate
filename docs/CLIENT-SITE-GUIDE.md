@@ -54,10 +54,11 @@ built from zero, per client. Two sites from this template should never look like
 siblings; there's nothing to reskin into sameness because there's nothing prebuilt
 to start from. Before building, read:
 
-- [docs/RECIPES.md](./RECIPES.md) — the RTL/a11y-correct PATTERNS (not full
+- [docs/RECIPES.md](./RECIPES.md) — nine RTL/a11y-correct PATTERNS (not full
   components) for the things worth not re-deriving each time: section skeleton,
   accessible mobile nav, the contact-form headless contract, the RTL survival kit,
-  images via `resolveImage()`, footer with legal links.
+  images via `resolveImage()`, footer with legal links, the scroll-aware header,
+  the marquee/parallax/counter motion helpers, and the mobile sticky contact bar.
 - [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) — the floor, the page contract,
   the toolkit (tokens, animation, recipes), and the four-line design process.
 
@@ -105,8 +106,12 @@ Tips for choosing well:
   move, `registerCustomAnimations()` in `src/lib/animation/custom.ts`. This is
   what turns "a clean page" into "feels like walking into their shop." Full
   contract (the floor, the toolkit, the divergence hard rules, the four-line
-  design process) lives in [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) —
-  read it first. One coherent concept beats ten scattered effects.
+  design process, and the Craft bars — mobile-first, a designed header, the
+  five-part aliveness inventory, anti-AI tells) lives in
+  [docs/DESIGN-DOCTRINE.md](./DESIGN-DOCTRINE.md) — read it first. One
+  coherent concept beats ten scattered effects. [docs/PLAYBOOK.md](./PLAYBOOK.md)
+  is the owner's operating procedure for the whole engagement, clone to
+  launch — this guide is the design/build detail behind one step of it.
 - **Judge it before calling it done.** Run the `design-review` skill (or
   `/design-review` in Claude Code) against the built site — it screenshots the
   real page and scores it against the doctrine's rubric. Rerun it any time
