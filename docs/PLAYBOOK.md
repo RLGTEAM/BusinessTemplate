@@ -19,7 +19,11 @@ operations, not a replacement for them.
    confirmation before launch. Dump raw texture into the brief's "Raw
    texture" section too: verbatim reviews, the business's own words, what
    their photos look and feel like — the design concept gets built from this
-   material, not from generic prompting.
+   material, not from generic prompting. A thin brief produces a generic
+   concept, every time; ten verbatim reviews beat any instruction you could
+   write. Don't skip the newer brief fields either: GPS coordinates (paste a
+   Google Maps pin, or the model geocodes and flags it as unverified),
+   persona, and whether the client wants analytics.
 
 3. **Pre-flight** (before you run `/new-client`, confirm):
    - `docs/brief.md` is saved and filled in.
@@ -76,3 +80,25 @@ operations, not a replacement for them.
    catch it. Hand over Google Search Console access to the client (or their
    marketing contact). Archive the filled `docs/brief.md` in the client
    repo as the record of what was agreed.
+
+## Getting the best out of it
+
+- **Brief richness beats everything.** Every downstream artifact — concept,
+  palette, motion identity, copy voice — derives from the brief's raw
+  texture. If a run disappoints, the highest-leverage fix is a richer brief,
+  not more adjectives in your feedback.
+- **Use the judge adversarially.** If a delivered site feels samey or dead,
+  open `docs/design-review.md` and read what was scored and why — then
+  challenge it ("Aliveness got 4 but I count two animations; re-judge with
+  fresh eyes"). The design-review skill supports running the scoring round
+  as a fresh subagent precisely so the builder doesn't grade its own work.
+- **The promote loop compounds the template.** When a client build invents
+  something broadly useful (a section type, a motion pattern, a palette
+  trick), generalize it and PR it into the TEMPLATE as a recipe, token, or
+  reveal preset — never copy client code between client repos. Every client
+  makes the next one better.
+- **Never edit the contract smoke suite in a client repo — only add tests.**
+  It's the safety net that lets the model be radical everywhere else.
+- **When something breaks, run `npm run validate:content` first.** It gives
+  the clearest errors and now catches schema mistakes, contrast failures,
+  and phone/WhatsApp format slips before the build ever runs.
