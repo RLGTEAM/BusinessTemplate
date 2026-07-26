@@ -34,7 +34,9 @@ src/
   content/business.schema.ts       ← Zod schema (edit schema first, then JSON)
   content.config.ts                ← collection wiring (file loader, id "site")
   lib/business.ts                  ← getBusiness(), telHref(), whatsappHref(), resolveHref()
-  lib/images.ts                    ← resolveImage("name.png") → src/assets/images/
+  lib/images.ts                    ← resolveImage("name.png") → src/assets/images/;
+                                     no callers in the skeleton (no image fields exist yet) —
+                                     used by client-authored components once a design adds them
   lib/jsonld.ts                    ← LocalBusiness / Organization / WebSite / FAQPage JSON-LD
   lib/animation/                   ← GSAP+Lenis lifecycle (index.ts) + reveal helpers;
                                      custom.ts for per-client motion; helpers.ts for
@@ -50,7 +52,8 @@ src/
   pages/404.astro                  ← not-found page (copy from content.notFound)
   pages/{accessibility-statement,privacy}.astro ← legal pages (content.legal)
   pages/{llms.txt,site.webmanifest,robots.txt}.ts ← generated endpoints
-  assets/images/                   ← images referenced by filename in business.json
+  assets/images/                   ← empty in the skeleton; holds client photos once a
+                                     design adds image fields (see the contract below)
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
                                      DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
                                      patterns for nav/forms/sections) · PLAYBOOK.md (owner
@@ -71,7 +74,10 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 - **No hardcoded business content in components.** New copy → add a field to `business.schema.ts`, then to `business.json`, then read it via `getBusiness()`.
 - Components read content ONLY through `getBusiness()` (never import the JSON directly).
 - `voice.palette` drives theme colors: BaseLayout sets `--brand-*` on `<html>`, `@theme inline` maps them to Tailwind `primary`/`secondary`/`accent`. Re-theming = editing JSON.
-- Images: `business.json` references filenames; files live in `src/assets/images/`; resolve with `resolveImage()`. OG image lives in `public/`.
+- Images: the skeleton ships no image fields. When a client design uses images, add fields
+  schema-first (`business.schema.ts`, then `business.json`), put files in
+  `src/assets/images/`, and resolve with `resolveImage()` (pattern: `docs/RECIPES.md` recipe
+  5). Starter placeholders via `npm run generate:placeholders`. OG image lives in `public/`.
 - Link fields may use the sentinel `"whatsapp"` — always pass hrefs through `resolveHref()`.
 - Schema failures fail the build. Run `npm run validate:content` after editing.
 - **Palette contract**: `validate:content` enforces WCAG AA (≥ 4.5:1) on 9 pairs computed against

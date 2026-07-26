@@ -57,9 +57,10 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
    gate — autonomously, surfacing every provisional fact and placeholder in its final report.
    Doing it by hand instead: edit `src/content/business/business.json`, then
    `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
-4. **Real photos**: drop client photos into `src/assets/images/` keeping the filenames (or
-   update the refs in business.json). Rebaseline visuals:
-   `npx playwright test --grep @visual --update-snapshots`.
+4. **Real photos**: the skeleton ships no image fields — once the design adds them
+   (schema-first, resolved via `resolveImage()`, see `docs/RECIPES.md` recipe 5), drop client
+   photos into `src/assets/images/` keeping the filenames (or update the refs in
+   business.json). Rebaseline visuals: `npx playwright test --grep @visual --update-snapshots`.
 5. **Contact form key**: create a free [Web3Forms](https://web3forms.com) access key **using
    the client's email** (submissions go to that inbox). Put it in `.env` locally
    (copy `.env.example`) — and later in Cloudflare Pages env vars.

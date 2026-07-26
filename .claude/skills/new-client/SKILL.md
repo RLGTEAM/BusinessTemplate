@@ -122,9 +122,10 @@ Execute the committed concept, 0→100:
 
 ## Step 5 — Images + OG
 
-Client photos into `src/assets/images/` (keep filenames or update refs).
-Regenerate: `npm run generate:og`. Every image still showing a placeholder
-goes in the report.
+Client photos into `src/assets/images/`; add image fields to the client schema
+as the design needs (schema-first, resolved via `resolveImage()` per
+`docs/RECIPES.md` recipe 5). Regenerate: `npm run generate:og`. Every image
+still showing a placeholder goes in the report.
 
 ## Step 5.5 — Design review (the judge)
 
