@@ -28,7 +28,7 @@ operations, not a replacement for them.
      requirement for Israeli businesses; ship without it and the site
      isn't launch-ready no matter how green the test gate is).
    - Client photos are in `src/assets/images/` if available (placeholders
-     are fine to start from otherwise — `scripts/generate-placeholders.ts`).
+     are fine to start from otherwise — `npm run generate:placeholders`).
    - `.env` exists (copy `.env.example`) with a Web3Forms key created on the
      **client's** email — only if they actually want a contact form.
    - A note on what previous clients' sites looked like — distinctiveness

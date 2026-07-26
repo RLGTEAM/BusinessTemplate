@@ -132,6 +132,11 @@ all 9 axes.
 
 On FAIL: pick the 2–3 highest-leverage fixes (not a redesign), apply them,
 rebuild, re-shoot the Setup screenshots, re-score. Maximum 3 rounds total.
+If the Pre-check capped Concept expression at 2 for missing nav-concept or
+choreography prose in `docs/concept.md`, writing that prose IS fix #1 of the
+round — do this even when invoked standalone (not via `/new-client`), so the
+loop doesn't deadlock re-scoring code while the actual gap is undocumented
+prose.
 
 After every round (pass or not), append to `docs/design-review.md` — a
 CLIENT-repo artifact; the template repo must never contain this file:

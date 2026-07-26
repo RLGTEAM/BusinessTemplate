@@ -30,9 +30,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      # @visual snapshots are platform-specific and committed from dev machines;
-      # CI (linux) has none, so the visual suite is excluded here.
-      - run: npm run test:e2e -- --grep-invert "@visual"
+      # @visual snapshots are gitignored, per-machine baselines — CI has none,
+      # so test:e2e itself excludes the visual suite (--grep-invert @visual);
+      # it's local-only, not a CI-specific exclusion.
+      - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

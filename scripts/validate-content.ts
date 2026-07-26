@@ -119,34 +119,44 @@ console.log("✓ palette passes WCAG AA contrast on all used pairs");
  * and just gets a "+" prepended. A mis-formatted phone (e.g. missing the
  * leading 0) silently produces a real-looking but WRONG country code on the
  * tel: link with no build-time signal — this check catches that class of
- * mistake before it ships.
+ * mistake before it ships. The same rules — and the same telHref() call —
+ * apply to legal.accessibility.coordinator.phone on the accessibility
+ * statement page, so it's checked with the identical function below.
  */
-const phoneDigits = result.data.data.contact.phone.replace(/\D/g, "");
-const isIsraeliLocal = /^0\d{8,9}$/.test(phoneDigits);
-const isInternational = /^972\d{8,9}$/.test(phoneDigits);
+function validatePhone(label: string, value: string): void {
+  const digits = value.replace(/\D/g, "");
+  const isIsraeliLocal = /^0\d{8,9}$/.test(digits);
+  const isInternational = /^972\d{8,9}$/.test(digits);
 
-if (!isIsraeliLocal && !isInternational) {
-  console.error(
-    `\n✗ data.contact.phone ("${result.data.data.contact.phone}") is not a recognized phone format.\n`,
-  );
-  console.error(
-    '  telHref() assumes a leading 0 means Israeli local format and prefixes "+972" for any\n' +
-      "  other digit string — a mis-formatted number (e.g. a missing leading 0) silently produces\n" +
-      "  a wrong (but valid-looking) country code on the tel: link.\n",
-  );
-  console.error(
-    "  Use Israeli local format (0 + 8-9 digits, e.g. 050-000-0000) or international (972 + 8-9 digits).",
-  );
-  process.exit(1);
+  if (!isIsraeliLocal && !isInternational) {
+    console.error(`\n✗ ${label} ("${value}") is not a recognized phone format.\n`);
+    console.error(
+      '  telHref() assumes a leading 0 means Israeli local format and prefixes "+972" for any\n' +
+        "  other digit string — a mis-formatted number (e.g. a missing leading 0) silently produces\n" +
+        "  a wrong (but valid-looking) country code on the tel: link (star codes like *3455 and\n" +
+        "  1-800 numbers aren't supported by telHref — use a standard number here).\n",
+    );
+    console.error(
+      "  Use Israeli local format (0 + 8-9 digits, e.g. 050-000-0000) or international (972 + 8-9 digits).",
+    );
+    process.exit(1);
+  }
 }
 
+validatePhone("data.contact.phone", result.data.data.contact.phone);
+validatePhone(
+  "content.legal.accessibility.coordinator.phone",
+  result.data.content.legal.accessibility.coordinator.phone,
+);
+
 const whatsapp = result.data.data.contact.whatsapp;
-if (whatsapp.startsWith("0")) {
-  console.error(`\n✗ data.contact.whatsapp ("${whatsapp}") starts with "0".\n`);
+if (!/^972\d{8,9}$/.test(whatsapp)) {
+  console.error(`\n✗ data.contact.whatsapp ("${whatsapp}") is not a valid international number.\n`);
   console.error(
-    "  whatsappHref() uses this value verbatim as a wa.me path, which requires a leading\n" +
-      '  country code (e.g. "972..."), not a local-format leading 0 — as written this would\n' +
-      "  produce a broken wa.me link.",
+    "  whatsappHref() uses this value verbatim as a wa.me path, which requires the full\n" +
+      '  country code with no leading "0" and no symbols — it must match 972 followed by\n' +
+      '  8-9 digits (e.g. "972501234567"). Anything else — a local-format leading 0, a missing\n' +
+      "  or wrong country code, punctuation — produces a broken wa.me link.",
   );
   process.exit(1);
 }

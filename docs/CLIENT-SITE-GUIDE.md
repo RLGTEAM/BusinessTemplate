@@ -36,7 +36,7 @@ decision made in code, on the quality floor set out in
    [docs/RECIPES.md](./RECIPES.md) recipe 5 for the `resolveImage()` pattern), then
    drop the client's photos into `src/assets/images/` under those filenames. Starter
    placeholders while you design: `npm run generate:placeholders`.
-5. **Regenerate the OG image**: `npm run generate:og`.
+5. **Regenerate the OG image + favicon/icon set**: `npm run generate:og`.
 6. **Validate + test** (do this early and often — schema failures fail the build):
    ```
    npm run validate:content   # fastest feedback on business.json

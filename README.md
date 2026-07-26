@@ -90,6 +90,7 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 | `npm run test:e2e`         | Playwright smoke + axe a11y tests (builds + serves itself) |
 | `npm run test:ltr-build`   | Builds the English/LTR variant and checks its structure    |
 | `npm run test:visual`      | Visual regression snapshots (local; rebaseline with `--update-snapshots`) |
+| `npm run generate:placeholders` | Starter placeholder art — rename outputs to match your image fields |
 | `npm run generate:og`      | Regenerate the OG image + favicon/icon set from business.json name + palette |
 | `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) — run `build` first |
 
@@ -97,9 +98,9 @@ First e2e run needs `npx playwright install chromium`.
 
 **CI**: `.github/workflows/ci.yml` runs the quality/build/e2e/lighthouse commands above
 (including axe-core accessibility checks and the Lighthouse budgets) on every push/PR — the
-visual regression suite is local-only (gitignored, per-machine baselines) and is intentionally
-excluded from `test:e2e` in CI. Recommended: protect `master` and require the three jobs to pass
-before merge.
+visual regression suite is local-only (gitignored, per-machine baselines) and `test:e2e` itself
+excludes it (`--grep-invert @visual`) everywhere it runs, not just in CI. Recommended: protect
+`master` and require the three jobs to pass before merge.
 
 Notes:
 

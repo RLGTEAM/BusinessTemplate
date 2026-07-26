@@ -147,8 +147,9 @@ Execute the committed concept, 0→100:
 
 Client photos into `src/assets/images/`; add image fields to the client schema
 as the design needs (schema-first, resolved via `resolveImage()` per
-`docs/RECIPES.md` recipe 5). Regenerate: `npm run generate:og`. Every image
-still showing a placeholder goes in the report.
+`docs/RECIPES.md` recipe 5). Regenerate the OG image + favicon/icon set:
+`npm run generate:og`. Every image still showing a placeholder goes in the
+report.
 
 ## Step 5.5 — Design review (the judge)
 
