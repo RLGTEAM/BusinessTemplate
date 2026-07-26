@@ -1,10 +1,15 @@
 /**
- * Regenerates the placeholder images referenced by the demo business.json:
- * src/assets/images/*.png and public/og-default.png.
+ * Generates a generic placeholder image starter set for local preview during
+ * design work: src/assets/images/{hero,about,gallery-1..6}.png, colored from
+ * the client palette in business.json.
+ *
+ * The skeleton schema ships with no image fields — a per-client build adds
+ * fields to business.schema.ts as the design needs them (schema-first, then
+ * resolveImage() per docs/RECIPES.md recipe 5) and should rename or replace
+ * these files to match whatever names it chooses. This script does NOT write
+ * public/og-default.png — that image is owned by scripts/generate-og.ts.
  *
  * Uses sharp, which ships with Astro. Run with: npx tsx scripts/generate-placeholders.ts
- * Replace these files with real client photos in production — keep the filenames
- * or update business.json accordingly.
  */
 import { mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -60,13 +65,6 @@ const specs: Spec[] = [
     height: 750,
     from: palette.secondary,
     to: palette.primary,
-  },
-  {
-    path: "public/og-default.png",
-    width: 1200,
-    height: 630,
-    from: palette.primary,
-    to: palette.secondary,
   },
   ...Array.from({ length: 6 }, (_, i) => ({
     path: `src/assets/images/gallery-${i + 1}.png`,

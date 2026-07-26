@@ -22,8 +22,9 @@ import { gsap } from "gsap";
  *   data-reveal-duration   seconds, default 0.8 (single) / 0.7 (group)
  *   data-reveal-delay      seconds, default 0
  *   data-reveal-distance   px; replaces the hardcoded y/x travel distance for
- *                          the y-based and slide-* variants — default 28 for
- *                          y-based (including data-reveal-group), 48 for slide
+ *                          the y-based, slide-*, and blur variants — default 28
+ *                          for y-based (including data-reveal-group), 48 for
+ *                          slide, 12 for blur
  *   data-reveal-start      ScrollTrigger start, default "top 85%"
  *   data-reveal-stagger    on [data-reveal-group] only, default 0.1
  *
@@ -58,7 +59,7 @@ function variant(kind: string, distance: number): gsap.TweenVars {
     case "scale":
       return { scale: 0.94 };
     case "blur":
-      return { filter: "blur(12px)", y: 12 };
+      return { filter: "blur(12px)", y: distance };
     case "clip":
       return { clipPath: isRtl() ? "inset(0 0 0 100%)" : "inset(0 100% 0 0)" };
     default:
@@ -72,7 +73,7 @@ export function setupReveals(): void {
     const distance = num(
       el,
       "revealDistance",
-      kind === "slide-start" || kind === "slide-end" ? 48 : 28,
+      kind === "slide-start" || kind === "slide-end" ? 48 : kind === "blur" ? 12 : 28,
     );
     const duration = num(el, "revealDuration", 0.8);
     const delay = num(el, "revealDelay", 0);

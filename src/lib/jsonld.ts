@@ -32,7 +32,10 @@ export function localBusinessJsonLd(business: Business): JsonLd {
     address: {
       "@type": "PostalAddress",
       streetAddress: data.contact.address,
-      addressCountry: business.locale === "he" ? "IL" : undefined,
+      // The template is Israel-only by design (telHref assumes +972, the
+      // legal content is scoped to ת"י 5568) — an English-locale build is
+      // still the same Israeli business, so this is never locale-conditional.
+      addressCountry: "IL",
     },
     geo: {
       "@type": "GeoCoordinates",

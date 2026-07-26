@@ -18,8 +18,9 @@ import { PUBLIC_WEB3FORMS_KEY } from "astro:env/client";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function fieldError(input: HTMLInputElement | HTMLTextAreaElement, form: HTMLFormElement): string {
-  if (input.value.trim() === "") return form.dataset.requiredError ?? "";
-  if (input.type === "email" && !EMAIL_PATTERN.test(input.value)) {
+  const value = input.value.trim();
+  if (value === "") return form.dataset.requiredError ?? "";
+  if (input.type === "email" && !EMAIL_PATTERN.test(value)) {
     return form.dataset.emailError ?? "";
   }
   return "";
@@ -86,6 +87,8 @@ async function submit(form: HTMLFormElement): Promise<void> {
 function bind(form: HTMLFormElement): void {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    const button = form.querySelector<HTMLButtonElement>("button[type=submit]");
+    if (button?.disabled) return; // a submission is already in flight
     if (!validate(form)) return;
     if (PUBLIC_WEB3FORMS_KEY === "") {
       // Endpoint not configured — surface the error state instead of a silent no-op.

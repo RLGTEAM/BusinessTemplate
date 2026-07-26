@@ -9,7 +9,7 @@ import { businessSchema } from "./content/business.schema";
  */
 const business = defineCollection({
   loader: file("src/content/business/business.json", {
-    parser: (text) => [{ id: "site", ...JSON.parse(text) }],
+    parser: (text) => [{ id: "site", ...JSON.parse(text.replace(/^\uFEFF/, "")) }],
   }),
   schema: businessSchema,
 });

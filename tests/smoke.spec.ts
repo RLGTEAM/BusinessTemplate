@@ -61,8 +61,8 @@ test.describe("home page", () => {
 
   test("contact form blocks an empty submit", async ({ page }) => {
     await page.goto("/");
-    const form = page.locator("#contact-form");
-    test.skip((await form.count()) === 0, "site has no #contact-form");
+    const form = page.locator("form[data-contact-form]").first();
+    test.skip((await form.count()) === 0, "site has no form[data-contact-form]");
     await form.scrollIntoViewIfNeeded();
     await form.locator('button[type="submit"]').click();
     await expect(form.locator('[id$="-error"]').first()).not.toBeEmpty();
@@ -70,8 +70,8 @@ test.describe("home page", () => {
 
   test("contact form flags an invalid email", async ({ page }) => {
     await page.goto("/");
-    const form = page.locator("#contact-form");
-    test.skip((await form.count()) === 0, "site has no #contact-form");
+    const form = page.locator("form[data-contact-form]").first();
+    test.skip((await form.count()) === 0, "site has no form[data-contact-form]");
     test.skip((await form.locator("#email").count()) === 0, "form has no #email field");
     for (const field of ["#name", "#phone", "#message"]) {
       const input = form.locator(field);

@@ -109,3 +109,46 @@ if (failures.length > 0) {
 }
 
 console.log("✓ palette passes WCAG AA contrast on all used pairs");
+
+/*
+ * Phone/WhatsApp format validation.
+ *
+ * telHref() (src/lib/business.ts) assumes any phone digit-string starting
+ * with "0" is Israeli local format and strips it in favor of a "+972"
+ * prefix; anything else is assumed to already be an international number
+ * and just gets a "+" prepended. A mis-formatted phone (e.g. missing the
+ * leading 0) silently produces a real-looking but WRONG country code on the
+ * tel: link with no build-time signal — this check catches that class of
+ * mistake before it ships.
+ */
+const phoneDigits = result.data.data.contact.phone.replace(/\D/g, "");
+const isIsraeliLocal = /^0\d{8,9}$/.test(phoneDigits);
+const isInternational = /^972\d{8,9}$/.test(phoneDigits);
+
+if (!isIsraeliLocal && !isInternational) {
+  console.error(
+    `\n✗ data.contact.phone ("${result.data.data.contact.phone}") is not a recognized phone format.\n`,
+  );
+  console.error(
+    '  telHref() assumes a leading 0 means Israeli local format and prefixes "+972" for any\n' +
+      "  other digit string — a mis-formatted number (e.g. a missing leading 0) silently produces\n" +
+      "  a wrong (but valid-looking) country code on the tel: link.\n",
+  );
+  console.error(
+    "  Use Israeli local format (0 + 8-9 digits, e.g. 050-000-0000) or international (972 + 8-9 digits).",
+  );
+  process.exit(1);
+}
+
+const whatsapp = result.data.data.contact.whatsapp;
+if (whatsapp.startsWith("0")) {
+  console.error(`\n✗ data.contact.whatsapp ("${whatsapp}") starts with "0".\n`);
+  console.error(
+    "  whatsappHref() uses this value verbatim as a wa.me path, which requires a leading\n" +
+      '  country code (e.g. "972..."), not a local-format leading 0 — as written this would\n' +
+      "  produce a broken wa.me link.",
+  );
+  process.exit(1);
+}
+
+console.log("✓ contact phone/whatsapp formats are valid");

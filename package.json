@@ -17,7 +17,7 @@
     "test:visual": "playwright test --grep @visual",
     "test:ltr-build": "tsx scripts/check-ltr-build.ts",
     "test": "npm run validate:content && npm run lint && npm run typecheck",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --grep-invert @visual",
     "lhci": "lhci autorun",
     "prepare": "husky"
   },
