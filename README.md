@@ -53,8 +53,8 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
    zero (see [docs/RECIPES.md](./docs/RECIPES.md)) on the quality floor (see
    [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md)),
    enforces the WCAG palette contract, judges the result against the design-review rubric
-   (screenshots, max 3 fix rounds), regenerates the OG image, and runs the full test
-   gate — autonomously, surfacing every provisional fact and placeholder in its final report.
+   (screenshots, max 3 fix rounds), regenerates the OG image + favicon/icon set, and runs the
+   full test gate — autonomously, surfacing every provisional fact and placeholder in its final report.
    Doing it by hand instead: edit `src/content/business/business.json`, then
    `npm run validate:content` → `npm run generate:og` → `npm run test` → `npm run test:e2e`.
 4. **Real photos**: the skeleton ships no image fields — once the design adds them
@@ -90,14 +90,16 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 | `npm run test:e2e`         | Playwright smoke + axe a11y tests (builds + serves itself) |
 | `npm run test:ltr-build`   | Builds the English/LTR variant and checks its structure    |
 | `npm run test:visual`      | Visual regression snapshots (local; rebaseline with `--update-snapshots`) |
-| `npm run generate:og`      | Regenerate the OG image from business.json name + palette |
+| `npm run generate:og`      | Regenerate the OG image + favicon/icon set from business.json name + palette |
 | `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) — run `build` first |
 
 First e2e run needs `npx playwright install chromium`.
 
-**CI**: `.github/workflows/ci.yml` runs all of the above (including axe-core accessibility
-checks and the Lighthouse budgets) on every push/PR. Recommended: protect `master` and require
-the three jobs to pass before merge.
+**CI**: `.github/workflows/ci.yml` runs the quality/build/e2e/lighthouse commands above
+(including axe-core accessibility checks and the Lighthouse budgets) on every push/PR — the
+visual regression suite is local-only (gitignored, per-machine baselines) and is intentionally
+excluded from `test:e2e` in CI. Recommended: protect `master` and require the three jobs to pass
+before merge.
 
 Notes:
 
@@ -106,9 +108,9 @@ Notes:
   business.json contains `[bracketed]` placeholders plus a neutral palette. `/new-client`
   replaces the shell entirely and deletes `content.shell`.
 - Every site auto-generates its SEO/AEO surface from business.json: meta/OG/canonical,
-  4 JSON-LD blocks (LocalBusiness + OfferCatalog, Organization, WebSite, FAQPage), sitemap,
-  robots.txt, **llms.txt** (AI answer engines), web manifest + icon set, 404 page, and
-  security/cache headers (`public/_headers`).
+  3 JSON-LD blocks (LocalBusiness + OfferCatalog, Organization, WebSite; 4 when
+  `content.faq` has items, adding FAQPage), sitemap, robots.txt, **llms.txt** (AI answer
+  engines), web manifest + icon set, 404 page, and security/cache headers (`public/_headers`).
 - **Legal pages** ship built-in: `/accessibility-statement/` (mandatory for Israeli businesses,
   ת"י 5568 — fill the real coordinator details per client!) and `/privacy/`, both generated
   from `content.legal` and linked in the footer.

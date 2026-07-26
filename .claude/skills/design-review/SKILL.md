@@ -1,6 +1,6 @@
 ---
 name: design-review
-description: Judge a built client site against the design rubric: screenshot with a real browser, score distinctiveness/concept/color/typography/motion/navigation/aliveness/mobile-craft, iterate targeted fixes (max 3 rounds), log verdicts to docs/design-review.md. Use after building or changing a client site's design, or when asked to review the design.
+description: Judge a built client site against the design rubric: screenshot with a real browser, score distinctiveness/concept/color/typography/motion/craft/navigation/aliveness/mobile-craft, iterate targeted fixes (max 3 rounds), log verdicts to docs/design-review.md. Use after building or changing a client site's design, or when asked to review the design.
 ---
 
 # Design review (the judge)
@@ -67,6 +67,29 @@ Any ONE of these fails the round regardless of scores:
    presets are used), `helpers.ts` imports (`marquee`/`parallax`/`counter`),
    and CSS hover/focus/press transitions on interactive elements.
 
+## Pre-check (before scoring)
+
+Read `docs/concept.md`. It must contain, as written prose for the CHOSEN
+concept, both the nav concept (`.claude/skills/new-client/SKILL.md` Step 1
+item 6) and the choreography plan (item 7) — not just code that happens to
+realize them. If either is missing or too thin to judge, cap **Concept
+expression** at 2 regardless of what the rendered page shows, and say so
+explicitly in this round's `docs/design-review.md` log entry.
+
+## Fresh eyes
+
+The agent that built the site scoring its own work tends to grade
+generously — it already believes in the choices it just made. When an
+agent-dispatch tool is available (e.g. this session's `Agent` tool), run the
+scoring pass (automatic fails + scored rubric below) as a FRESH subagent
+invocation that receives ONLY: this skill file, the screenshots just taken,
+and the relevant code paths (`docs/concept.md`, `src/pages/index.astro`,
+`src/lib/animation/custom.ts`, `src/styles/custom.css`) — not the building
+session's own reasoning, rationale, or prior self-assessment. Treat its
+verdict as authoritative; fold it into this session's log and fix/loop from
+there. If no such tool is available, score inline but stay skeptical of your
+own build.
+
 ## Scored rubric
 
 Score each 1–5 with one line of evidence — cite what you SAW in a screenshot
@@ -129,4 +152,10 @@ pass that didn't happen.
   (`scripts/validate-content.ts`), RTL logical properties only, reduced-motion
   still frame intact.
 - Rerun `npm run test` after any fix round that touched code or content.
-- Kill the preview server when the review concludes, pass or fail.
+- Kill the preview server when the review concludes, pass or fail — find the
+  process bound to the preview port and stop it, don't just close the
+  browser tab. Windows/PowerShell: `Get-NetTCPConnection -LocalPort 4321 |
+  Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process
+  -Id $_ -Force }` (swap `4321` for whatever port Setup actually bound to,
+  e.g. `4323` on a conflict) — or, simpler, just close the shell/terminal
+  that ran `npm run preview`.

@@ -17,6 +17,13 @@ everything below (the floor, the page contract, the toolkit, the process).
   report under "confirm with client before launch".
 - Missing required facts: do NOT stall. Insert a clearly-marked placeholder
   and add it to the report's blocking list.
+- Geo coordinates (`data.contact.geo.lat`/`.lng`): if the brief has no
+  `[client-confirmed]` coordinates, geocode the real address yourself
+  (WebSearch — e.g. look it up on Google Maps and read the lat/lng off the
+  pin) and tag the result `[scraped]`/provisional in Step 7's
+  confirm-with-client list. NEVER leave the skeleton's demo coordinates in
+  place — they validate fine but silently ship a wrong map pin in the
+  LocalBusiness JSON-LD for a real business.
 - The "raw texture" section is your design material — read it before
   inventing anything. The concept must come from the client's world, not from
   a generic industry stereotype.
@@ -62,15 +69,24 @@ why they lost. Commit it alone: `feat: design concept for <client>`.
   `notFound`, `legal`): fill completely, never reshape.
 - Author the per-client content region from scratch (only canonical optional
   `faq` is predefined): reshape `business.schema.ts` to match the page you
-  designed in Step 1, then write the JSON. DELETE `content.shell` from
-  schema+JSON. Copy NEVER lives in components.
+  designed in Step 1, then write the JSON. Copy NEVER lives in components.
+  (`content.shell` is deleted in Step 4, in the same change that replaces
+  `index.astro` — not here; the starter page throws if `shell` is missing
+  while it's still the page rendering.)
 - `legal.accessibility.coordinator` needs REAL details (legal requirement,
   ת"י 5568). If the brief lacks them, use a placeholder AND flag it as
   BLOCKING — first line of the final report.
 - Trackers only if explicitly requested (auto-enables consent banner; rewrite
   `legal.privacy` to disclose them).
-- Hebrew sites keep a bidi test line (Hebrew + Latin name + ₪ price) in
-  visible body copy — the smoke suite scans for it.
+- Author ALL `content` copy in `business.locale`'s language — the bidi test
+  line below is the one deliberate, isolated exception. Hebrew sites keep a
+  bidi test line (Hebrew + Latin name + ₪ price) in visible body copy — the
+  smoke suite scans for it. Make it read as real copy the client's own
+  business would plausibly say, not an inserted fixture — e.g. a menu/product
+  line naming something with a genuine Latin brand name at a real ₪ price
+  ("מנת ה-Signature Burger שלנו ב-₪68"), built from whatever the client's
+  actual business supports (an imported product, a partner brand, a
+  delivery-app mention) — never a sentence invented purely to pass the test.
 - Respect `voice` in every sentence. Save UTF-8 WITHOUT BOM.
 - Sweep: `rg "\[" src/content/business/business.json` — only the bidi line
   and deliberate flagged placeholders may remain, and every one of the
@@ -95,7 +111,10 @@ Execute the committed concept, 0→100:
 - Build order is mobile-first: compose at 390, then adapt up — never
   desktop-first.
 - Compose `src/pages/index.astro` yourself, replacing the starter shell
-  entirely. Build every component from zero. Consult `docs/RECIPES.md` for
+  entirely, and in the SAME change DELETE `content.shell` from schema+JSON
+  (the starter page throws if `shell` is missing while it's still the page
+  rendering — deleting both together avoids a spurious build failure).
+  Build every component from zero. Consult `docs/RECIPES.md` for
   the RTL/a11y-correct patterns (nav, form contract, section skeleton) —
   recipe 7 (scroll-aware header) and recipe 9 (mobile sticky contact bar)
   are mandatory for the Craft bars above, not optional polish.
@@ -119,6 +138,10 @@ Execute the committed concept, 0→100:
 - Before Step 5.5, SELF-CHECK the aliveness inventory and the anti-AI-tells
   list (Craft bars 3 and 4, `docs/DESIGN-DOCTRINE.md`) and fix any gaps — the
   judge automatic-fails an incomplete inventory.
+- Also before Step 5.5, verify `docs/concept.md` actually contains the nav
+  concept (Step 1 item 6) and the choreography plan (item 7) for the chosen
+  concept AS WRITTEN PROSE, not just realized in code — design-review caps
+  Concept expression at 2 if either is missing.
 
 ## Step 5 — Images + OG
 
@@ -152,7 +175,8 @@ End with exactly these sections:
 
 1. **BLOCKING** — placeholder accessibility coordinator, missing legal facts.
 2. **Confirm with client before launch** — every `[scraped]`-only NAP /
-   price / hours fact, verbatim.
+   price / hours fact, verbatim, plus any unverified/geocoded geo
+   coordinates (Step 0).
 3. **Placeholders remaining** — images, testimonials, copy awaiting real
    content.
 4. **Design decisions** — the concept (link `docs/concept.md`), palette

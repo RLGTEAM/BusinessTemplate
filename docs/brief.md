@@ -13,6 +13,7 @@
 - Legal name*:
 - What they do (one paragraph)*:
 - Address*:
+- GPS coordinates (paste from Google Maps share/pin, lat,lng) [scraped]/[client-confirmed]:
 - Phone*:
 - Email*:
 - WhatsApp number* (international digits, e.g. 9725…):
@@ -32,6 +33,7 @@
 
 ## Voice & brand
 
+- Persona (who's speaking on the site — e.g. the owner? the team?):
 - Tone (e.g. warm and personal / professional and precise):
 - Formality:
 - Keywords to emphasize (3–5):
@@ -40,6 +42,7 @@
 - Existing brand colors (hex if known, otherwise mood words):
 - Mood (e.g. boutique, energetic, calm, premium):
 - Light or dark site? Surface mood (bright / warm tinted / deep dark):
+- Analytics/tracking wanted? (none / GA4 id / Meta Pixel id):
 
 ## Content material
 

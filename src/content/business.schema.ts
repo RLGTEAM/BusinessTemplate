@@ -150,7 +150,7 @@ export const businessSchema = z.object({
 
   voice: z.object({
     tone: z.string(),
-    persona: z.string(),
+    persona: z.string().min(1),
     formality: z.string(),
     keywords: z.array(z.string()),
     doNotSay: z.array(z.string()),

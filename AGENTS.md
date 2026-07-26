@@ -18,9 +18,9 @@ npm run typecheck         # astro check
 npm run validate:content  # standalone business.json schema check
 npm run test              # validate:content + lint + typecheck
 npm run test:e2e          # Playwright smoke + axe tests (builds + previews automatically)
-npm run test:ltr-build    # builds the English/LTR variant, checks structure (leaves it in dist/)
+npm run test:ltr-build    # builds the English/LTR variant, checks structure (dist/ is rebuilt to the real locale afterward)
 npm run test:visual       # visual regression snapshots (local only, platform-specific)
-npm run generate:og       # regenerate public/og-default.png from business.json
+npm run generate:og       # regenerate OG image + favicon/icon set from business.json
 npm run lhci              # Lighthouse CI against dist/ (run build first)
 ```
 
@@ -52,8 +52,9 @@ src/
   pages/404.astro                  ← not-found page (copy from content.notFound)
   pages/{accessibility-statement,privacy}.astro ← legal pages (content.legal)
   pages/{llms.txt,site.webmanifest,robots.txt}.ts ← generated endpoints
-  assets/images/                   ← empty in the skeleton; holds client photos once a
-                                     design adds image fields (see the contract below)
+  assets/images/                   ← empty in the skeleton (+ .gitkeep); client photos land
+                                     here once a design adds image fields (see the contract
+                                     below); starter placeholders via npm run generate:placeholders
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
                                      DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
                                      patterns for nav/forms/sections) · PLAYBOOK.md (owner

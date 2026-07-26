@@ -31,15 +31,17 @@ decision made in code, on the quality floor set out in
 3. **Pick a font pairing** (`design.fontPairing` in `business.json`) and build
    the page (see "Building the page" below) — `src/pages/index.astro` ships
    as an unbuilt contract shell; replace it entirely.
-4. **Swap images**: drop the client's photos into `src/assets/images/` keeping the
-   same filenames (or update the filenames in `business.json`). Until you have real
-   photos: `npx tsx scripts/generate-placeholders.ts`.
+4. **Add images, schema-first**: the skeleton ships no image fields. Add them to
+   `business.schema.ts`, then `business.json`, as the design needs (see
+   [docs/RECIPES.md](./RECIPES.md) recipe 5 for the `resolveImage()` pattern), then
+   drop the client's photos into `src/assets/images/` under those filenames. Starter
+   placeholders while you design: `npm run generate:placeholders`.
 5. **Regenerate the OG image**: `npm run generate:og`.
 6. **Validate + test** (do this early and often — schema failures fail the build):
    ```
    npm run validate:content   # fastest feedback on business.json
    npm run test               # schema + lint + typecheck
-   npm run test:e2e           # smoke + axe + visual (builds itself, port 4322)
+   npm run test:e2e           # smoke + axe (builds itself, port 4322; visual is npm run test:visual, local-only)
    ```
 7. **Final sweep before launch**:
    - `rg "\[" src/content/business/business.json` → only the bidi test line may match.
