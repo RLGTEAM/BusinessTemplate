@@ -63,15 +63,16 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
    business.json). Rebaseline visuals: `npx playwright test --grep @visual --update-snapshots`.
 5. **Contact form key**: create a free [Web3Forms](https://web3forms.com) access key **using
    the client's email** (submissions go to that inbox). Put it in `.env` locally
-   (copy `.env.example`) — and later in Cloudflare Pages env vars.
+   (copy `.env.example`) — `npm run deploy` builds on your machine, so this is where the
+   key has to be.
 6. **Push** to the client repo. CI must be green.
-7. **Deploy a preview**: connect the repo to Cloudflare Pages (see Deploy section below).
-   The `*.pages.dev` URL is your client-approval link.
-8. **Client feedback loop**: every copy/color/price change is a `business.json` edit → commit
-   → auto-redeploy. No code changes for content feedback.
+7. **Deploy a preview**: `npm run deploy:setup` once, then `npm run deploy:preview`
+   (see Deploy section below). The `*.pages.dev` URL is your client-approval link.
+8. **Client feedback loop**: every copy/color/price change is a `business.json` edit →
+   `npm run deploy:preview`. No code changes for content feedback.
 9. **Go live**: buy/point the domain, add it as a custom domain in Cloudflare Pages, set
    `data.seo.siteUrl` in business.json to the final domain, commit (this fixes canonical URLs,
-   sitemap, robots, and JSON-LD), verify the deploy.
+   sitemap, robots, and JSON-LD), then `npm run deploy`.
 10. **Post-launch checks**: run `npm run build && npm run lhci` against the budgets; validate
     the structured data at [validator.schema.org](https://validator.schema.org) and Google's
     Rich Results test; add the site to Google Search Console and submit
@@ -168,15 +169,43 @@ Notes:
 
 The site is fully static, so **no adapter is needed** (the Cloudflare adapter is only for SSR).
 
-1. Push the client repo to GitHub/GitLab.
-2. Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git**.
-3. Build settings: framework preset **Astro**, build command `npm run build`,
-   output directory `dist`.
-4. Add env var `PUBLIC_WEB3FORMS_KEY` (Production + Preview).
-5. Set the custom domain, then make sure `data.seo.siteUrl` in business.json matches it and
-   redeploy (it drives canonical URLs, sitemap, robots and JSON-LD).
+### One-time setup (per client)
 
-CLI alternative: `npx wrangler pages deploy dist`.
+```
+npx wrangler login          # once per machine
+npm run deploy:setup        # creates the Cloudflare Pages project
+```
+
+`deploy:setup` names the project from `CLOUDFLARE_PAGES_PROJECT` in `.env` if set, otherwise
+from `data.seo.siteUrl` (`https://acme-cafe.co.il` → `acme-cafe-co-il`). It refuses to run
+while `siteUrl` is still the placeholder — set the real domain first, or pass
+`npm run deploy:setup -- --project=acme-cafe`. The project's production branch is the git
+branch you run it from.
+
+### Shipping a new version
+
+```
+npm run deploy              # validate + lint + typecheck → build → upload
+npm run deploy:preview      # build → upload to the "preview" branch (shareable preview URL)
+```
+
+Both print the deployment URL when they finish. Useful flags (after `--`):
+`--project=<name>`, `--branch=<name>`, `--skip-build` (upload the existing `dist/`),
+`--dry-run`. Deployment history: `npx wrangler pages deployment list --project-name <name>`.
+
+> **`PUBLIC_WEB3FORMS_KEY` must be in your local `.env`.** These commands build on your
+> machine, so a key set only in the Cloudflare dashboard is not baked into the upload and the
+> contact form ships disabled. The deploy script warns when it is missing.
+
+### Git-connected builds (optional)
+
+If you'd rather have Cloudflare build on every push: dashboard → **Workers & Pages → Create →
+Pages → Connect to Git**, framework preset **Astro**, build command `npm run build`, output
+directory `dist`, and add `PUBLIC_WEB3FORMS_KEY` as an env var (Production + Preview).
+`npm run deploy` still works against a Git-connected project as a manual deploy.
+
+Either way: after setting the custom domain, make sure `data.seo.siteUrl` in business.json
+matches it and redeploy — it drives canonical URLs, sitemap, robots and JSON-LD.
 
 ## Where things live
 

@@ -20,6 +20,9 @@ npm run test              # validate:content + lint + typecheck
 npm run test:e2e          # Playwright smoke + axe tests (builds + previews automatically)
 npm run test:ltr-build    # builds the English/LTR variant, checks structure (dist/ is rebuilt to the real locale afterward)
 npm run test:visual       # visual regression snapshots (local only, platform-specific)
+npm run deploy:setup      # one-time: create the client's Cloudflare Pages project
+npm run deploy            # test gate + build + upload dist/ to Cloudflare Pages
+npm run deploy:preview    # build + upload to the "preview" branch (shareable preview URL)
 npm run generate:placeholders # starter placeholder art — rename outputs to match your image fields
 npm run generate:og       # regenerate OG image + favicon/icon set from business.json
 npm run lhci              # Lighthouse CI against dist/ (run build first)

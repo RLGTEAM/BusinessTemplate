@@ -57,18 +57,20 @@ operations, not a replacement for them.
    wrong, not a prescribed fix; after any design change, invoke
    `/design-review` again to re-judge the result and log the new verdict.
 
-7. **Deploy a preview.** Push the repo → Cloudflare Pages (Workers & Pages →
-   Create → Pages → Connect to Git; framework preset Astro, build command
-   `npm run build`, output directory `dist` — see README's Deploy section)
-   → add the `PUBLIC_WEB3FORMS_KEY` env var (Production + Preview). The
-   `*.pages.dev` URL Cloudflare assigns is the client-approval link — send
-   that, not a custom domain, and run the feedback loop (step 6) against it
-   until the client actually signs off.
+7. **Deploy a preview.** `npx wrangler login` once per machine, then
+   `npm run deploy:setup` (creates the Pages project) and
+   `npm run deploy:preview` — see README's Deploy section, including the
+   Git-connected alternative. Put `PUBLIC_WEB3FORMS_KEY` in your local `.env`
+   first: these commands build on your machine, so a key set only in the
+   dashboard never reaches the upload. The `*.pages.dev` URL Cloudflare prints
+   is the client-approval link — send that, not a custom domain, and run the
+   feedback loop (step 6) against it until the client actually signs off.
+   Every round of feedback is then just `npm run deploy:preview` again.
 
 8. **Go live.** Only after client approval: buy/point the domain, set it as
    the custom domain in Cloudflare Pages, update `data.seo.siteUrl` in
-   `business.json` to match it, commit, and redeploy (fixes canonical URLs,
-   sitemap, robots, JSON-LD). Post-launch: `npm run build && npm run lhci`
+   `business.json` to match it, commit, and `npm run deploy` (fixes canonical
+   URLs, sitemap, robots, JSON-LD). Post-launch: `npm run build && npm run lhci`
    against the budgets; validate the structured data at
    [validator.schema.org](https://validator.schema.org) and Google's Rich
    Results test; add the site to Google Search Console and submit
