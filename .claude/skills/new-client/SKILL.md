@@ -88,9 +88,10 @@ why they lost. Commit it alone: `feat: design concept for <client>`.
   actual business supports (an imported product, a partner brand, a
   delivery-app mention) — never a sentence invented purely to pass the test.
 - Respect `voice` in every sentence. Save UTF-8 WITHOUT BOM.
-- Sweep: `rg "\[" src/content/business/business.json` — only the bidi line
-  and deliberate flagged placeholders may remain, and every one of the
-  latter goes in the report.
+- Sweep: `rg '\[[^0-9"][^"]*\]' src/content/business/business.json` — only
+  deliberate flagged placeholders may remain, and every one of them goes in
+  the report. (The bidi line is real copy and contains no brackets. Don't use
+  a bare `rg "\["` — it matches every JSON array opening.)
 
 ## Step 3 — Palette
 
@@ -182,5 +183,9 @@ End with exactly these sections:
    content.
 4. **Design decisions** — the concept (link `docs/concept.md`), palette
    adjustments, fontPairing, composition summary.
-5. **Deploy checklist** — Cloudflare Pages + `PUBLIC_WEB3FORMS_KEY` (created
-   with the CLIENT's email) + `data.seo.siteUrl` matches the domain.
+5. **Deploy checklist** — `data.seo.siteUrl` matches the real domain (it drives
+   canonical URLs, sitemap, JSON-LD, and the Cloudflare Pages project name);
+   `PUBLIC_WEB3FORMS_KEY` is in the local `.env`, created with the CLIENT's
+   email (direct uploads build locally — a dashboard-only key never ships);
+   then `npx wrangler login` → `npm run deploy:setup` → `npm run deploy:preview`.
+   Do NOT run any deploy command yourself — list them for the operator.

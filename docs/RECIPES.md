@@ -160,7 +160,9 @@ Rules:
 - `.env` needs `PUBLIC_WEB3FORMS_KEY` (copy `.env.example`) — created from a
   free Web3Forms key using the CLIENT's email, so submissions land in their
   inbox. Without it, submission surfaces the error state instead of a silent
-  no-op.
+  no-op. The key is baked in at BUILD time, and `npm run deploy` builds
+  locally — so it has to be in your `.env`, not only in the Cloudflare
+  dashboard.
 
 ## 4. RTL survival kit
 

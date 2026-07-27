@@ -10,11 +10,12 @@ Declared in `.mcp.json`, pre-allowed in `.claude/settings.json` — use them, do
 - **chrome-devtools** — use for performance traces, console errors, and Core Web Vitals checks against the dev server.
 - **lighthouse** — run after performance-relevant changes (images, fonts, scripts); budgets are LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1.
 - **a11y** — run axe-core checks after touching forms, nav, color tokens, or heading structure.
-- **github** / **cloudflare** — available but NOT pre-approved (they mutate real infrastructure and need OAuth via `/mcp`). Always confirm with the user before deploy/DNS/repo mutations.
+- **github** / **cloudflare** — available but NOT pre-approved (they mutate real infrastructure and need OAuth via `/mcp`). Always confirm with the user before deploy/DNS/repo mutations. Routine deploys don't need the `cloudflare` server at all — `npm run deploy` covers them (see AGENTS.md → Deploy); reach for the MCP server only for DNS, custom domains, or dashboard-level settings.
 
 ## Claude-specific notes
 
-- After editing `business.json` or `business.schema.ts`, run `npm run validate:content` before anything else — it gives the fastest, clearest error messages.
+- After editing `business.json` or `business.schema.ts`, run `npm run validate:content` before anything else — it gives the fastest, clearest error messages (schema, palette contrast, phone/WhatsApp formats).
+- NEVER run `npm run deploy` / `deploy:preview` / `deploy:setup` unprompted — they publish to a real client-facing URL and create real Cloudflare projects. Ask first, every time.
 - `npm run test:e2e` builds and serves itself on port 4322, so it can run alongside `npm run dev` (4321). Never point tests at the dev server — dev image transforms are flaky under parallel load and poison visual baselines.
 - Windows note: write files as UTF-8 **without BOM** — a BOM in `business.json` breaks `JSON.parse` at build time.
 - When asked to "re-theme" or "rebrand", touch only `business.json` (`voice.palette` + copy). If that isn't enough, override tokens (`--shape-radius-*`, `--section-py`, color story) in `src/styles/custom.css` — never inline colors in components.

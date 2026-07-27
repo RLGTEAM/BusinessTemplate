@@ -15,7 +15,7 @@ npm run preview           # serve dist/
 npm run lint              # biome check .
 npm run format            # biome check --write .
 npm run typecheck         # astro check
-npm run validate:content  # standalone business.json schema check
+npm run validate:content  # business.json: schema + WCAG palette contrast + phone/WhatsApp formats
 npm run test              # validate:content + lint + typecheck
 npm run test:e2e          # Playwright smoke + axe tests (builds + previews automatically)
 npm run test:ltr-build    # builds the English/LTR variant, checks structure (dist/ is rebuilt to the real locale afterward)
@@ -37,7 +37,7 @@ src/
   content/business/business.json   ← THE single source of truth
   content/business.schema.ts       ← Zod schema (edit schema first, then JSON)
   content.config.ts                ← collection wiring (file loader, id "site")
-  lib/business.ts                  ← getBusiness(), telHref(), whatsappHref(), resolveHref()
+  lib/business.ts                  ← getBusiness(), getDir(), telHref(), whatsappHref(), resolveHref()
   lib/images.ts                    ← resolveImage("name.png") → src/assets/images/;
                                      no callers in the skeleton (no image fields exist yet) —
                                      used by client-authored components once a design adds them
@@ -62,18 +62,25 @@ src/
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
                                      DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
                                      patterns for nav/forms/sections) · PLAYBOOK.md (owner
-                                     operating procedure)
+                                     operating procedure) · superpowers/ (archive of shipped
+                                     redesign plans — history, not instructions)
 scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts,
-                                     check-ltr-build.ts
-tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright)
+                                     check-ltr-build.ts, deploy.ts (Cloudflare Pages upload)
+tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright) +
+                                     contract.ts (expectations derived from the frozen core —
+                                     tests never assume a section exists)
 ```
+
+Per-client artifacts that exist only in CLIENT repos, never in the template: `docs/concept.md`
+(written by `/new-client`) and `docs/design-review.md` (written by `/design-review`).
 
 ## The business.json contract
 
 - `data` = facts (NAP, hours, services, SEO). `voice` = tone + palette. `content` = every visible string, per section.
 - **The shipped file is a placeholder skeleton**: every `[bracketed]` value must be replaced for a
-  real client. Final sweep: `rg "\[" src/content/business/business.json` must return nothing
-  except the bidi test line.
+  real client. Final sweep — must return NOTHING for a finished site:
+  `rg '\[[^0-9"][^"]*\]' src/content/business/business.json`
+  (matches bracketed placeholders only; a bare `rg "\["` also hits every JSON array opening).
 - `content.legal.accessibility.coordinator` must contain REAL contact details before launch —
   the accessibility statement is a legal requirement in Israel (ת"י 5568).
 - **No hardcoded business content in components.** New copy → add a field to `business.schema.ts`, then to `business.json`, then read it via `getBusiness()`.
@@ -128,6 +135,18 @@ tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.s
 - Client scripts: bind inside a named `setup*()` called from `document.addEventListener("astro:page-load", ...)`; pass strings from JSON via `data-*` attributes, never literals in scripts.
 - TypeScript: no `any` (use `unknown` + narrowing), no non-null `!`. Zod at every runtime boundary.
 - SEO: per-page overrides via BaseLayout props; JSON-LD only in `lib/jsonld.ts`.
+
+## Deploy (Cloudflare Pages, direct upload)
+
+- `npm run deploy:setup` once per client, then `npm run deploy` (production) / `npm run deploy:preview`.
+  `scripts/deploy.ts` gates, builds, and uploads `dist/`; flags after `--`: `--project=`, `--branch=`,
+  `--skip-build`, `--dry-run`.
+- The Pages project name comes from `CLOUDFLARE_PAGES_PROJECT` (`.env`) or, failing that, the
+  hostname of `data.seo.siteUrl` — so `siteUrl` is both the canonical origin AND the deploy target.
+  It refuses to run on the `example.com` placeholder.
+- **The build happens locally**, so `PUBLIC_WEB3FORMS_KEY` must be in `.env` — a key set only in the
+  Cloudflare dashboard never reaches a direct upload and the contact form ships disabled.
+- Deploying is outward-facing: never run `deploy*` on the user's behalf without explicit confirmation.
 
 ## Do / Don't
 

@@ -44,10 +44,22 @@ decision made in code, on the quality floor set out in
    npm run test:e2e           # smoke + axe (builds itself, port 4322; visual is npm run test:visual, local-only)
    ```
 7. **Final sweep before launch**:
-   - `rg "\[" src/content/business/business.json` → only the bidi test line may match.
+   - `rg '\[[^0-9"][^"]*\]' src/content/business/business.json` → must return nothing.
+     (Don't use a bare `rg "\["` — it matches every JSON array opening too.)
    - `content.legal.accessibility.coordinator` has **real** contact details —
      the accessibility statement is a legal requirement in Israel (ת"י 5568).
-   - `data.seo.siteUrl` points at the real domain (it feeds the sitemap + JSON-LD).
+   - `data.seo.siteUrl` points at the real domain (it feeds the sitemap + JSON-LD —
+     and, by default, names the Cloudflare Pages project).
+8. **Deploy** (details in [README](../README.md#deploy--cloudflare-pages)):
+   ```
+   npx wrangler login          # once per machine
+   npm run deploy:setup        # once per client — creates the Pages project
+   npm run deploy:preview      # client-approval URL; rerun after every feedback round
+   npm run deploy              # production, after the client signs off
+   ```
+   `PUBLIC_WEB3FORMS_KEY` has to be in your local `.env`: these commands build on your
+   machine, so a key set only in the Cloudflare dashboard never reaches the upload and the
+   contact form ships silently disabled.
 
 ## Building the page (design is a code decision)
 

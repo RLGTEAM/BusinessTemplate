@@ -27,11 +27,12 @@ Do this once; every client site afterwards starts from here.
    once — type e.g. "Validate" in the search box.)
 4. **Enable the [Renovate GitHub App](https://github.com/apps/renovate)** on the template repo
    only — dependencies stay fresh here; client clones stay frozen at known-good versions.
-5. **Cloudflare account**: one agency account; invite developers as members.
+5. **Cloudflare account**: one agency account; invite developers as members. Each developer
+   runs `npx wrangler login` once per machine to be able to deploy.
 6. **Onboard a developer**: they need Node ≥ 22 + git. First time in any clone:
-   `npm install`, `npx playwright install chromium`, open the folder in Claude Code (MCP
-   servers self-configure — see below), and read [AGENTS.md](./AGENTS.md). That's the whole
-   onboarding.
+   `npm install`, `npx playwright install chromium`, `npx wrangler login`, open the folder in
+   Claude Code (MCP servers self-configure — see below), and read [AGENTS.md](./AGENTS.md).
+   That's the whole onboarding.
 
 ## New client → live site (the per-client flow)
 
@@ -94,6 +95,9 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 | `npm run generate:placeholders` | Starter placeholder art — rename outputs to match your image fields |
 | `npm run generate:og`      | Regenerate the OG image + favicon/icon set from business.json name + palette |
 | `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) — run `build` first |
+| `npm run deploy:setup`     | One-time per client: create the Cloudflare Pages project              |
+| `npm run deploy`           | Test gate → build → upload `dist/` to Cloudflare Pages                |
+| `npm run deploy:preview`   | Build → upload to the `preview` branch (shareable client-approval URL) |
 
 First e2e run needs `npx playwright install chromium`.
 
