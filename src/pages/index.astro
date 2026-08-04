@@ -42,7 +42,9 @@ const sections = business.content.nav
         {section.id === "contact" ? (
           <ul>
             <li><a href={telHref(business.data.contact.phone)} class="force-ltr">{business.data.contact.phone}</a></li>
-            <li><a href={whatsappHref(business.data.contact.whatsapp)}>WhatsApp</a></li>
+            {business.data.contact.whatsapp && (
+              <li><a href={whatsappHref(business.data.contact.whatsapp)}>WhatsApp</a></li>
+            )}
           </ul>
         ) : (
           <p>{shell.note}</p>

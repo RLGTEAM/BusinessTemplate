@@ -149,8 +149,10 @@ validatePhone(
   result.data.content.legal.accessibility.coordinator.phone,
 );
 
+// whatsapp is optional — absent means a phone-only contact path, which is
+// valid; only a PRESENT-but-malformed value is an error.
 const whatsapp = result.data.data.contact.whatsapp;
-if (!/^972\d{8,9}$/.test(whatsapp)) {
+if (whatsapp !== undefined && !/^972\d{8,9}$/.test(whatsapp)) {
   console.error(`\n✗ data.contact.whatsapp ("${whatsapp}") is not a valid international number.\n`);
   console.error(
     "  whatsappHref() uses this value verbatim as a wa.me path, which requires the full\n" +
@@ -161,4 +163,8 @@ if (!/^972\d{8,9}$/.test(whatsapp)) {
   process.exit(1);
 }
 
-console.log("✓ contact phone/whatsapp formats are valid");
+console.log(
+  whatsapp === undefined
+    ? "✓ contact phone format is valid (no whatsapp — phone-only contact path)"
+    : "✓ contact phone/whatsapp formats are valid",
+);

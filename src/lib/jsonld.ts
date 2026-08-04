@@ -67,7 +67,8 @@ export function localBusinessJsonLd(business: Business): JsonLd {
       "@type": "ContactPoint",
       contactType: "customer service",
       telephone: telHref(data.contact.phone).replace("tel:", ""),
-      url: whatsappHref(data.contact.whatsapp),
+      // undefined keys drop out at JSON.stringify time (same as email above).
+      url: data.contact.whatsapp ? whatsappHref(data.contact.whatsapp) : undefined,
     },
   };
 }

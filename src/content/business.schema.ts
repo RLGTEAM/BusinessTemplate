@@ -74,9 +74,16 @@ export const businessSchema = z.object({
     contact: z.object({
       /** Display format, e.g. "050-123-4567". tel: href is derived in lib/business.ts */
       phone: z.string().min(1),
-      email: z.email(),
-      /** International digits only, e.g. "972501234567" (wa.me format). */
-      whatsapp: z.string().regex(/^\d{8,15}$/),
+      /** Optional — a business with no findable email ships without one (JSON-LD
+       *  and llms.txt omit it). Never invent an address to fill it. */
+      email: z.email().optional(),
+      /** International digits only, e.g. "972501234567" (wa.me format). Optional —
+       *  when absent the contact path is phone-only and the "whatsapp" href
+       *  sentinel resolves to tel: (see resolveHref in lib/business.ts). */
+      whatsapp: z
+        .string()
+        .regex(/^\d{8,15}$/)
+        .optional(),
       address: z.string().min(1),
       geo: z.object({
         lat: z.number().min(-90).max(90),

@@ -91,6 +91,9 @@ Per-client artifacts that exist only in CLIENT repos, never in the template: `do
   `src/assets/images/`, and resolve with `resolveImage()` (pattern: `docs/RECIPES.md` recipe
   5). Starter placeholders via `npm run generate:placeholders`. OG image lives in `public/`.
 - Link fields may use the sentinel `"whatsapp"` — always pass hrefs through `resolveHref()`.
+- `data.contact.email` and `data.contact.whatsapp` are OPTIONAL — a business with no findable
+  email/WhatsApp ships without them (JSON-LD and llms.txt omit them; the `"whatsapp"` sentinel
+  falls back to `tel:`). Never invent either value; guard any component that renders them.
 - Schema failures fail the build. Run `npm run validate:content` after editing.
 - **Palette contract**: `validate:content` enforces WCAG AA (≥ 4.5:1) on 9 pairs computed against
   the REAL palette, neutrals included — `ink`↔`surface`, `ink`↔`surface-alt`, `ink-muted`↔`surface`,
