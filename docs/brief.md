@@ -15,8 +15,10 @@
 - Address*:
 - GPS coordinates (paste from Google Maps share/pin, lat,lng) [scraped]/[client-confirmed]:
 - Phone*:
-- Email*:
-- WhatsApp number* (international digits, e.g. 9725…):
+- Email (optional — leave blank if none is findable; never invent one):
+- WhatsApp number (international digits, e.g. 9725… — optional; when blank the
+  site ships a phone-only contact path. A Google-listed landline is NOT a
+  WhatsApp number — only use a number known to be on WhatsApp):
 - Opening hours* (per day):
 - Service areas (cities/neighborhoods):
 - Socials (Instagram / Facebook / TikTok URLs):

@@ -122,8 +122,9 @@ Step 4 nav pass), never by reading the markup:
 Why: `src/lib/form.ts` ships tested validation/submission logic and expects
 an exact markup contract — quote it, don't reinvent it. **Forms are
 OPTIONAL.** A phone link and a WhatsApp link (`whatsappHref()`) are a complete
-contact path on their own; only build a form if the client actually wants
-one.
+contact path on their own — as is a phone link alone when
+`data.contact.whatsapp` is absent (the field is optional); only build a form
+if the client actually wants one.
 
 Contract, verbatim from `src/lib/form.ts`'s doc comment:
 
@@ -263,7 +264,9 @@ pre-deletion `Footer.astro`.
   </ul>
 
   <a href={telHref(data.contact.phone)}><bdi class="force-ltr">{data.contact.phone}</bdi></a>
-  <a href={`mailto:${data.contact.email}`}><bdi class="force-ltr">{data.contact.email}</bdi></a>
+  {data.contact.email && (
+    <a href={`mailto:${data.contact.email}`}><bdi class="force-ltr">{data.contact.email}</bdi></a>
+  )}
 
   <ul>
     <li><a href="/accessibility-statement/">{content.legal.accessibility.title}</a></li>
@@ -456,13 +459,15 @@ import { telHref, whatsappHref } from "@/lib/business";
   >
     <bdi class="force-ltr">{data.contact.phone}</bdi>
   </a>
-  <a
-    href={whatsappHref(data.contact.whatsapp)}
-    aria-label={copy.whatsappLabel}
-    class="flex min-h-11 flex-1 items-center justify-center rounded-button bg-secondary text-surface"
-  >
-    {copy.whatsappLabel}
-  </a>
+  {data.contact.whatsapp && (
+    <a
+      href={whatsappHref(data.contact.whatsapp)}
+      aria-label={copy.whatsappLabel}
+      class="flex min-h-11 flex-1 items-center justify-center rounded-button bg-secondary text-surface"
+    >
+      {copy.whatsappLabel}
+    </a>
+  )}
 </div>
 
 <div class="min-h-14 md:hidden" aria-hidden="true" style="padding-block-end: env(safe-area-inset-bottom)"></div>
@@ -475,7 +480,9 @@ Rules:
   clears the iOS home-indicator area.
 - Phone via `telHref()`, WhatsApp via `whatsappHref()` (or
   `resolveHref("whatsapp", business)` when the href comes from a JSON
-  sentinel) — never hand-format a `tel:`/`wa.me` URL.
+  sentinel) — never hand-format a `tel:`/`wa.me` URL. `data.contact.whatsapp`
+  is optional — guard the link and let the bar go phone-only when it's
+  absent (`resolveHref` already falls back to `tel:` on its own).
 - Labels and `aria-label`s are client-authored content — there's no
   canonical `content.contactBar` shape shipped (same situation as the
   contact form: add the field to the schema yourself) — never a literal

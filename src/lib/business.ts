@@ -32,8 +32,12 @@ export function whatsappHref(whatsapp: string): string {
 
 /**
  * Section links in business.json may use the sentinel "whatsapp" instead of a
- * URL — resolve it here so the number lives in exactly one place.
+ * URL — resolve it here so the number lives in exactly one place. When
+ * data.contact.whatsapp is absent the sentinel degrades to the tel: link, so
+ * a phone-only business never ships a broken wa.me URL.
  */
 export function resolveHref(href: string, business: Business): string {
-  return href === "whatsapp" ? whatsappHref(business.data.contact.whatsapp) : href;
+  if (href !== "whatsapp") return href;
+  const { whatsapp, phone } = business.data.contact;
+  return whatsapp ? whatsappHref(whatsapp) : telHref(phone);
 }
