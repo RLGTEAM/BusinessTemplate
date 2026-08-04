@@ -96,6 +96,27 @@ Rules:
 - Binding lives in a named `setup*()` registered on `astro:page-load` (never
   bare top-level script code — it must survive Astro's page swaps).
 
+Known failure modes — these are the defects real builds keep shipping;
+verify each one by OPERATING the nav in a browser (the new-client skill's
+Step 4 nav pass), never by reading the markup:
+
+- **Stacking**: the open drawer must sit ABOVE all page content — give the
+  header root its own elevated stacking context (e.g. `relative z-50`, panel
+  included). Section-level `isolate` + `-z-10` decor only protects within
+  that section; an un-z-indexed drawer WILL render beneath a later section
+  or a hero's decorative layer.
+- **Animated drawers still need `hidden`**: if the drawer animates open and
+  closed, closed must still end at `hidden` (or `inert`) — an `opacity-0`
+  drawer whose links remain tabbable is an a11y failure. Flip `hidden` after
+  the close transition finishes.
+- **Scroll lock**: a full-height drawer locks body scroll while open
+  (`overflow: hidden` on `<body>`, restored on close AND on
+  `astro:before-swap`) — an open drawer over a still-scrolling page reads as
+  broken.
+- **RTL slide direction**: the drawer enters from the inline-start edge —
+  any `translateX` offset multiplies by `var(--dir-factor)`; a hardcoded
+  left-slide is wrong on every Hebrew site.
+
 ## 3. Contact form (headless contract)
 
 Why: `src/lib/form.ts` ships tested validation/submission logic and expects
@@ -319,6 +340,10 @@ Rules:
 
 - The header stays `position: sticky; top: 0` regardless of `data-scrolled` —
   the attribute changes appearance, never position.
+- `scroll-mt-20` on sections assumes the sticky header is ≤ 5rem tall. A
+  taller designed header needs a matching larger `scroll-mt-*` on EVERY
+  section, or anchored content lands clipped beneath the header — verify by
+  clicking every nav link at 390, not by eyeballing the CSS.
 - `end: () => ScrollTrigger.maxScroll(window) + 1` on the scrolled-state
   trigger — a `start`-only ScrollTrigger defaults its `end` to `max` computed
   ONCE at creation time; on a page shorter than the viewport at load (or one

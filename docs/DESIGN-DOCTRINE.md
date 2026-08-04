@@ -6,6 +6,16 @@ building a client site — design the page 0→100 on top of them.
 Nothing structural is prescribed; everything structural is available. The test
 gate, not a list of allowed layouts, decides what ships.
 
+**Every structural suggestion in this repo is a suggestion.** The recipes,
+the starter shell's section list, the composition examples below — even the
+assumption that the page is a vertical stack of familiar sections — are raw
+material, not a mold. Be critical of them: when the concept is better served
+by discarding a suggested structure and composing something no previous
+client site has, do that. The floor, the page contract, and the Craft bars
+are the ONLY hard constraints; everything else is yours to overrule. A safe
+page that fills in the suggested structure is a worse outcome than a bold
+page that breaks it beautifully.
+
 ## The floor (non-negotiable, unchanged)
 
 - RTL: logical properties/utilities only; `--dir-factor` / `--angle-brand` /
@@ -43,6 +53,13 @@ gate, not a list of allowed layouts, decides what ships.
   `legal`. Hebrew sites keep a bidi test line (Hebrew + Latin + ₪) in visible
   body copy.
 - A clear contact path (form, WhatsApp, or phone) reachable from the nav.
+- The two legal pages (`/accessibility-statement/`, `/privacy/`) are part of
+  the design, not an appendix: the template ships them with a token-driven
+  baseline (they inherit palette + fontPairing automatically), and every
+  build restyles them into the concept's design language — typography scale,
+  color story, back-link treatment. The one visitor who opens the
+  accessibility statement is the one an off-concept, neglected page damages
+  most.
 - `content.faq` is the canonical OPTIONAL shape feeding FAQPage JSON-LD +
   llms.txt — include it (real Q&A) whenever the business has FAQs; without
   it the site emits 3 JSON-LD blocks and that is fine.
@@ -92,7 +109,15 @@ the first pass; they are not a post-review patch list.
    `aria-current` plus a visible state, not a color change alone; a DESIGNED
    mobile drawer — staggered entrance, full styling. The RECIPES a11y
    pattern (expand/collapse, Escape, focus return) is the accessibility
-   floor here, not the design.
+   floor here, not the design. The header is historically the MOST
+   defect-prone deliverable of real builds — treat it as a first-class
+   section with its own build-and-verify pass: before design review, OPERATE
+   the nav in a real browser at 390 and at desktop width — open/close the
+   drawer, Escape, click a link (drawer closes, the page lands on the right
+   section with nothing clipped under the sticky header), scrolled state
+   toggles on and off, active-section indication follows scroll, the open
+   drawer sits fully styled ABOVE all page content. Never assume the drawer
+   works because the markup looks right.
 3. **Aliveness — one identity, MANY expressions.** One motion IDENTITY —
    consistent easing, direction, character — expressed across a REQUIRED
    five-part inventory, never as a single repeated trick: (a) hero entrance

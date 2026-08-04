@@ -32,6 +32,13 @@ everything below (the floor, the page contract, the toolkit, the process).
 
 Generate THREE distinct concept candidates in the doctrine's four-line format
 (metaphor / color story / composition / motion identity + still frame).
+Treat the template's structural suggestions — RECIPES patterns, the starter
+shell's section list, compositions you've built before — as material to
+react against, not a scaffold to fill in: a concept is allowed, and
+encouraged, to discard the suggested structure entirely and invent its own
+composition, as long as the doctrine's floor, page contract, and Craft bars
+hold. At least ONE of the three candidates must break from the conventional
+section-stack structure in some real way.
 Self-critique each against: (a) would this client's customers recognize it
 instantly, (b) feasibility on the floor (contrast pairs, RTL, reduced-motion
 still frame), (c) distance from the reference-template look and from previous
@@ -127,6 +134,23 @@ Execute the committed concept, 0→100:
 - Honor the page contract: one `h1`, nav `#id` links all resolve, footer with
   legal links, contact path reachable, decorative = `aria-hidden` +
   `pointer-events-none`.
+- The header is the most defect-prone deliverable of past builds — give it
+  its own build-and-verify pass. After wiring the drawer and scroll behavior,
+  open the REAL page in the Playwright MCP browser at 390 and at desktop
+  width and OPERATE the nav: toggle open/close, press Escape, click a nav
+  link (the drawer must close and the page must land on the right section
+  with nothing clipped under the sticky header), confirm the scrolled state
+  and `aria-current` active styling actually trigger, and confirm the open
+  drawer is fully styled and sits ABOVE all page content (no hero decor
+  bleeding through, no unstyled default list). Fix everything found before
+  Step 5.5 — the judge automatic-fails broken nav mechanics.
+- Restyle the legal pages (`src/pages/accessibility-statement.astro`,
+  `src/pages/privacy.astro`) into the concept's design language. They ship
+  with a neutral token-driven baseline that inherits palette and fonts, but
+  baseline is not designed: carry the color story, the typography scale, and
+  the concept's treatment (back-link affordance, card/rule styling) into
+  them. They are part of every build, not an appendix — the doctrine's page
+  contract requires it.
 - Motion: the concept's ONE motion identity. Default entrances via
   `data-reveal` choices, tuned with `data-reveal-duration` /
   `data-reveal-delay` / `data-reveal-distance` / `data-reveal-start` (and

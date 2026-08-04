@@ -35,7 +35,11 @@ canvas, the header is a designed component):
    click the toggle again) — before moving to step 4; an open drawer left in
    the DOM corrupts the desktop screenshot.
 4. `browser_resize` to `1280x900` → `browser_take_screenshot` with `fullPage: true`.
-5. Read all screenshots before scoring anything — judge MOBILE evidence
+5. `browser_navigate` to `/accessibility-statement/` → resize back to
+   `390x844` → viewport screenshot. One legal page stands in for both — it
+   is evidence for the Craft/coherence axis (the page contract makes legal
+   pages part of the design, not an appendix).
+6. Read all screenshots before scoring anything — judge MOBILE evidence
    before desktop on every axis; the verdict is evidence-based.
 
 Caveat: full-page screenshots downsample heavily on long pages. When judging
@@ -66,6 +70,11 @@ Any ONE of these fails the round regardless of scores:
    code: `custom.ts` content, `data-reveal` preset variety (grep which
    presets are used), `helpers.ts` imports (`marquee`/`parallax`/`counter`),
    and CSS hover/focus/press transitions on interactive elements.
+5. **Broken nav mechanics** — during Setup step 3 the drawer fails to open
+   or to close, or the open drawer renders unstyled (default list markup) or
+   BENEATH other page content (hero decor or sections bleeding through).
+   A nav that doesn't mechanically work is a build defect, not a low
+   Navigation score — fail the round and fix it first.
 
 ## Pre-check (before scoring)
 
@@ -111,7 +120,10 @@ or read in the code, never an assumption:
   `src/lib/animation/custom.ts` and grep `data-reveal` usage — is there ONE
   coherent motion identity, or default reveals with no signature?
 - **Craft/coherence** — alignment, spacing, contrast comfort; does the page
-  read as ONE design rather than a stack of independent sections?
+  read as ONE design rather than a stack of independent sections? Includes
+  the legal-page screenshot from Setup step 5: a legal page still wearing
+  the template's neutral baseline (no concept typography/color story) caps
+  this axis at 3.
 - **Navigation** — is there a scroll-aware response past a threshold? is
   there active-section indication (`aria-current` plus a visible state, not
   color alone)? is the mobile drawer DESIGNED — judged from the open-menu
