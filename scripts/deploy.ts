@@ -215,3 +215,11 @@ console.log(
   `\n✓ Deployed "${project}" (branch: ${branch}). The live URL is printed above.\n` +
     `  Recent deployments: npx wrangler pages deployment list --project-name ${project}`,
 );
+
+if (branch !== "preview") {
+  console.log(
+    "\nProduction deploy next step — Google Search Console:\n" +
+      "  npm run gsc:setup   (verifies the domain, adds the property, submits the sitemap;\n" +
+      "  one-time OAuth setup: docs/PLAYBOOK.md → Search Console)",
+  );
+}

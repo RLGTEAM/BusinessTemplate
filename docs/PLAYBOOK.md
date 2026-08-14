@@ -73,8 +73,9 @@ operations, not a replacement for them.
    URLs, sitemap, robots, JSON-LD). Post-launch: `npm run build && npm run lhci`
    against the budgets; validate the structured data at
    [validator.schema.org](https://validator.schema.org) and Google's Rich
-   Results test; add the site to Google Search Console and submit
-   `https://<domain>/sitemap-index.xml`.
+   Results test; then `npm run gsc:setup` (see Search Console below) to
+   verify the domain, add the Search Console property, and submit
+   `https://<domain>/sitemap-index.xml` in one command.
 
 9. **Handoff.** Send a real test submission through the contact form and
    CONFIRM it actually landed in the client's inbox — a bad Web3Forms key
@@ -82,6 +83,31 @@ operations, not a replacement for them.
    catch it. Hand over Google Search Console access to the client (or their
    marketing contact). Archive the filled `docs/brief.md` in the client
    repo as the record of what was agreed.
+
+## Search Console (`npm run gsc:setup`)
+
+One command wires a launched site into Google Search Console: it verifies
+domain ownership via a Cloudflare DNS TXT record, adds the domain property
+(`sc-domain:<domain>` — covers www/apex/http/https at once), and submits the
+sitemap. Idempotent — safe to rerun.
+
+**One-time studio setup** (once ever, not per client):
+
+1. In any Google Cloud project (the studio's), enable the **Search Console
+   API** and the **Site Verification API**, and create an OAuth client of
+   type **Desktop app**. Put its id/secret in the client repo's `.env` as
+   `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` (same values in
+   every client repo).
+2. `npm run gsc:setup -- --auth` — opens a browser consent flow on the
+   studio's Google account and prints `GOOGLE_OAUTH_REFRESH_TOKEN` to add to
+   `.env`. The token works for every client site owned by that account.
+
+**Per client**: `CLOUDFLARE_API_TOKEN` in `.env` needs **Zone:Read +
+DNS:Edit** on the client's zone (the Pages-only deploy token can't create
+the TXT record — mint one token with Pages + Zone + DNS permissions and use
+it for both). Then, after the production deploy: `npm run gsc:setup`.
+At handoff (step 9), add the client as a user on the property in Search
+Console — ownership stays with the studio account that verified it.
 
 ## Getting the best out of it
 
