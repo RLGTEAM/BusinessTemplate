@@ -15,25 +15,16 @@
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, posix, sep } from "node:path";
-import { fileURLToPath } from "node:url";
-import { businessSchema } from "../src/content/business.schema";
+import { env, loadBusiness, ROOT, readBusinessJson } from "./lib/content";
 
-const root = fileURLToPath(new URL("..", import.meta.url));
-const jsonPath = join(root, "src", "content", "business", "business.json");
-const publicDir = join(root, "public");
-const distDir = join(root, "dist");
-const envPath = join(root, ".env");
+const publicDir = join(ROOT, "public");
+const distDir = join(ROOT, "dist");
 
 const errors: string[] = [];
 const warnings: string[] = [];
 
-const raw: unknown = JSON.parse(readFileSync(jsonPath, "utf-8").replace(/^﻿/, ""));
-const parsed = businessSchema.safeParse(raw);
-if (!parsed.success) {
-  console.error("✗ business.json is invalid — run `npm run validate:content` for the full report.");
-  process.exit(1);
-}
-const business = parsed.data;
+const raw: unknown = readBusinessJson();
+const business = loadBusiness();
 const { data, content } = business;
 
 /* ── 1. Bracketed placeholders anywhere in business.json ──────────────────── */
@@ -105,6 +96,24 @@ if (coordinator.email.endsWith("@example.com")) {
   );
 }
 
+// The statement renders these as "the accessibility audit was performed on
+// 01.01.2026" — shipping the skeleton value asserts an audit that never
+// happened, on a legally-required page.
+const SKELETON_DATE = "2026-01-01";
+const legalDates: Array<[string, string]> = [
+  ["content.legal.accessibility.auditDate", content.legal.accessibility.auditDate],
+  ["content.legal.accessibility.statementDate", content.legal.accessibility.statementDate],
+  ["content.legal.privacy.statementDate", content.legal.privacy.statementDate],
+];
+for (const [label, value] of legalDates) {
+  if (value === SKELETON_DATE) {
+    errors.push(
+      `${label} is still the skeleton date (${SKELETON_DATE}) — set the real date; ` +
+        "the accessibility statement publishes it as fact.",
+    );
+  }
+}
+
 if (content.shell) {
   errors.push(
     "content.shell still exists — the starter shell (schema field + JSON block + " +
@@ -163,21 +172,10 @@ function htmlFiles(dir: string): string[] {
   return found;
 }
 
-/** Minimal .env reader — preflight must not depend on Astro's env loader. */
-function fromEnvFile(key: string): string | undefined {
-  if (!existsSync(envPath)) return undefined;
-  for (const line of readFileSync(envPath, "utf-8").split(/\r?\n/)) {
-    const match = /^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/.exec(line);
-    if (match?.[1] === key) {
-      return (match[2] ?? "").trim().replace(/^["']|["']$/g, "") || undefined;
-    }
-  }
-  return undefined;
-}
-
 if (existsSync(join(distDir, "index.html"))) {
   const files = htmlFiles(distDir);
   let formPresent = false;
+  let faqJsonLdPresent = false;
 
   for (const file of files) {
     const html = readFileSync(file, "utf-8");
@@ -186,8 +184,11 @@ if (existsSync(join(distDir, "index.html"))) {
       .split(sep)
       .join("/")}`;
     if (html.includes("data-contact-form")) formPresent = true;
+    if (html.includes('"FAQPage"')) faqJsonLdPresent = true;
 
-    for (const match of html.matchAll(/(?:href|src)="([^"]*)"/g)) {
+    // The leading boundary matters: without it `data-src="…"` and
+    // `data-href="…"` match on their tails and report phantom broken links.
+    for (const match of html.matchAll(/[\s"'](?:href|src)="([^"]*)"/g)) {
       const url = match[1];
       if (url === undefined || url === "" || url === "#") continue;
       if (/^(https?:|mailto:|tel:|sms:|data:|javascript:|\/\/)/.test(url)) continue;
@@ -210,7 +211,18 @@ if (existsSync(join(distDir, "index.html"))) {
     }
   }
 
-  if (formPresent && !(process.env.PUBLIC_WEB3FORMS_KEY || fromEnvFile("PUBLIC_WEB3FORMS_KEY"))) {
+  // content.faq exists but no page emits FAQPage: the FAQ renders visibly
+  // while its structured data is missing everywhere (BaseLayout's
+  // withFaqJsonLd prop was never passed on the page that renders it).
+  if (content.faq && content.faq.items.length > 0 && !faqJsonLdPresent) {
+    errors.push(
+      "content.faq has items but no built page emits FAQPage JSON-LD — pass " +
+        "`withFaqJsonLd` to BaseLayout on the page that renders the FAQ (it must be " +
+        "the page where the questions are visible).",
+    );
+  }
+
+  if (formPresent && !env("PUBLIC_WEB3FORMS_KEY")) {
     errors.push(
       "the built site contains a contact form but PUBLIC_WEB3FORMS_KEY is not set — " +
         "every submission will fail. Put the key in .env and rebuild (direct uploads " +

@@ -317,7 +317,13 @@ pre-deletion `Footer.astro`.
     {data.hours.map((entry) => (
       <li>
         <span>{entry.label}</span>
-        <bdi class="force-ltr tabular-nums">{entry.open}–{entry.close}</bdi>
+        {entry.ranges.length === 0 ? (
+          <span>{copy.closedLabel}</span>
+        ) : (
+          entry.ranges.map((range) => (
+            <bdi class="force-ltr tabular-nums">{range.open}–{range.close}</bdi>
+          ))
+        )}
       </li>
     ))}
   </ul>
@@ -340,6 +346,13 @@ Rules:
   and `/privacy/`. Their link text comes from `content.legal.*.title`.
 - Business/legal names get `<bdi>`; phone, email, hours get `force-ltr`
   (stack both on a value embedded in an otherwise-Hebrew sentence).
+- Each day carries `ranges: [{open, close}]`, NOT a single open/close pair:
+  a split shift (09:00–13:00 + 16:00–19:00) is two entries, and an EMPTY
+  array means closed. Render the closed state explicitly ("שבת: סגור") —
+  the label is client-authored copy you add to your own content shape
+  (`copy.closedLabel` above), never a literal. `data.specialHours` (חגים)
+  overrides specific dates and is worth rendering near the hours block
+  whenever it is non-empty.
 - Hours render from `data.hours` (one entry per day) — don't hardcode a
   day list; a client with different hours per day shouldn't need a code
   change.

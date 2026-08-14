@@ -163,6 +163,27 @@ const { consent } = business.content;
     const banner = document.getElementById("consent-banner");
     if (!banner) return;
 
+    // Bind FIRST, unconditionally: the reopen control (privacy page) can
+    // un-hide this banner at any time, so its buttons must work even when a
+    // choice was already stored on load. Binding only on the
+    // no-choice-yet branch left the reopened banner completely inert —
+    // exactly for the visitors who came to withdraw consent.
+    if (banner.dataset.consentBound !== "true") {
+      banner.dataset.consentBound = "true";
+      banner.querySelector("[data-consent-accept]")?.addEventListener("click", () => {
+        storeChoice("granted");
+        banner.hidden = true;
+        loadTrackers(banner);
+      });
+      banner.querySelector("[data-consent-decline]")?.addEventListener("click", () => {
+        storeChoice("denied");
+        banner.hidden = true;
+        // Withdrawing AFTER trackers already ran this session: a reload is the
+        // only way to actually stop them (script tags can't be un-executed).
+        if (trackersLoaded) window.location.reload();
+      });
+    }
+
     const choice = storedChoice();
     if (choice === "granted") {
       loadTrackers(banner);
@@ -171,27 +192,17 @@ const { consent } = business.content;
     if (choice === "denied") return;
 
     banner.hidden = false;
-
-    banner.querySelector("[data-consent-accept]")?.addEventListener("click", () => {
-      storeChoice("granted");
-      banner.hidden = true;
-      loadTrackers(banner);
-    });
-    banner.querySelector("[data-consent-decline]")?.addEventListener("click", () => {
-      storeChoice("denied");
-      banner.hidden = true;
-      // Withdrawing AFTER trackers already ran this session: a reload is the
-      // only way to actually stop them (script tags can't be un-executed).
-      if (trackersLoaded) window.location.reload();
-    });
   }
 
   /** [data-consent-reopen] (privacy page) — consent must be withdrawable:
-   *  clears the stored choice and re-shows the banner. */
+   *  clears the stored choice and re-shows the banner (whose buttons are
+   *  already bound by setupConsent above). */
   function setupConsentReopen(): void {
     const banner = document.getElementById("consent-banner");
     if (!banner) return;
     for (const trigger of document.querySelectorAll("[data-consent-reopen]")) {
+      if ((trigger as HTMLElement).dataset.consentReopenBound === "true") continue;
+      (trigger as HTMLElement).dataset.consentReopenBound = "true";
       trigger.addEventListener("click", () => {
         try {
           localStorage.removeItem(STORAGE_KEY);

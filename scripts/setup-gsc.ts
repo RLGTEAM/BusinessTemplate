@@ -18,36 +18,14 @@
  * adds the URL-prefix property, and submits the sitemap. Idempotent throughout.
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
-import { fileURLToPath } from "node:url";
-import { businessSchema } from "../src/content/business.schema";
-
-const jsonPath = fileURLToPath(new URL("../src/content/business/business.json", import.meta.url));
-const envPath = fileURLToPath(new URL("../.env", import.meta.url));
+import { env, fail, BUSINESS_JSON_PATH as jsonPath, loadBusiness } from "./lib/content";
 
 const args = process.argv.slice(2);
 const hasFlag = (name: string) => args.includes(`--${name}`);
 const dryRun = hasFlag("dry-run");
 
-const fail: (message: string) => never = (message) => {
-  console.error(`\n✗ ${message}\n`);
-  process.exit(1);
-};
-
-/** Minimal .env reader — same contract as scripts/deploy.ts. */
-function fromEnvFile(key: string): string | undefined {
-  if (!existsSync(envPath)) return undefined;
-  for (const line of readFileSync(envPath, "utf-8").split(/\r?\n/)) {
-    const match = /^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/.exec(line);
-    if (match?.[1] === key) {
-      return (match[2] ?? "").trim().replace(/^["']|["']$/g, "") || undefined;
-    }
-  }
-  return undefined;
-}
-
-const env = (key: string): string | undefined => process.env[key] || fromEnvFile(key);
 const requireEnv = (key: string): string =>
   env(key) ?? fail(`${key} is missing — see the header of scripts/setup-gsc.ts`);
 
@@ -181,11 +159,7 @@ async function main(): Promise<void> {
   const clientSecret = requireEnv("GOOGLE_OAUTH_CLIENT_SECRET");
   if (hasFlag("auth")) await mintRefreshToken(clientId, clientSecret);
 
-  const parsed = businessSchema.safeParse(
-    JSON.parse(readFileSync(jsonPath, "utf-8").replace(/^﻿/, "")) as unknown,
-  );
-  if (!parsed.success) fail("business.json is invalid — run `npm run validate:content` first.");
-  const seo = parsed.data.data.seo;
+  const seo = loadBusiness().data.seo;
   const siteUrl = new URL(seo.siteUrl);
   if (siteUrl.hostname.replace(/^www\./, "") === "example.com") {
     fail("data.seo.siteUrl is still the placeholder — set the real domain first.");

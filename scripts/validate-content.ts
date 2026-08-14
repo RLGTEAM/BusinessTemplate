@@ -2,13 +2,10 @@
  * Standalone business.json validation (also enforced at build time via the
  * content collection schema). Run with: npm run validate:content
  */
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { businessSchema } from "../src/content/business.schema";
+import { readBusinessJson } from "./lib/content";
 
-const jsonPath = fileURLToPath(new URL("../src/content/business/business.json", import.meta.url));
-
-const raw: unknown = JSON.parse(readFileSync(jsonPath, "utf-8").replace(/^﻿/, ""));
+const raw: unknown = readBusinessJson();
 const result = businessSchema.safeParse(raw);
 
 if (!result.success) {
@@ -20,6 +17,70 @@ if (!result.success) {
 }
 
 console.log("✓ business.json is valid");
+
+/*
+ * Schema strictness self-check.
+ *
+ * Every object in the schema must reject unknown keys, so a typo'd JSON key
+ * ("emial") fails the build instead of being silently dropped — the worst
+ * failure mode for a schema-first workflow. Enforcing that by remembering to
+ * write `.strict()` on each new nested object does not survive contact with
+ * a per-client schema that grows every build, so the tree is walked here:
+ * a plain z.object() anywhere fails THIS check with the path to fix.
+ */
+interface ZodInternals {
+  _zod?: { def?: { type?: string; catchall?: unknown; shape?: Record<string, unknown> } };
+  def?: { type?: string; catchall?: unknown; shape?: Record<string, unknown> };
+  // Wrapper types (optional/default/array/refine…) keep the payload in one of these.
+  unwrap?: () => unknown;
+  element?: unknown;
+}
+
+const nonStrict: string[] = [];
+const seen = new WeakSet<object>();
+
+function walkSchema(node: unknown, path: string): void {
+  if (typeof node !== "object" || node === null) return;
+  if (seen.has(node)) return;
+  seen.add(node);
+
+  const zod = node as ZodInternals;
+  const def = zod._zod?.def ?? zod.def;
+  if (!def) return;
+
+  if (def.type === "object") {
+    // catchall === undefined is "strip" (the silent default); .strict() sets
+    // a ZodNever catchall.
+    if (def.catchall === undefined) nonStrict.push(path || "(root)");
+    for (const [key, child] of Object.entries(def.shape ?? {})) {
+      walkSchema(child, path === "" ? key : `${path}.${key}`);
+    }
+    return;
+  }
+
+  // Wrappers: array element, optional/default/refine inner type, union options.
+  for (const key of ["element", "innerType", "in", "out", "type"] as const) {
+    const child = (def as Record<string, unknown>)[key];
+    if (typeof child === "object" && child !== null) walkSchema(child, path);
+  }
+  const options = (def as Record<string, unknown>).options;
+  if (Array.isArray(options)) {
+    for (const option of options) walkSchema(option, path);
+  }
+}
+
+walkSchema(businessSchema, "");
+
+if (nonStrict.length > 0) {
+  console.error("\n✗ business.schema.ts has non-strict objects (unknown keys silently dropped):\n");
+  for (const path of nonStrict) {
+    console.error(`  ${path}`);
+  }
+  console.error("\n  Add .strict() to each — a typo'd JSON key must fail the build.");
+  process.exit(1);
+}
+
+console.log("✓ every schema object is strict (typo'd keys fail the build)");
 
 /*
  * WCAG contrast validation for voice.palette.
@@ -152,56 +213,9 @@ checkPhone(
   result.data.content.legal.accessibility.coordinator.phone,
 );
 
-// Hours: the schema validates HH:MM shape; the cross-field rules live here.
-// open > close is allowed within a range (a bar open past midnight) — only
-// open === close is unrepresentable (a 24h business uses "00:00"–"23:59",
-// a closed day uses an empty ranges array).
-function checkRanges(label: string, ranges: Array<{ open: string; close: string }>): void {
-  for (const r of ranges) {
-    if (r.open === r.close) {
-      errors.push(
-        `${label}: open and close are both "${r.open}" — a zero-length range is invalid ` +
-          '(24h = "00:00"–"23:59"; closed = an empty ranges array).',
-      );
-    }
-  }
-}
-
-const seenDays = new Set<string>();
-for (const h of result.data.data.hours) {
-  if (seenDays.has(h.day)) {
-    errors.push(`data.hours: duplicate entry for ${h.day} — each day may appear once.`);
-  }
-  seenDays.add(h.day);
-  checkRanges(`data.hours (${h.day})`, h.ranges);
-}
-
-// Dates: the schema regex allows impossible dates like 2026-13-45.
-function isRealDate(value: string): boolean {
-  const parsed = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
-}
-
-for (const special of result.data.data.specialHours) {
-  if (!isRealDate(special.date)) {
-    errors.push(`data.specialHours ("${special.label}"): "${special.date}" is not a real date.`);
-  }
-  checkRanges(`data.specialHours (${special.date})`, special.ranges);
-}
-
-const legalDates: Array<[string, string]> = [
-  [
-    "content.legal.accessibility.statementDate",
-    result.data.content.legal.accessibility.statementDate,
-  ],
-  ["content.legal.accessibility.auditDate", result.data.content.legal.accessibility.auditDate],
-  ["content.legal.privacy.statementDate", result.data.content.legal.privacy.statementDate],
-];
-for (const [label, value] of legalDates) {
-  if (!isRealDate(value)) {
-    errors.push(`${label} ("${value}") is not a real calendar date.`);
-  }
-}
+// Hours shape, duplicate days, zero-length ranges and impossible dates are
+// enforced by the SCHEMA (business.schema.ts refinements), so every parse
+// path — build, preflight, deploy — rejects them, not just this script.
 
 if (errors.length > 0) {
   console.error("\n✗ business.json content checks failed:\n");
@@ -211,4 +225,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log("✓ contact phone formats, hours, and dates are valid");
+console.log("✓ contact phone formats are valid");

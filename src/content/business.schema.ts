@@ -22,9 +22,28 @@ const hexColor = z
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected HH:MM (24h)");
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
+/** The regex alone accepts impossible dates like 2026-13-45 — parse to confirm. */
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
+  .refine((value) => {
+    const parsed = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  }, "Not a real calendar date");
 
-const timeRange = z.object({ open: time, close: time }).strict();
+const timeRange = z
+  .object({ open: time, close: time })
+  .strict()
+  // open > close is legitimate (open past midnight); open === close is not
+  // representable — 24h is "00:00"–"23:59", closed is an empty ranges array.
+  .refine(
+    (r) => r.open !== r.close,
+    'A zero-length range is invalid — 24h is "00:00"–"23:59"; a closed day is an empty ranges array',
+  );
+
+/** Each weekday may appear at most once (a repeat silently shadows hours). */
+const uniqueDays = <T extends { day: string }>(entries: T[]): boolean =>
+  new Set(entries.map((e) => e.day)).size === entries.length;
 
 /**
  * Schema.org LocalBusiness subtypes — the business @type is a real local-SEO
@@ -220,7 +239,8 @@ export const businessSchema = z
               })
               .strict(),
           )
-          .min(1),
+          .min(1)
+          .refine(uniqueDays, "Each day may appear at most once in data.hours"),
         /** Date-specific overrides (חגים / ערבי חג) — a full replacement for
          *  that date's hours; empty ranges = closed. Feeds
          *  specialOpeningHoursSpecification so holiday hours reach Google. */

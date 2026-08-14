@@ -168,14 +168,14 @@ test.describe("home page", () => {
     const hasFaq =
       Array.isArray((faq as Record<string, unknown> | null)?.items) &&
       ((faq as Record<string, unknown>).items as unknown[]).length > 0;
-    expect(await scripts.count()).toBeGreaterThanOrEqual(hasFaq ? 3 : 2);
-    const all = (await scripts.allTextContents()).join("\n");
+    const blocks = await scripts.allTextContents();
+    expect(blocks.length).toBeGreaterThanOrEqual(hasFaq ? 3 : 2);
     const businessType = (business.data as { schemaType?: string }).schemaType ?? "LocalBusiness";
-    for (const type of [businessType, "WebSite"]) {
-      expect(all, `homepage JSON-LD must include ${type}`).toContain(type);
-    }
-    if (hasFaq) {
-      expect(all, "content.faq exists, so the homepage must emit FAQPage").toContain("FAQPage");
+    // EXACTLY one node per required type: a minimum-count check alone would
+    // let a regression ship the same block twice (duplicate structured data).
+    for (const type of [...new Set([businessType, "WebSite", ...(hasFaq ? ["FAQPage"] : [])])]) {
+      const emitted = blocks.filter((b) => b.includes(`"@type":"${type}"`)).length;
+      expect(emitted, `homepage must emit exactly one ${type} JSON-LD node`).toBe(1);
     }
 
     // FAQPage must appear ONLY where the FAQ is visible — never on legal pages

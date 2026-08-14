@@ -17,6 +17,23 @@ Entry tags:
 
 First versioned release. Includes the full audit-hardening pass:
 
+- **[review]** Hours rendering changed shape — `docs/RECIPES.md` recipe 6
+  (footer) now maps `entry.ranges` and renders an explicit closed state. A
+  client footer copied from the old recipe (`entry.open`/`entry.close`) will
+  fail `astro check` until it is updated.
+- **[safe-to-sync]** Guards proven by tests rather than trusted:
+  `tests/schema.spec.ts` (unknown keys, duplicate weekdays, zero-length
+  ranges, impossible dates, wa.me/gtag formats) and `tests/consent.spec.ts`
+  (consent is actually withdrawable). `validate:content` now also walks the
+  schema and fails if any object is non-strict.
+- **[safe-to-sync]** Fixes found by adversarial review of this same pass:
+  the reopened consent banner had dead Accept/Decline buttons; a production
+  deploy after a preview deploy could re-upload the preview's
+  `X-Robots-Tag: noindex` and de-index the live site (`--skip-build` path);
+  `npm run report` compared a top-15 current window against a top-1000
+  previous one, making every delta wrong; preflight now rejects the skeleton
+  audit/statement dates and catches a missing FAQPage emission.
+
 - **[safe-to-sync]** `scripts/preflight.ts` launch gate (+ `npm run preflight`,
   wired into production deploys); validator additions (star codes, hours
   ranges, real-date checks); generator overwrite guards; OG generation moved

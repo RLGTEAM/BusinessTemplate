@@ -11,33 +11,14 @@
  * _REFRESH_TOKEN — the webmasters scope covers both). Read-only; changes
  * nothing anywhere.
  */
-import { existsSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { businessSchema } from "../src/content/business.schema";
-
-const jsonPath = fileURLToPath(new URL("../src/content/business/business.json", import.meta.url));
-const envPath = fileURLToPath(new URL("../.env", import.meta.url));
+import { env, fail, loadBusiness } from "./lib/content";
 
 const args = process.argv.slice(2);
 const days = Number.parseInt(args.findLast((a) => a.startsWith("--days="))?.slice(7) ?? "28", 10);
-
-const fail: (message: string) => never = (message) => {
-  console.error(`\n✗ ${message}\n`);
-  process.exit(1);
-};
-
-/** Minimal .env reader — same contract as scripts/deploy.ts. */
-function fromEnvFile(key: string): string | undefined {
-  if (!existsSync(envPath)) return undefined;
-  for (const line of readFileSync(envPath, "utf-8").split(/\r?\n/)) {
-    const match = /^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/.exec(line);
-    if (match?.[1] === key) {
-      return (match[2] ?? "").trim().replace(/^["']|["']$/g, "") || undefined;
-    }
-  }
-  return undefined;
+if (!Number.isFinite(days) || days < 1 || days > 480) {
+  fail("--days must be between 1 and 480 (Search Console keeps ~16 months of data).");
 }
-const env = (key: string): string | undefined => process.env[key] || fromEnvFile(key);
+
 const requireEnv = (key: string): string =>
   env(key) ?? fail(`${key} is missing — see scripts/setup-gsc.ts for the one-time OAuth setup`);
 
@@ -117,11 +98,8 @@ function delta(current: number, previous: number): string {
   return `(${pct >= 0 ? "+" : ""}${pct}% vs prev.)`;
 }
 
-const parsed = businessSchema.safeParse(
-  JSON.parse(readFileSync(jsonPath, "utf-8").replace(/^﻿/, "")) as unknown,
-);
-if (!parsed.success) fail("business.json is invalid — run `npm run validate:content` first.");
-const siteUrl = parsed.data.data.seo.siteUrl;
+const business = loadBusiness();
+const siteUrl = business.data.seo.siteUrl;
 if (siteUrl.includes("example.com")) fail("data.seo.siteUrl is still the placeholder.");
 const property = new URL("/", siteUrl).href;
 
@@ -132,16 +110,20 @@ const prevEnd = isoDaysAgo(4 + days);
 const prevStart = isoDaysAgo(4 + days * 2);
 
 const auth = await accessToken();
-const [queries, pages, prevQueries] = await Promise.all([
+// Totals come from DIMENSION-LESS queries (one row = the whole window). Summing
+// a top-N query list instead would compare a truncated current subtotal against
+// a fuller previous one and report nonsense deltas.
+const [curTotals, prevTotals, queries, pages] = await Promise.all([
+  query(auth, property, start, end, [], 1),
+  query(auth, property, prevStart, prevEnd, [], 1),
   query(auth, property, start, end, ["query"], 15),
   query(auth, property, start, end, ["page"], 10),
-  query(auth, property, prevStart, prevEnd, ["query"], 1000),
 ]);
 
-const cur = totals(queries.length > 0 ? queries : []);
-const prev = totals(prevQueries);
+const cur = totals(curTotals);
+const prev = totals(prevTotals);
 
-console.log(`\nSearch report — ${parsed.data.data.name} (${property})`);
+console.log(`\nSearch report — ${business.data.name} (${property})`);
 console.log(`Window: ${start} → ${end} (${days} days)\n`);
 console.log(
   `  Clicks:      ${cur.clicks} ${delta(cur.clicks, prev.clicks)}\n` +

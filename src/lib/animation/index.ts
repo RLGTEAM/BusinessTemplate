@@ -34,7 +34,14 @@ function setupAnchorScrolling(lenis: Lenis): () => void {
     const element = event.target instanceof Element ? event.target : null;
     const anchor = element?.closest('a[href^="#"]');
     if (!(anchor instanceof HTMLAnchorElement)) return;
-    const id = decodeURIComponent(anchor.hash.slice(1));
+    // A malformed percent-escape throws URIError; fall back to the raw hash
+    // rather than letting the handler die mid-click.
+    let id: string;
+    try {
+      id = decodeURIComponent(anchor.hash.slice(1));
+    } catch {
+      id = anchor.hash.slice(1);
+    }
     if (id === "") return;
     const target = document.getElementById(id);
     if (!target) return;

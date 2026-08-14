@@ -32,6 +32,7 @@ const TEMPLATE_PATHS = [
   "docs/DESIGN-DOCTRINE.md",
   "docs/CLIENT-SITE-GUIDE.md",
   "docs/PLAYBOOK.md",
+  "docs/OPERATIONS.md",
   "scripts",
   "tests",
   ".github",
