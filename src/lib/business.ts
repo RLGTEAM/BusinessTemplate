@@ -18,11 +18,35 @@ export function getDir(locale: Business["locale"]): "rtl" | "ltr" {
   return locale === "he" ? "rtl" : "ltr";
 }
 
-/** "050-123-4567" → "tel:+972501234567" (Israeli numbers); keeps other formats digit-only. */
+/** ISO "2026-07-22" → reader-facing date ("22.07.2026" for Hebrew sites,
+ *  "22/07/2026" for English) — raw ISO reads as machine output. */
+export function formatDate(locale: Business["locale"], iso: string): string {
+  return new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${iso}T00:00:00Z`));
+}
+
+/**
+ * Canonical dialable form of a display phone string (also used verbatim as
+ * the JSON-LD `telephone` value):
+ *   "050-123-4567" → "+972501234567"   (Israeli local — leading 0 → +972)
+ *   "972501234567" → "+972501234567"   (already international)
+ *   "*3455"        → "*3455"           (star codes have no E.164 form but are
+ *                                       dialable as-is on Israeli networks)
+ */
+export function dialablePhone(phone: string): string {
+  const trimmed = phone.trim();
+  if (trimmed.startsWith("*")) return trimmed.replace(/[^\d*]/g, "");
+  const digits = trimmed.replace(/\D/g, "");
+  return digits.startsWith("0") ? `+972${digits.slice(1)}` : `+${digits}`;
+}
+
+/** "050-123-4567" → "tel:+972501234567"; "*3455" → "tel:*3455". */
 export function telHref(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  const e164 = digits.startsWith("0") ? `+972${digits.slice(1)}` : `+${digits}`;
-  return `tel:${e164}`;
+  return `tel:${dialablePhone(phone)}`;
 }
 
 /** wa.me link from the digits-only whatsapp field. */

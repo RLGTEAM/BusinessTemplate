@@ -5,9 +5,15 @@ content, branding, and SEO live in a single file — `src/content/business/busin
 validated by Zod at build time. Hebrew/RTL by default, flips to LTR with one flag.
 
 Ships with: Astro 7 (static output), Tailwind CSS 4 (CSS-first), GSAP + ScrollTrigger + Lenis
-(reduced-motion safe), fifteen self-hosted Hebrew-capable font pairings, JSON-LD (LocalBusiness /
-Organization / WebSite / FAQPage), sitemap + robots, Web3Forms contact form, Biome, Husky,
-Playwright, Lighthouse CI.
+(reduced-motion safe), fifteen self-hosted Hebrew-capable font pairings, JSON-LD (LocalBusiness
+subtype with hours/reviews/GBP links / WebSite / FAQPage / BreadcrumbList), sitemap + robots,
+Web3Forms contact form (+ optional hCaptcha), conversion tracking for tel/WhatsApp taps, a
+mechanized launch gate (`npm run preflight`), template→client sync (`npm run sync:template`),
+Biome, Husky, Playwright, Lighthouse CI.
+
+Note on scope: `locale` flips direction and chrome, not copy — the template is a
+single-locale, Israel-only product by design (₪, +972, ת"י 5568 legal pages). An `en` build
+is "an Israeli business in English" and needs its content authored in English.
 
 ## One-time agency setup (owner, ~15 minutes)
 
@@ -46,7 +52,10 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
    3–6 services with prices, service areas, socials, brand colors (if any), tone/voice
    preferences, photos, and the desired domain.
 2. **Create the repo**: template repo → **Use this template → Create a new repository** →
-   `client-name` (private). Then `git clone <client-repo-url> && cd client-name && npm install`.
+   `client-name` (private). Enable **Dependabot security updates** on it (Settings →
+   Advanced Security) — client clones stay version-frozen by design, so security-only PRs
+   are their only patch path. Then
+   `git clone <client-repo-url> && cd client-name && npm install`.
 3. **Fill the site**: open the folder in Claude Code and run **`/new-client`**, pasting the
    brief. It reads the brief (including the scraped raw-texture material), generates three
    design concepts and self-critiques them, commits the chosen concept to `docs/concept.md`,
@@ -74,12 +83,16 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 9. **Go live**: buy/point the domain, add it as a custom domain in Cloudflare Pages, set
    `data.seo.siteUrl` in business.json to the final domain, commit (this fixes canonical URLs,
    sitemap, robots, and JSON-LD), then `npm run deploy`.
-10. **Post-launch checks**: run `npm run build && npm run lhci` against the budgets; validate
+10. **Post-launch checks**: `npm run deploy` already ran `npm run preflight` (the launch
+    gate) — additionally run `npm run build && npm run lhci` against the budgets; validate
     the structured data at [validator.schema.org](https://validator.schema.org) and Google's
-    Rich Results test; add the site to Google Search Console and submit
-    `https://<domain>/sitemap-index.xml`.
+    Rich Results test; then `npm run gsc:setup` verifies the domain, adds the Search Console
+    property, and submits the sitemap in one command (one-time OAuth setup in
+    [docs/PLAYBOOK.md](./docs/PLAYBOOK.md) → Search Console).
 11. **Handoff**: confirm the client receives form submissions, hand over Search Console
-    access, archive the brief in the client repo (e.g. `docs/brief.md`).
+    access, archive the brief in the client repo (e.g. `docs/brief.md`), and record the
+    client in the studio registry + uptime monitor
+    ([docs/OPERATIONS.md](./docs/OPERATIONS.md)).
 
 ## Commands
 
@@ -89,6 +102,7 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 | `npm run build`            | Static build to `dist/`                            |
 | `npm run preview`          | Serve the built site                               |
 | `npm run test`             | Content validation + Biome + `astro check`         |
+| `npm run preflight`        | Launch gate: placeholders, skeleton values, OG file, broken links, form key — fails on the skeleton by design; runs inside production deploys |
 | `npm run test:e2e`         | Playwright smoke + axe a11y tests (builds + serves itself) |
 | `npm run test:ltr-build`   | Builds the English/LTR variant and checks its structure    |
 | `npm run test:visual`      | Visual regression snapshots (local; rebaseline with `--update-snapshots`) |
@@ -97,7 +111,11 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 | `npm run lhci`             | Lighthouse CI budgets (LCP ≤ 2.5s, TBT ≤ 200ms as the INP lab proxy, CLS ≤ 0.1) — run `build` first |
 | `npm run deploy:setup`     | One-time per client: create the Cloudflare Pages project              |
 | `npm run deploy`           | Test gate → build → upload `dist/` to Cloudflare Pages                |
-| `npm run deploy:preview`   | Build → upload to the `preview` branch (shareable client-approval URL) |
+| `npm run deploy:preview`   | Build → upload to the `preview` branch (shareable, noindex client-approval URL) |
+| `npm run gsc:setup`        | Search Console: verify + add property + submit sitemap (after production deploy) |
+| `npm run report`           | Owner report: Search Console clicks/queries/pages + period deltas |
+| `npm run setup:skills`     | Install the pinned agent-skill set (once per machine)  |
+| `npm run sync:template`    | CLIENT repos: pull template-owned fixes onto a review branch (see `docs/CHANGELOG.md`) |
 
 First e2e run needs `npx playwright install chromium`.
 
@@ -114,9 +132,11 @@ Notes:
   business.json contains `[bracketed]` placeholders plus a neutral palette. `/new-client`
   replaces the shell entirely and deletes `content.shell`.
 - Every site auto-generates its SEO/AEO surface from business.json: meta/OG/canonical,
-  3 JSON-LD blocks (LocalBusiness + OfferCatalog, Organization, WebSite; 4 when
-  `content.faq` has items, adding FAQPage), sitemap, robots.txt, **llms.txt** (AI answer
-  engines), web manifest + icon set, 404 page, and security/cache headers (`public/_headers`).
+  JSON-LD (one LocalBusiness-subtype node with hours/GBP/reviews + WebSite; FAQPage on the
+  page rendering the FAQ; `breadcrumbJsonLd()` for subpages), sitemap, robots.txt,
+  **llms.txt** (AI answer engines), web manifest + icon set, a noindex 404 page, and
+  security/cache headers (`public/_headers`). Preview deploys ship `X-Robots-Tag: noindex`
+  automatically.
 - **Legal pages** ship built-in: `/accessibility-statement/` (mandatory for Israeli businesses,
   ת"י 5568 — fill the real coordinator details per client!) and `/privacy/`, both generated
   from `content.legal` and linked in the footer.
@@ -130,7 +150,10 @@ Notes:
   green). Rebaseline after intentional design changes with
   `npx playwright test --grep @visual --update-snapshots`.
 - `renovate.json` keeps the pinned dependencies fresh (enable the Renovate GitHub App on the
-  **template** repo only — grouped PRs, majors held for approval). Client clones stay frozen.
+  **template** repo only — grouped PRs, majors held for approval). Client clones stay frozen —
+  their two patch paths are Dependabot **security** updates (enable per client repo) and
+  `npm run sync:template` for template-owned code fixes (`TEMPLATE_VERSION` +
+  `docs/CHANGELOG.md` make fleet triage possible; `docs/OPERATIONS.md` is the studio runbook).
 - Claude Code users get a `/new-client` skill (`.claude/skills/new-client/`) that walks the
   whole fill-validate-test pipeline for a new client brief.
 

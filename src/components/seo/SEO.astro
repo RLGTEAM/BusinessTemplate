@@ -6,9 +6,12 @@ interface Props {
   /** Page-specific overrides; defaults come from business.json → data.seo. */
   title?: string | undefined;
   description?: string | undefined;
+  /** Keep this page out of search indexes (404, thank-you pages). Also
+   *  suppresses the canonical — a noindex page must not self-canonicalize. */
+  noindex?: boolean | undefined;
 }
 
-const { business } = Astro.props;
+const { business, noindex = false } = Astro.props;
 const { seo } = business.data;
 
 const title = Astro.props.title ?? seo.defaultTitle;
@@ -20,7 +23,7 @@ const ogLocale = business.locale === "he" ? "he_IL" : "en_US";
 
 <title>{title}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={canonical.href} />
+{noindex ? <meta name="robots" content="noindex, follow" /> : <link rel="canonical" href={canonical.href} />}
 
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content={business.data.name} />

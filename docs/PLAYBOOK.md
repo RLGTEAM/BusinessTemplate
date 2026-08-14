@@ -72,22 +72,33 @@ operations, not a replacement for them.
    feedback loop (step 6) against it until the client actually signs off.
    Every round of feedback is then just `npm run deploy:preview` again.
 
-8. **Go live.** Only after client approval: buy/point the domain, set it as
-   the custom domain in Cloudflare Pages, update `data.seo.siteUrl` in
-   `business.json` to match it, commit, and `npm run deploy` (fixes canonical
-   URLs, sitemap, robots, JSON-LD). Post-launch: `npm run build && npm run lhci`
-   against the budgets; validate the structured data at
-   [validator.schema.org](https://validator.schema.org) and Google's Rich
-   Results test; then `npm run gsc:setup` (see Search Console below) to
-   verify the domain, add the Search Console property, and submit
-   `https://<domain>/sitemap-index.xml` in one command.
+8. **Go live.** Only after client approval: buy/point the domain (DNS
+   runbook — incl. how NOT to break the client's email — in
+   [docs/OPERATIONS.md](./OPERATIONS.md)), set it as the custom domain in
+   Cloudflare Pages, update `data.seo.siteUrl` in `business.json` to match
+   it, and create a **Cloudflare Web Analytics** token (dashboard →
+   Analytics → Web Analytics — cookieless, free, one click) into
+   `data.analytics.cloudflareToken`: without it the site ships with zero
+   measurement and nobody ever knows whether it works. Commit, then
+   `npm run deploy` — it runs `npm run preflight` automatically and refuses
+   to upload while any launch blocker (placeholders, fake coordinator,
+   broken links, missing OG/form key) remains. Post-launch:
+   `npm run build && npm run lhci` against the budgets; validate the
+   structured data at [validator.schema.org](https://validator.schema.org)
+   and Google's Rich Results test; then `npm run gsc:setup` (see Search
+   Console below) to verify the domain, add the Search Console property,
+   and submit the sitemap in one command.
 
 9. **Handoff.** Send a real test submission through the contact form and
    CONFIRM it actually landed in the client's inbox — a bad Web3Forms key
    fails silently and loses every lead with nothing in the test gate to
-   catch it. Hand over Google Search Console access to the client (or their
-   marketing contact). Archive the filled `docs/brief.md` in the client
-   repo as the record of what was agreed.
+   catch it (repeat this canary monthly for maintained form clients). Hand
+   over Google Search Console access to the client (or their marketing
+   contact). Archive the filled `docs/brief.md` in the client repo as the
+   record of what was agreed. Finally, register the client in the studio
+   layer ([docs/OPERATIONS.md](./OPERATIONS.md)): the `clients.json` entry
+   (domain, repo, Pages project, `TEMPLATE_VERSION`, maintenance plan,
+   domain renewal date) and the uptime monitor.
 
 ## Search Console (`npm run gsc:setup`)
 
@@ -104,12 +115,16 @@ Idempotent — safe to rerun at any point; it tells you which phase you're in.
 
 1. In any Google Cloud project (the studio's), enable the **Search Console
    API** and the **Site Verification API**, and create an OAuth client of
-   type **Desktop app**. Put its id/secret in the client repo's `.env` as
-   `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` (same values in
-   every client repo).
+   type **Desktop app**. Set its id/secret as **machine-level environment
+   variables** `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`
+   (Windows: `setx`, then restart the terminal) — NOT in per-repo `.env`
+   files: these are studio-wide credentials, and one leaked client checkout
+   must not expose Search Console access for every client. All scripts read
+   `process.env` first, so machine-level values work everywhere.
 2. `npm run gsc:setup -- --auth` — opens a browser consent flow on the
-   studio's Google account and prints `GOOGLE_OAUTH_REFRESH_TOKEN` to add to
-   `.env`. The token works for every client site owned by that account.
+   studio's Google account and prints `GOOGLE_OAUTH_REFRESH_TOKEN`; store it
+   the same machine-level way. The token works for every client site owned
+   by that account (it also powers `npm run report`).
 
 **Per client**, after the production deploy: `npm run gsc:setup` (writes the
 token) → commit → `npm run deploy` → `npm run gsc:setup` again (verifies +
@@ -137,4 +152,12 @@ Search Console — ownership stays with the studio account that verified it.
   It's the safety net that lets the model be radical everywhere else.
 - **When something breaks, run `npm run validate:content` first.** It gives
   the clearest errors and now catches schema mistakes, contrast failures,
-  and phone/WhatsApp format slips before the build ever runs.
+  and phone/hours/date slips before the build ever runs. `npm run preflight`
+  is the second diagnostic layer — it knows what "launch-ready" means.
+- **Monthly, per maintained client: `npm run report`.** Search Console
+  clicks/queries/pages with period deltas — the two minutes that tell you
+  (and the client) whether the site is actually working. Pair it with the
+  form canary and the uptime monitor (docs/OPERATIONS.md).
+- **When the template improves, fixes reach shipped clients via
+  `npm run sync:template`** — check `docs/CHANGELOG.md` for what each
+  `TEMPLATE_VERSION` changed and which entries need a careful review.

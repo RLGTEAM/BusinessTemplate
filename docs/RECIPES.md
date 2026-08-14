@@ -161,6 +161,13 @@ Contract, verbatim from `src/lib/form.ts`'s doc comment:
 > `[data-form-status]` element with `role="status"` `aria-live="polite"`;
 > optional honeypot input `name="botcheck"`.
 
+Optional extras the helper understands:
+
+- A designed submit button wraps its label in `<span data-submit-text>` — the
+  sending-state swap then only touches that span, so icons/markup survive.
+- `data-captcha-error` — the message shown when hCaptcha is present but
+  unsolved (falls back to `data-error-message`).
+
 Minimal shape:
 
 ```astro
@@ -212,6 +219,31 @@ Rules:
   no-op. The key is baked in at BUILD time, and `npm run deploy` builds
   locally — so it has to be in your `.env`, not only in the Cloudflare
   dashboard.
+
+**Spam protection (recommended whenever a form ships).** The access key is
+public in the bundle by design, so the honeypot alone is bypassable by
+POSTing to the API directly. Web3Forms' zero-config hCaptcha closes that:
+they verify the token server-side, no keys or registration needed.
+
+```astro
+<!-- inside the form, before the submit button -->
+<div class="h-captcha" data-captcha="true"></div>
+```
+
+```html
+<!-- once per page that renders the form, before </body> -->
+<script is:inline src="https://web3forms.com/client/script.js" async defer></script>
+```
+
+`form.ts` refuses to submit while the widget is unsolved (shows
+`data-captcha-error`). Also enable hCaptcha in the Web3Forms dashboard so
+direct API posts without a token are rejected server-side — that setting is
+what actually closes the bypass.
+
+(No `integrity` hash on that script tag on purpose: it is a living
+third-party loader — Web3Forms updates it, and a pinned SRI hash would
+silently kill the captcha on their next release. The trust boundary here is
+the Web3Forms service itself, which already holds every submission.)
 
 ## 4. RTL survival kit
 
@@ -285,7 +317,13 @@ pre-deletion `Footer.astro`.
     {data.hours.map((entry) => (
       <li>
         <span>{entry.label}</span>
-        <bdi class="force-ltr tabular-nums">{entry.open}–{entry.close}</bdi>
+        {entry.ranges.length === 0 ? (
+          <span>{copy.closedLabel}</span>
+        ) : (
+          entry.ranges.map((range) => (
+            <bdi class="force-ltr tabular-nums">{range.open}–{range.close}</bdi>
+          ))
+        )}
       </li>
     ))}
   </ul>
@@ -308,6 +346,13 @@ Rules:
   and `/privacy/`. Their link text comes from `content.legal.*.title`.
 - Business/legal names get `<bdi>`; phone, email, hours get `force-ltr`
   (stack both on a value embedded in an otherwise-Hebrew sentence).
+- Each day carries `ranges: [{open, close}]`, NOT a single open/close pair:
+  a split shift (09:00–13:00 + 16:00–19:00) is two entries, and an EMPTY
+  array means closed. Render the closed state explicitly ("שבת: סגור") —
+  the label is client-authored copy you add to your own content shape
+  (`copy.closedLabel` above), never a literal. `data.specialHours` (חגים)
+  overrides specific dates and is worth rendering near the hours block
+  whenever it is non-empty.
 - Hours render from `data.hours` (one entry per day) — don't hardcode a
   day list; a client with different hours per day shouldn't need a code
   change.
@@ -537,3 +582,93 @@ Rules:
 - This bar counts toward the page contract's "clear contact path reachable"
   — it doesn't replace the nav's own contact link, but on mobile it's
   usually the one visitors actually use.
+
+## 10. Subpages (service pages, service × city landing pages)
+
+Why: the one-pager is the DEFAULT, not the ceiling. When a client needs
+service detail pages or service-per-city landing pages (the highest-yield
+local-SEO play: "אינסטלטור בחולון"), the plumbing is already here — this
+recipe is the canonical way to use it. Everything stays schema-first.
+
+1. **Content model** — add a per-client pages shape to `business.schema.ts`
+   (there is deliberately no canonical `content.pages` shipped: its fields
+   depend on the design). The non-negotiables are a `slug`, a per-page
+   `title`, and a per-page `description`:
+
+```ts
+// business.schema.ts — inside content, per-client region
+servicePages: z
+  .array(
+    z.object({
+      slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+      /** Per-page <title> — targets THIS page's query, not the homepage's. */
+      title: z.string().min(1).max(70),
+      description: z.string().min(1).max(170),
+      heading: z.string().min(1),
+      body: z.array(z.string().min(1)).min(1),
+    }).strict(),
+  )
+  .optional(),
+```
+
+2. **Route** — one dynamic route generates them all:
+
+```astro
+---
+// src/pages/[slug].astro
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import JsonLd from "@/components/seo/JsonLd.astro";
+import { getBusiness } from "@/lib/business";
+import { breadcrumbJsonLd } from "@/lib/jsonld";
+
+export async function getStaticPaths() {
+  const business = await getBusiness();
+  return (business.content.servicePages ?? []).map((page) => ({
+    params: { slug: page.slug },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const business = await getBusiness();
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <JsonLd
+    data={breadcrumbJsonLd(business, [
+      { name: business.data.name, path: "/" },
+      { name: page.heading, path: `/${page.slug}/` },
+    ])}
+    slot="head"
+  />
+  <!-- header/nav/footer: same components as the homepage -->
+  <main id="main">
+    <h1>{page.heading}</h1>
+    {page.body.map((paragraph) => <p>{paragraph}</p>)}
+  </main>
+</BaseLayout>
+```
+
+(If `BaseLayout` has no head slot in your clone, render the `<JsonLd>` at the
+top of `<main>` — JSON-LD is valid anywhere in the document.)
+
+Rules:
+
+- **Per-page SEO is the whole point**: every page gets its own `title` /
+  `description` via BaseLayout props, its own canonical (automatic — SEO.astro
+  canonicalizes per pathname), and a `BreadcrumbList` via `breadcrumbJsonLd()`.
+  Never let subpages fall back to the homepage's default title.
+- The sitemap picks new routes up automatically (`@astrojs/sitemap`).
+- Nav: cross-PAGE links use full paths (`/plumbing/`) — the contract tests
+  ignore non-`#` hrefs by design. Mark the current page's nav link with
+  `aria-current="page"` (recipe 7's scroll-spy `aria-current` handles
+  `#section` links on the one-pager only).
+- Coverage does NOT extend automatically: `tests/a11y.spec.ts` scans a fixed
+  path list and the smoke suite targets `/`. ADD a client-repo spec that
+  loops over the new slugs (axe + the h1 rule) — the contract suite is
+  add-only, never edited.
+- City pages must have REAL differentiated content (local proof, areas,
+  testimonials from that city) — a template paragraph with the city name
+  swapped is doorway-page territory and Google treats it accordingly.
+- The FAQ stays on the page that renders it (`withFaqJsonLd` on that page
+  only).

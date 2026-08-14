@@ -50,7 +50,9 @@ for (const spec of REQUIRED_SKILLS) {
   }
   console.log(`→ installing ${spec}`);
   try {
-    execSync(`npx -y skills add ${spec} -g -y`, { stdio: "inherit" });
+    // CLI version pinned — an unpinned `npx skills` would run whatever was
+    // published last, on every developer machine, auto-confirmed.
+    execSync(`npx -y skills@1.5.22 add ${spec} -g -y`, { stdio: "inherit" });
     installed++;
   } catch {
     failed.push(spec);

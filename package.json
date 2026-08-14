@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "description": "Static, RTL-first Astro template for small-business sites. Content-driven via business.json.",
   "scripts": {
     "dev": "astro dev",
@@ -12,6 +15,7 @@
     "format": "biome check --write .",
     "typecheck": "astro check",
     "validate:content": "tsx scripts/validate-content.ts",
+    "preflight": "tsx scripts/preflight.ts",
     "generate:og": "tsx scripts/generate-og.ts",
     "generate:placeholders": "tsx scripts/generate-placeholders.ts",
     "test:visual": "playwright test --grep @visual",
@@ -21,7 +25,9 @@
     "deploy": "npm run test && tsx scripts/deploy.ts",
     "gsc:setup": "tsx scripts/setup-gsc.ts",
     "setup:skills": "tsx scripts/setup-skills.ts",
-    "deploy:preview": "tsx scripts/deploy.ts --branch=preview",
+    "sync:template": "tsx scripts/sync-template.ts",
+    "report": "tsx scripts/report.ts",
+    "deploy:preview": "npm run validate:content && tsx scripts/deploy.ts --branch=preview",
     "deploy:setup": "tsx scripts/deploy.ts --setup",
     "lhci": "lhci autorun",
     "prepare": "husky"

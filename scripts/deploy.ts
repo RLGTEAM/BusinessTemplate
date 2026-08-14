@@ -14,14 +14,11 @@
  *   --dry-run         print the plan, upload nothing
  */
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { businessSchema } from "../src/content/business.schema";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { ENV_PATH as envPath, fail, fromEnvFile, loadBusiness, ROOT as root } from "./lib/content";
 
-const root = fileURLToPath(new URL("..", import.meta.url));
-const jsonPath = fileURLToPath(new URL("../src/content/business/business.json", import.meta.url));
-const envPath = fileURLToPath(new URL("../.env", import.meta.url));
-const distPath = fileURLToPath(new URL("../dist", import.meta.url));
+const distPath = join(root, "dist");
 
 const args = process.argv.slice(2);
 const hasFlag = (name: string) => args.includes(`--${name}`);
@@ -31,25 +28,6 @@ const flagValue = (name: string) => {
   const hit = args.findLast((arg) => arg.startsWith(`--${name}=`));
   return hit?.slice(name.length + 3).trim() || undefined;
 };
-
-// Annotated on the const, not just the arrow — TS only narrows after a
-// never-returning call when the declaration itself carries the type.
-const fail: (message: string) => never = (message) => {
-  console.error(`\n✗ ${message}\n`);
-  process.exit(1);
-};
-
-/** Minimal .env reader — the deploy script must not depend on Astro's env loader. */
-function fromEnvFile(key: string): string | undefined {
-  if (!existsSync(envPath)) return undefined;
-  for (const line of readFileSync(envPath, "utf-8").split(/\r?\n/)) {
-    const match = /^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/.exec(line);
-    if (match?.[1] === key) {
-      return (match[2] ?? "").trim().replace(/^["']|["']$/g, "") || undefined;
-    }
-  }
-  return undefined;
-}
 
 function tryExec(command: string): string | undefined {
   try {
@@ -65,13 +43,7 @@ function run(command: string): void {
 
 // business.json is the single source of truth here too: the fallback project
 // name and the production URL both come out of it.
-const parsed = businessSchema.safeParse(
-  JSON.parse(readFileSync(jsonPath, "utf-8").replace(/^﻿/, "")) as unknown,
-);
-if (!parsed.success) {
-  fail("business.json is invalid — run `npm run validate:content` for the full report.");
-}
-const business = parsed.data;
+const business = loadBusiness();
 
 /** Cloudflare Pages project names: lowercase alphanumeric + dashes, max 58 chars. */
 const PROJECT_NAME = /^[a-z0-9][a-z0-9-]{0,57}$/;
@@ -140,10 +112,25 @@ if (hasFlag("setup")) {
         "  (`npx wrangler whoami`).",
     );
   }
+  // Pin the resolved name into .env: a later siteUrl change (rebrand, new
+  // domain) must not silently re-derive a DIFFERENT project and orphan this
+  // one while it keeps serving the live site.
+  if (!fromEnvFile("CLOUDFLARE_PAGES_PROJECT")) {
+    appendFileSync(
+      envPath,
+      `${existsSync(envPath) ? "\n" : ""}CLOUDFLARE_PAGES_PROJECT="${project}"\n`,
+    );
+    console.log(`✓ Pinned CLOUDFLARE_PAGES_PROJECT="${project}" in .env`);
+  }
   process.exit(0);
 }
 
 // ── preflight ────────────────────────────────────────────────────────────────
+// Wrangler only reads the token from process env — surface a .env value so
+// "put it in .env" (the obvious place) actually works.
+if (!process.env.CLOUDFLARE_API_TOKEN && fromEnvFile("CLOUDFLARE_API_TOKEN")) {
+  process.env.CLOUDFLARE_API_TOKEN = fromEnvFile("CLOUDFLARE_API_TOKEN");
+}
 const authenticated =
   Boolean(process.env.CLOUDFLARE_API_TOKEN) ||
   !/not authenticated|you are not logged in/i.test(
@@ -194,6 +181,48 @@ if (!hasFlag("skip-build")) {
   run("npx astro build");
 } else if (!existsSync(distPath)) {
   fail("--skip-build was passed but dist/ does not exist. Run `npm run build` first.");
+}
+
+// A public *.pages.dev draft must never be indexed, so preview uploads get an
+// X-Robots-Tag appended to the built _headers. That edit lands in the dist/
+// ARTIFACT, so production must strip it again — otherwise
+// `deploy:preview` followed by `deploy --skip-build` (upload the exact
+// artifact the client approved) silently de-indexes the live site.
+const headersPath = join(distPath, "_headers");
+const NOINDEX_BLOCK =
+  "\n# Preview deploys must not be indexed (appended by deploy.ts)\n/*\n  X-Robots-Tag: noindex\n";
+
+if (branch === "preview") {
+  if (!existsSync(headersPath) || !readFileSync(headersPath, "utf-8").includes(NOINDEX_BLOCK)) {
+    appendFileSync(headersPath, NOINDEX_BLOCK);
+    console.log("  (preview) appended X-Robots-Tag: noindex to dist/_headers");
+  }
+} else {
+  if (existsSync(headersPath)) {
+    const headers = readFileSync(headersPath, "utf-8");
+    if (headers.includes(NOINDEX_BLOCK)) {
+      writeFileSync(headersPath, headers.replace(NOINDEX_BLOCK, ""), "utf-8");
+      console.log("  (production) removed the preview X-Robots-Tag: noindex from dist/_headers");
+    } else if (/X-Robots-Tag:\s*noindex/i.test(headers)) {
+      // A hand-written noindex we did not add — refuse rather than guess.
+      fail(
+        "dist/_headers contains an X-Robots-Tag: noindex rule that this script did not add.\n" +
+          "  Uploading it would de-index the live site. Remove it (or rebuild without\n" +
+          "  --skip-build) and deploy again.",
+      );
+    }
+  }
+
+  // Production branches must also clear the launch gate (placeholders, broken
+  // links, missing form key, OG image…). Previews are working drafts.
+  try {
+    run("npx tsx scripts/preflight.ts");
+  } catch {
+    fail(
+      "Preflight failed — fix the launch blockers above before a production deploy.\n" +
+        "  (Shareable drafts go through `npm run deploy:preview`, which skips this gate.)",
+    );
+  }
 }
 
 try {

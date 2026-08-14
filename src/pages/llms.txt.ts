@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getBusiness, telHref, whatsappHref } from "@/lib/business";
+import { dialablePhone, getBusiness, whatsappHref } from "@/lib/business";
 
 /**
  * llms.txt — emerging convention that gives AI answer engines a clean,
@@ -17,15 +17,24 @@ export const GET: APIRoute = async ({ site }) => {
     `> ${data.seo.defaultDescription}`,
     "",
     `- Website: ${site?.href ?? data.seo.siteUrl}`,
-    `- Address: ${data.contact.address}`,
-    `- Phone: ${telHref(data.contact.phone).replace("tel:", "")}`,
+    ...(data.contact.address ? [`- Address: ${data.contact.address}`] : []),
+    `- Phone: ${dialablePhone(data.contact.phone)}`,
     ...(data.contact.whatsapp ? [`- WhatsApp: ${whatsappHref(data.contact.whatsapp)}`] : []),
     ...(data.contact.email ? [`- Email: ${data.contact.email}`] : []),
+    ...(data.local.googleBusinessProfile
+      ? [`- Google Business Profile: ${data.local.googleBusinessProfile}`]
+      : []),
+    ...(data.local.wazeUrl ? [`- Waze: ${data.local.wazeUrl}`] : []),
     `- Service areas: ${data.serviceAreas.join(", ")}`,
     "",
     "## Opening hours",
     "",
-    ...data.hours.map((h) => `- ${h.day}: ${h.open}–${h.close}`),
+    ...data.hours.map(
+      (h) =>
+        `- ${h.day}: ${
+          h.ranges.length === 0 ? "Closed" : h.ranges.map((r) => `${r.open}–${r.close}`).join(", ")
+        }`,
+    ),
     "",
     "## Services",
     "",

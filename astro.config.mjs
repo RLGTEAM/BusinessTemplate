@@ -5,8 +5,13 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, envField, fontProviders } from "astro/config";
 
 // business.json is the single source of truth — even the deploy URL comes from it.
+// BOM strip: this file reads the JSON before Zod can produce a friendly error,
+// so a Windows-editor BOM must not crash the config load with a raw parse error.
 const business = JSON.parse(
-  readFileSync(new URL("./src/content/business/business.json", import.meta.url), "utf-8"),
+  readFileSync(new URL("./src/content/business/business.json", import.meta.url), "utf-8").replace(
+    /^﻿/,
+    "",
+  ),
 );
 
 // design.fontPairing → actual families (all vetted for Hebrew + Latin subsets).
@@ -37,12 +42,19 @@ const FONT_PAIRINGS = {
   retro: { display: "Bellefair", displayWeights: [400], body: "Frank Ruhl Libre" },
   handmade: { display: "Amatic SC", body: "Assistant" },
 };
-const pairing = FONT_PAIRINGS[business.design?.fontPairing ?? "classic"];
+const pairingKey = business.design?.fontPairing ?? "classic";
+const pairing = FONT_PAIRINGS[pairingKey] ?? FONT_PAIRINGS.classic;
+if (!FONT_PAIRINGS[pairingKey]) {
+  // The schema enum still fails the build later with a proper message; this
+  // guard only prevents an opaque `undefined.display` crash before it runs.
+  console.warn(`Unknown design.fontPairing "${pairingKey}" — falling back to "classic".`);
+}
 
 export default defineConfig({
   site: business.data.seo.siteUrl,
   output: "static",
-  integrations: [sitemap()],
+  // The 404 page must never appear in the sitemap (it also carries noindex).
+  integrations: [sitemap({ filter: (page) => !page.includes("/404") })],
   vite: {
     plugins: [tailwindcss()],
   },

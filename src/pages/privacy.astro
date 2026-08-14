@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getBusiness } from "@/lib/business";
+import { formatDate, getBusiness } from "@/lib/business";
 
 /**
  * Token-driven baseline design: everything below inherits the client's
@@ -10,6 +10,11 @@ import { getBusiness } from "@/lib/business";
  */
 const business = await getBusiness();
 const { privacy } = business.content.legal;
+const { consent } = business.content;
+// The manage-consent button only makes sense when a cookie tracker (and
+// therefore the banner) exists — same condition ConsentBanner renders under.
+const hasTracking =
+  business.data.analytics.gtagId !== "" || business.data.analytics.metaPixelId !== "";
 ---
 
 <BaseLayout title={`${privacy.title} — ${business.data.name}`}>
@@ -42,6 +47,23 @@ const { privacy } = business.content.legal;
       <div class="mt-10 space-y-5">
         {privacy.body.map((paragraph) => <p>{paragraph}</p>)}
       </div>
+
+      {
+        hasTracking && (
+          <button
+            type="button"
+            data-consent-reopen
+            class="mt-8 text-primary underline underline-offset-4 transition-colors hover:text-secondary"
+          >
+            {consent.manageLabel}
+          </button>
+        )
+      }
+
+      <p class="mt-10 text-sm text-ink-muted">
+        {privacy.statementDateLabel}{" "}
+        <bdi class="force-ltr">{formatDate(business.locale, privacy.statementDate)}</bdi>
+      </p>
     </div>
   </main>
 </BaseLayout>
