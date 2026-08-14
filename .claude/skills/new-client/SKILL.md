@@ -10,6 +10,38 @@ user input: make the best call, record it, and surface every assumption in the
 final report. Read `docs/DESIGN-DOCTRINE.md` first — it is the contract for
 everything below (the floor, the page contract, the toolkit, the process).
 
+## Execution plan — pipeline, don't queue
+
+Wall-clock discipline for the whole build. Three rules:
+
+1. **Fail fast, validate continuously.** Run the cheap checks the moment their
+   inputs change, never saved up for Step 6: `npm run validate:content` after
+   EVERY `business.schema.ts`/`business.json` edit (seconds, and its errors
+   are the clearest); `npm run lint` + `npm run typecheck` after each code
+   phase. Step 6's slow suites (e2e, ltr-build, visual) then run ONCE as
+   confirmation — a schema error discovered in Step 6 costs a full rebuild
+   cycle; discovered in Step 2 it costs seconds.
+2. **Fan out independent work with subagents** (when an agent-dispatch tool is
+   available). The dependency chain is: concept → schema+content+palette →
+   `custom.css` tokens/color story → everything else. Once the color story is
+   in `custom.css`, these are independent of the main page build and MUST run
+   as parallel subagents while you compose `index.astro`:
+   - **Legal-pages restyle** (Step 4's legal bullet): a subagent that reads
+     `docs/concept.md` + `src/styles/custom.css` and restyles ONLY
+     `src/pages/accessibility-statement.astro` + `src/pages/privacy.astro`.
+     It touches no other files, so it cannot conflict with the page build.
+   - **OG + icon generation** (Step 5's `npm run generate:og`): runs any time
+     after `business.json` + palette are final.
+   Never fan out two agents that write the same file.
+3. **Shift the review left.** The expensive failure mode is a Step 5.5 FAIL
+   round (rebuild + re-screenshot + re-judge). Prevent it: after the hero and
+   the first two sections exist, take ONE 390-wide screenshot of the real
+   page (dev server is fine for this mid-build sanity check — final review
+   still uses the production build) and self-check it against the doctrine's
+   anti-AI-tells and the concept's still frame. Course-correct now, while a
+   change costs minutes — Step 5.5 rounds should confirm quality, not
+   discover its absence.
+
 ## Step 0 — Ingest the brief
 
 - Facts are tagged `[scraped]` or `[client-confirmed]`. Scraped-only NAP,
@@ -32,6 +64,11 @@ everything below (the floor, the page contract, the toolkit, the process).
 
 Generate THREE distinct concept candidates in the doctrine's four-line format
 (metaphor / color story / composition / motion identity + still frame).
+When an agent-dispatch tool is available, generate them as three PARALLEL
+subagents, each given the brief + doctrine and a different forcing lens
+(e.g. "the client's craft as material", "the customer's moment of need",
+"break the section-stack") — parallel generation is faster AND the lenses
+prevent three variations on the same idea. Judge and pick inline yourself.
 Treat the template's structural suggestions — RECIPES patterns, the starter
 shell's section list, compositions you've built before — as material to
 react against, not a scaffold to fill in: a concept is allowed, and
@@ -95,6 +132,10 @@ why they lost. Commit it alone: `feat: design concept for <client>`.
   actual business supports (an imported product, a partner brand, a
   delivery-app mention) — never a sentence invented purely to pass the test.
 - Respect `voice` in every sentence. Save UTF-8 WITHOUT BOM.
+- Hebrew sites: invoke the `hebrew-content-writer` skill (if installed)
+  before authoring copy — pick the register deliberately (dugri vs. business
+  vs. formal) from `voice`, use ktiv maleh, and keep gendered address
+  consistent across every string. Copy quality is a rubric axis, not polish.
 - Sweep: `rg '\[[^0-9"][^"]*\]' src/content/business/business.json` — only
   deliberate flagged placeholders may remain, and every one of them goes in
   the report. (The bidi line is real copy and contains no brackets. Don't use
@@ -142,10 +183,21 @@ Execute the committed concept, 0→100:
   with nothing clipped under the sticky header), confirm the scrolled state
   and `aria-current` active styling actually trigger, and confirm the open
   drawer is fully styled and sits ABOVE all page content (no hero decor
-  bleeding through, no unstyled default list). Fix everything found before
+  bleeding through, no unstyled default list).
+  **Run the whole 390 pass TWICE: once at the top of the page, then again
+  after scrolling to mid-page so `data-scrolled` styling is active.** Every
+  shipped site has had a drawer that worked at scroll-0 and broke when
+  scrolled — the containing-block trap in RECIPES recipe 2 (`backdrop-filter`
+  / `transform` on the header root or a drawer ancestor). Follow that
+  recipe's canonical structure: effects on the inner bar, drawer a sibling
+  of it, header root positioning-only. The contract smoke suite now fails
+  the build on a trapped drawer, so catching it here saves a gate round.
+  Fix everything found before
   Step 5.5 — the judge automatic-fails broken nav mechanics.
 - Restyle the legal pages (`src/pages/accessibility-statement.astro`,
-  `src/pages/privacy.astro`) into the concept's design language. They ship
+  `src/pages/privacy.astro`) into the concept's design language — this is the
+  Execution plan's parallel subagent: dispatch it as soon as the color story
+  lands in `custom.css`, and let it run while you compose the page. They ship
   with a neutral token-driven baseline that inherits palette and fonts, but
   baseline is not designed: carry the color story, the typography scale, and
   the concept's treatment (back-link affordance, card/rule styling) into
@@ -160,9 +212,16 @@ Execute the committed concept, 0→100:
   point called inside the reduced-motion-guarded matchMedia context.
 - New user-visible behavior → ADD a test in the client repo. The contract
   smoke suite is never edited.
+- Section order and CTA placement are conversion decisions, not aesthetics:
+  the contact path (phone/WhatsApp) must be reachable within one thumb-move
+  at every scroll depth, and the page's first viewport must answer "what,
+  where, why you" before any decorative band. The `cro` skill (if installed)
+  is the checklist for this — apply it while composing, not after.
 - Before Step 5.5, SELF-CHECK the aliveness inventory and the anti-AI-tells
   list (Craft bars 3 and 4, `docs/DESIGN-DOCTRINE.md`) and fix any gaps — the
-  judge automatic-fails an incomplete inventory.
+  judge automatic-fails an incomplete inventory. Run the `web-design-guidelines`
+  skill's checklist (if installed) as part of this same pass — it catches
+  interaction/a11y/polish defects the rubric's axes assume are already met.
 - Also before Step 5.5, verify `docs/concept.md` actually contains the nav
   concept (Step 1 item 6) and the choreography plan (item 7) for the chosen
   concept AS WRITTEN PROSE, not just realized in code — design-review caps
@@ -187,13 +246,19 @@ run through this skill isn't finished, even if Step 6 is green.
 ## Step 6 — Gate (all must pass; fix, don't skip)
 
 ```
-npm run validate:content
 npm run test
 npm run test:e2e
 npm run test:ltr-build
 npx playwright test --grep @visual --update-snapshots
 npm run test:visual
 ```
+
+If the Execution plan's continuous validation was followed, `npm run test`
+is a seconds-long confirmation — any failure here means a step skipped its
+own check; fix the habit along with the failure. The slow suites run once,
+in this order (e2e surfaces the widest class of defects first; ltr-build
+rebuilds `dist/` to the real locale when it finishes, so visual snapshots
+come after it, against the correct build).
 
 ## Step 7 — Report
 
@@ -213,3 +278,10 @@ End with exactly these sections:
    email (direct uploads build locally — a dashboard-only key never ships);
    then `npx wrangler login` → `npm run deploy:setup` → `npm run deploy:preview`.
    Do NOT run any deploy command yourself — list them for the operator.
+6. **After production deploy (operator steps, list them)** — Google Search
+   Console: `npm run gsc:setup` (verifies the domain via a Cloudflare DNS TXT
+   record, adds the property, submits the sitemap — one-time OAuth setup in
+   `docs/PLAYBOOK.md`). Then the local-SEO basics for the client: Google
+   Business Profile exists and links to the site, NAP on the site matches
+   the GBP listing exactly (the `local-seo` skill, if installed, is the
+   checklist).
