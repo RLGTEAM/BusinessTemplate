@@ -45,6 +45,66 @@ test.describe("home page", () => {
     await expect(page.getByText(bidiLine as string)).toBeVisible();
   });
 
+  test("mobile drawer opens on top of the page in the scrolled state", async ({ page }) => {
+    // Every shipped site has had this defect: the drawer works at scroll-0 but
+    // fails after scrolling, because backdrop-filter/transform on <header> (often
+    // only via [data-scrolled]) turns it into the containing block for a
+    // position:fixed drawer. Verify in the scrolled state, where it breaks.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const toggle = page.locator("#menu-toggle");
+    test.skip((await toggle.count()) === 0, "site has no #menu-toggle");
+    test.skip(!(await toggle.isVisible()), "menu toggle not shown at mobile width");
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
+    await page.waitForTimeout(600); // let data-scrolled flip and its CSS settle
+
+    await toggle.click(); // actionability also proves the toggle itself is hit-testable
+    const menu = page.locator("#mobile-menu");
+    await expect(menu).toBeVisible();
+    await page.waitForTimeout(400); // let any entrance animation finish
+
+    // A fixed drawer must be positioned against the viewport: no ancestor may
+    // create a containing block for it.
+    const traps = await menu.evaluate((el) => {
+      if (getComputedStyle(el).position !== "fixed") return [];
+      const found: string[] = [];
+      for (let a = el.parentElement; a !== null && a !== document.body; a = a.parentElement) {
+        const s = getComputedStyle(a);
+        const offending: Array<[string, string]> = [];
+        for (const prop of ["transform", "filter", "backdrop-filter", "perspective"]) {
+          const v = s.getPropertyValue(prop);
+          if (v !== "" && v !== "none") offending.push([prop, v]);
+        }
+        const contain = s.getPropertyValue("contain");
+        if (/\b(layout|paint|strict|content)\b/.test(contain)) offending.push(["contain", contain]);
+        const willChange = s.getPropertyValue("will-change");
+        if (/\b(transform|filter|backdrop-filter|perspective)\b/.test(willChange))
+          offending.push(["will-change", willChange]);
+        if (offending.length > 0)
+          found.push(
+            `<${a.tagName.toLowerCase()}> { ${offending.map(([p, v]) => `${p}: ${v}`).join("; ")} }`,
+          );
+      }
+      return found;
+    });
+    expect(
+      traps,
+      `fixed drawer is trapped by a containing-block ancestor (move the effect to an inner bar — RECIPES recipe 2): ${traps.join(" | ")}`,
+    ).toEqual([]);
+
+    // The drawer's first link must actually be hit-testable — visible is not
+    // enough; content stacked above it means the user cannot tap it.
+    const link = menu.locator("a").first();
+    await expect(link).toBeVisible();
+    const onTop = await link.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return hit !== null && (el === hit || el.contains(hit) || hit.contains(el));
+    });
+    expect(onTop, "drawer link must sit above all page content").toBe(true);
+  });
+
   test("renders JSON-LD structured data", async ({ page }) => {
     await page.goto("/");
     // LocalBusiness, Organization, WebSite, + FAQPage when content.faq has items

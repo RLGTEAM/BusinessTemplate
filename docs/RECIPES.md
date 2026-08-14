@@ -98,8 +98,35 @@ Rules:
 
 Known failure modes — these are the defects real builds keep shipping;
 verify each one by OPERATING the nav in a browser (the new-client skill's
-Step 4 nav pass), never by reading the markup:
+Step 4 nav pass), never by reading the markup — **and always AFTER scrolling
+to mid-page first**, because the worst failure below only appears in the
+scrolled state:
 
+- **The containing-block trap (every shipped site has hit this)**: `filter`,
+  `backdrop-filter`, `transform`, `perspective`, `will-change: transform`,
+  or `contain: layout|paint` on `<header>` — or ANY ancestor of the drawer —
+  makes that element the containing block for `position: fixed` descendants.
+  A fixed full-screen drawer inside it stops covering the viewport and gets
+  trapped in the header's box: it "won't open" or paints behind the page.
+  The killer variant is applying a glass effect only in the scrolled state
+  (`header[data-scrolled] { backdrop-filter: ... }`): the drawer works at
+  the top of the page and breaks the moment the user scrolls — which is why
+  a nav check performed at scroll-0 always passes and the bug ships anyway.
+  Canonical structure that makes this impossible:
+
+  ```astro
+  <header class="sticky top-0 z-50">      <!-- positioning ONLY: sticky + z. NEVER filter/blur/transform here -->
+    <div class="header-bar bg-surface/90 backdrop-blur-md">…toggle + desktop nav…</div>
+    <div id="mobile-menu" class="fixed inset-0 z-50" hidden>…</div>  <!-- sibling of the bar, NOT inside it -->
+  </header>
+  ```
+
+  Visual effects (blur, tint, shadow — including every `[data-scrolled]`
+  response) live on the inner bar; the header root and the drawer's ancestor
+  chain stay effect-free. (The pre-deletion reference `Header.astro` puts
+  `backdrop-blur-md` on the header root — copy its a11y mechanics, NOT that
+  class placement; it only survives there because that drawer is in-flow,
+  not fixed.)
 - **Stacking**: the open drawer must sit ABOVE all page content — give the
   header root its own elevated stacking context (e.g. `relative z-50`, panel
   included). Section-level `isolate` + `-z-10` decor only protects within
@@ -343,6 +370,12 @@ Rules:
 
 - The header stays `position: sticky; top: 0` regardless of `data-scrolled` —
   the attribute changes appearance, never position.
+- `header[data-scrolled]` styling targets the INNER bar
+  (`header[data-scrolled] .header-bar { ... }`), never the header root, and
+  never adds `backdrop-filter`/`filter`/`transform` to the root or to any
+  ancestor of a fixed drawer — that creates a containing block and breaks
+  the drawer in the scrolled state only (recipe 2's containing-block trap;
+  the contract smoke suite fails the build on it).
 - `scroll-mt-20` on sections assumes the sticky header is ≤ 5rem tall. A
   taller designed header needs a matching larger `scroll-mt-*` on EVERY
   section, or anchored content lands clipped beneath the header — verify by
