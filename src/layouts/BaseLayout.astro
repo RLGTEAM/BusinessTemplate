@@ -14,12 +14,18 @@ import "@/styles/custom.css";
 interface Props {
   title?: string;
   description?: string;
+  /**
+   * Emit FAQPage JSON-LD on THIS page. Pass it only on the page that visibly
+   * renders the FAQ (Google requires marked-up questions to be on-page —
+   * emitting it site-wide, e.g. on /privacy/, violates their guidelines).
+   */
+  withFaqJsonLd?: boolean;
 }
 
 const business = await getBusiness();
 const dir = getDir(business.locale);
 const { palette } = business.voice;
-const faq = faqJsonLd(business);
+const faq = Astro.props.withFaqJsonLd ? faqJsonLd(business) : null;
 
 // Brand tokens flow: business.json → these vars → @theme inline (global.css).
 const brandVars = [

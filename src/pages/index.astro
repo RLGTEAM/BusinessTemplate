@@ -21,7 +21,7 @@ const sections = business.content.nav
   .map((link) => ({ id: link.href.slice(1), label: link.label }));
 ---
 
-<BaseLayout>
+<BaseLayout withFaqJsonLd={Boolean(business.content.faq)}>
   <header>
     <p><bdi>{business.data.name}</bdi></p>
     <nav>

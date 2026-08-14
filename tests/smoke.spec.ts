@@ -105,18 +105,82 @@ test.describe("home page", () => {
     expect(onTop, "drawer link must sit above all page content").toBe(true);
   });
 
+  test("no horizontal overflow at 390px", async ({ page }) => {
+    // The single most common mobile defect. 390px is the doctrine's primary
+    // canvas — any element wider than the viewport fails the build here
+    // instead of being caught (or missed) by eye in design review.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.waitForTimeout(400); // let reveal transforms settle
+    const overflow = await page.evaluate(() => {
+      const el = document.documentElement;
+      return el.scrollWidth - el.clientWidth;
+    });
+    // ≤1px tolerates engine rounding; real overflow is never 1px.
+    expect(overflow, "page must not scroll horizontally at 390px").toBeLessThanOrEqual(1);
+  });
+
+  test("skip link moves focus into #main", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press("Tab"); // the skip link is the first tabbable element
+    await expect(page.locator('a[href="#main"]')).toBeFocused();
+    await page.keyboard.press("Enter");
+    // Smooth scrolling completes asynchronously — poll until focus lands.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const main = document.getElementById("main");
+            return (
+              main !== null &&
+              (document.activeElement === main || main.contains(document.activeElement))
+            );
+          }),
+        { message: "activating the skip link must move keyboard focus into #main" },
+      )
+      .toBe(true);
+  });
+
+  test("mobile drawer closes on Escape", async ({ page }) => {
+    // RECIPES recipe 2: Escape closes the menu. Contract-tested because a
+    // keyboard user with an open drawer otherwise has no way out.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const toggle = page.locator("#menu-toggle");
+    test.skip((await toggle.count()) === 0, "site has no #menu-toggle");
+    test.skip(!(await toggle.isVisible()), "menu toggle not shown at mobile width");
+    await toggle.click();
+    const menu = page.locator("#mobile-menu");
+    await expect(menu).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+  });
+
   test("renders JSON-LD structured data", async ({ page }) => {
     await page.goto("/");
-    // LocalBusiness, Organization, WebSite, + FAQPage when content.faq has items
+    // LocalBusiness, Organization, WebSite, + FAQPage when content.faq has
+    // items. A client may legitimately ADD types (BreadcrumbList, Service…),
+    // so the required set is asserted, not an exact count.
     const scripts = page.locator('script[type="application/ld+json"]');
     const content = business.content as Record<string, unknown>;
     const faq = typeof content.faq === "object" && content.faq !== null ? content.faq : null;
     const hasFaq =
       Array.isArray((faq as Record<string, unknown> | null)?.items) &&
       ((faq as Record<string, unknown>).items as unknown[]).length > 0;
-    await expect(scripts).toHaveCount(hasFaq ? 4 : 3);
-    const first = await scripts.first().textContent();
-    expect(first).toContain("LocalBusiness");
+    expect(await scripts.count()).toBeGreaterThanOrEqual(hasFaq ? 4 : 3);
+    const all = (await scripts.allTextContents()).join("\n");
+    for (const type of ["LocalBusiness", "Organization", "WebSite"]) {
+      expect(all, `homepage JSON-LD must include ${type}`).toContain(type);
+    }
+    if (hasFaq) {
+      expect(all, "content.faq exists, so the homepage must emit FAQPage").toContain("FAQPage");
+    }
+
+    // FAQPage must appear ONLY where the FAQ is visible — never on legal pages
+    // (a Google structured-data guideline violation).
+    await page.goto("/privacy/");
+    const legalScripts = page.locator('script[type="application/ld+json"]');
+    expect((await legalScripts.allTextContents()).join("\n")).not.toContain("FAQPage");
   });
 
   test("contact form blocks an empty submit", async ({ page }) => {

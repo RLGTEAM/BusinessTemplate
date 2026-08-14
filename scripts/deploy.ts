@@ -196,6 +196,19 @@ if (!hasFlag("skip-build")) {
   fail("--skip-build was passed but dist/ does not exist. Run `npm run build` first.");
 }
 
+// Production branches must clear the launch gate (placeholders, broken links,
+// missing form key, OG image…). Previews are working drafts and skip it.
+if (branch !== "preview") {
+  try {
+    run("npx tsx scripts/preflight.ts");
+  } catch {
+    fail(
+      "Preflight failed — fix the launch blockers above before a production deploy.\n" +
+        "  (Shareable drafts go through `npm run deploy:preview`, which skips this gate.)",
+    );
+  }
+}
+
 try {
   run(
     `npx wrangler pages deploy dist --project-name ${project} --branch ${branch} --commit-dirty=true`,

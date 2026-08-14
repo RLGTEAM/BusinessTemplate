@@ -129,6 +129,12 @@ h4 {
   outline-offset: 2px;
 }
 
+/* Anchor-scroll targets (sections, #main) receive programmatic focus so Tab
+   order follows the jump — they are not interactive, so no ring. */
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
 /* Motion is opt-in: the animation layer reveals [data-reveal] elements.
    If JS fails or reduced motion is preferred, everything stays visible. */
 @media (prefers-reduced-motion: reduce) {

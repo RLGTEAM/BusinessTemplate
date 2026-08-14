@@ -111,60 +111,79 @@ if (failures.length > 0) {
 console.log("✓ palette passes WCAG AA contrast on all used pairs");
 
 /*
- * Phone/WhatsApp format validation.
+ * Cross-field content checks. Unlike the schema (shape) and the palette
+ * (contrast), these are rules about VALUES — all failures are collected and
+ * reported together so one run shows everything that needs fixing.
  *
- * telHref() (src/lib/business.ts) assumes any phone digit-string starting
- * with "0" is Israeli local format and strips it in favor of a "+972"
- * prefix; anything else is assumed to already be an international number
- * and just gets a "+" prepended. A mis-formatted phone (e.g. missing the
+ * Phones: dialablePhone() (src/lib/business.ts) assumes any digit-string
+ * starting with "0" is Israeli local format and strips it in favor of a
+ * "+972" prefix; anything else is assumed to already be international and
+ * just gets a "+" prepended. A mis-formatted phone (e.g. missing the
  * leading 0) silently produces a real-looking but WRONG country code on the
  * tel: link with no build-time signal — this check catches that class of
- * mistake before it ships. The same rules — and the same telHref() call —
- * apply to legal.accessibility.coordinator.phone on the accessibility
- * statement page, so it's checked with the identical function below.
+ * mistake before it ships. Star codes ("*3455") pass through unchanged.
+ * The same rules apply to legal.accessibility.coordinator.phone on the
+ * accessibility statement page. (whatsapp format is enforced by the schema.)
  */
-function validatePhone(label: string, value: string): void {
-  const digits = value.replace(/\D/g, "");
+const errors: string[] = [];
+
+function checkPhone(label: string, value: string): void {
+  const trimmed = value.trim();
+  // Israeli star codes are dialable as-is — dialablePhone() keeps them verbatim.
+  if (/^\*\d{3,6}$/.test(trimmed)) return;
+  const digits = trimmed.replace(/\D/g, "");
   const isIsraeliLocal = /^0\d{8,9}$/.test(digits);
   const isInternational = /^972\d{8,9}$/.test(digits);
 
   if (!isIsraeliLocal && !isInternational) {
-    console.error(`\n✗ ${label} ("${value}") is not a recognized phone format.\n`);
-    console.error(
-      '  telHref() assumes a leading 0 means Israeli local format and prefixes "+972" for any\n' +
-        "  other digit string — a mis-formatted number (e.g. a missing leading 0) silently produces\n" +
-        "  a wrong (but valid-looking) country code on the tel: link (star codes like *3455 and\n" +
-        "  1-800 numbers aren't supported by telHref — use a standard number here).\n",
+    errors.push(
+      `${label} ("${value}") is not a recognized phone format.\n` +
+        '    dialablePhone() assumes a leading 0 means Israeli local format and prefixes "+972"\n' +
+        "    for any other digit string — a mis-formatted number silently produces a wrong\n" +
+        "    (but valid-looking) country code on the tel: link. Use Israeli local format\n" +
+        "    (0 + 8-9 digits), international (972 + 8-9 digits), or a star code (*3455).",
     );
-    console.error(
-      "  Use Israeli local format (0 + 8-9 digits, e.g. 050-000-0000) or international (972 + 8-9 digits).",
-    );
-    process.exit(1);
   }
 }
 
-validatePhone("data.contact.phone", result.data.data.contact.phone);
-validatePhone(
+checkPhone("data.contact.phone", result.data.data.contact.phone);
+checkPhone(
   "content.legal.accessibility.coordinator.phone",
   result.data.content.legal.accessibility.coordinator.phone,
 );
 
-// whatsapp is optional — absent means a phone-only contact path, which is
-// valid; only a PRESENT-but-malformed value is an error.
-const whatsapp = result.data.data.contact.whatsapp;
-if (whatsapp !== undefined && !/^972\d{8,9}$/.test(whatsapp)) {
-  console.error(`\n✗ data.contact.whatsapp ("${whatsapp}") is not a valid international number.\n`);
-  console.error(
-    "  whatsappHref() uses this value verbatim as a wa.me path, which requires the full\n" +
-      '  country code with no leading "0" and no symbols — it must match 972 followed by\n' +
-      '  8-9 digits (e.g. "972501234567"). Anything else — a local-format leading 0, a missing\n' +
-      "  or wrong country code, punctuation — produces a broken wa.me link.",
+// Hours: the schema validates HH:MM shape; the cross-field rules live here.
+// open > close is allowed (a bar open past midnight) — only open === close is
+// unrepresentable (a 24h business uses "00:00"–"23:59").
+const seenDays = new Set<string>();
+for (const h of result.data.data.hours) {
+  if (seenDays.has(h.day)) {
+    errors.push(`data.hours: duplicate entry for ${h.day} — each day may appear once.`);
+  }
+  seenDays.add(h.day);
+  if (h.open === h.close) {
+    errors.push(
+      `data.hours (${h.day}): open and close are both "${h.open}" — ` +
+        'a zero-length day is invalid (a 24h business uses "00:00"–"23:59").',
+    );
+  }
+}
+
+// statementDate: the schema regex allows impossible dates like 2026-13-45.
+const statementDate = result.data.content.legal.accessibility.statementDate;
+const parsedDate = new Date(`${statementDate}T00:00:00Z`);
+if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== statementDate) {
+  errors.push(
+    `content.legal.accessibility.statementDate ("${statementDate}") is not a real calendar date.`,
   );
+}
+
+if (errors.length > 0) {
+  console.error("\n✗ business.json content checks failed:\n");
+  for (const e of errors) {
+    console.error(`  ${e}\n`);
+  }
   process.exit(1);
 }
 
-console.log(
-  whatsapp === undefined
-    ? "✓ contact phone format is valid (no whatsapp — phone-only contact path)"
-    : "✓ contact phone/whatsapp formats are valid",
-);
+console.log("✓ contact phone formats, hours, and dates are valid");

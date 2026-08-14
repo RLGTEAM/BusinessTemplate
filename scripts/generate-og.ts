@@ -1,15 +1,22 @@
 /**
- * Generates public/og-default.png (1200×630) from business.json — client name,
+ * Generates public/<ogImage> (1200×630) from business.json — client name,
  * tagline, and brand palette. Run after filling business.json for a new client:
  *   npm run generate:og
+ *
+ * The OG image is regenerated on every run (it derives from business.json).
+ * The favicon + icon set is written only when the files are MISSING — a real
+ * designed logo dropped into public/ survives re-runs (pass --force to
+ * regenerate icons too).
  *
  * Uses sharp (ships with Astro). Text renders with system fonts (Arial supports
  * Hebrew everywhere); replace the file with a designed image whenever one exists.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { businessSchema } from "../src/content/business.schema";
+
+const force = process.argv.includes("--force");
 
 const root = new URL("..", import.meta.url);
 const jsonPath = fileURLToPath(new URL("src/content/business/business.json", root));
@@ -66,8 +73,15 @@ const favicon = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
   <text x="32" y="44" text-anchor="middle" font-family="Heebo, Arial, sans-serif"
     font-size="34" font-weight="700" fill="#ffffff">${initial}</text>
 </svg>`;
-writeFileSync(fileURLToPath(new URL("public/favicon.svg", root)), favicon);
-console.log(`✓ favicon.svg generated ("${initial}")`);
+const faviconPath = fileURLToPath(new URL("public/favicon.svg", root));
+if (force || !existsSync(faviconPath)) {
+  writeFileSync(faviconPath, favicon);
+  console.log(`✓ favicon.svg generated ("${initial}")`);
+} else {
+  console.log(
+    "↷ favicon.svg exists — skipped (a real logo is never overwritten; --force regenerates)",
+  );
+}
 
 // PNG icon set (apple-touch-icon + web manifest icons) from the same design.
 const iconSvg = Buffer.from(favicon);
@@ -76,9 +90,14 @@ for (const { file, size } of [
   { file: "icon-192.png", size: 192 },
   { file: "icon-512.png", size: 512 },
 ]) {
+  const iconPath = fileURLToPath(new URL(`public/${file}`, root));
+  if (!force && existsSync(iconPath)) {
+    console.log(`↷ ${file} exists — skipped (--force regenerates)`);
+    continue;
+  }
   await sharp(iconSvg, { density: (72 * size) / 64 })
     .resize(size, size)
     .png({ compressionLevel: 9 })
-    .toFile(fileURLToPath(new URL(`public/${file}`, root)));
+    .toFile(iconPath);
   console.log(`✓ ${file} generated (${size}×${size})`);
 }

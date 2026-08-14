@@ -1,5 +1,5 @@
 import type { Business } from "@/content/business.schema";
-import { telHref, whatsappHref } from "./business";
+import { dialablePhone, whatsappHref } from "./business";
 
 /**
  * JSON-LD generators. All structured data derives from business.json.
@@ -27,7 +27,7 @@ export function localBusinessJsonLd(business: Business): JsonLd {
     description: data.seo.defaultDescription,
     url: data.seo.siteUrl,
     image: absoluteUrl(data.seo.siteUrl, data.seo.ogImage),
-    telephone: telHref(data.contact.phone).replace("tel:", ""),
+    telephone: dialablePhone(data.contact.phone),
     email: data.contact.email,
     address: {
       "@type": "PostalAddress",
@@ -66,7 +66,7 @@ export function localBusinessJsonLd(business: Business): JsonLd {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
-      telephone: telHref(data.contact.phone).replace("tel:", ""),
+      telephone: dialablePhone(data.contact.phone),
       // undefined keys drop out at JSON.stringify time (same as email above).
       url: data.contact.whatsapp ? whatsappHref(data.contact.whatsapp) : undefined,
     },
@@ -84,7 +84,7 @@ export function organizationJsonLd(business: Business): JsonLd {
     url: data.seo.siteUrl,
     logo: absoluteUrl(data.seo.siteUrl, data.seo.ogImage),
     email: data.contact.email,
-    telephone: telHref(data.contact.phone).replace("tel:", ""),
+    telephone: dialablePhone(data.contact.phone),
   };
 }
 

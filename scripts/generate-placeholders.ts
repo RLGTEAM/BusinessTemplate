@@ -11,13 +11,16 @@
  *
  * Uses sharp, which ships with Astro. Run with: npx tsx scripts/generate-placeholders.ts
  */
-import { mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { businessSchema } from "../src/content/business.schema";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
+// Real client photos land in src/assets/images/ under these same names —
+// an existing file is NEVER overwritten unless --force is passed.
+const force = process.argv.includes("--force");
 
 function placeholderSvg(width: number, height: number, from: string, to: string): Buffer {
   return Buffer.from(
@@ -77,6 +80,10 @@ const specs: Spec[] = [
 
 for (const spec of specs) {
   const target = join(root, spec.path);
+  if (!force && existsSync(target)) {
+    console.log(`↷ ${spec.path} exists — skipped (pass --force to overwrite placeholders)`);
+    continue;
+  }
   mkdirSync(dirname(target), { recursive: true });
   const svg = placeholderSvg(spec.width, spec.height, spec.from, spec.to);
   await sharp(svg).png({ compressionLevel: 9 }).toFile(target);

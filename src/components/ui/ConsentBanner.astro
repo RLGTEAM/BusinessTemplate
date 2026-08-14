@@ -54,10 +54,19 @@ const { consent } = business.content;
 <script>
   const STORAGE_KEY = "cookie-consent";
 
+  type FbqFn = ((...args: unknown[]) => void) & {
+    callMethod?: (...args: unknown[]) => void;
+    queue: IArguments[];
+    push: unknown;
+    loaded: boolean;
+    version: string;
+  };
+
   declare global {
     interface Window {
-      dataLayer?: unknown[];
-      fbq?: ((...args: unknown[]) => void) & { queue?: unknown[]; loaded?: boolean };
+      dataLayer?: IArguments[];
+      fbq?: FbqFn;
+      _fbq?: FbqFn;
     }
   }
 
@@ -68,29 +77,81 @@ const { consent } = business.content;
     document.head.appendChild(script);
   }
 
+  // localStorage throws in some private-browsing/cookie-blocked contexts —
+  // degrade to a session-only choice instead of killing the whole script.
+  function storedChoice(): string | null {
+    try {
+      return localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+  function storeChoice(value: "granted" | "denied"): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, value);
+    } catch {
+      // Private mode — the banner will re-appear next visit, which is correct.
+    }
+  }
+
+  function gtag(..._args: unknown[]): void {
+    // biome-ignore lint/complexity/noArguments: gtag.js only processes `arguments` objects pushed to dataLayer — a plain array is silently ignored.
+    window.dataLayer?.push(arguments);
+  }
+
+  /** The official fbevents.js bootstrap shape — the loader drains `queue` and
+   *  relies on push/loaded/version being exactly this. */
+  function ensureFbq(): FbqFn {
+    if (window.fbq) return window.fbq;
+    const fbq = function (this: unknown): void {
+      if (fbq.callMethod) {
+        // biome-ignore lint/complexity/noArguments: canonical Meta Pixel stub — fbevents.js expects `arguments` objects.
+        fbq.callMethod.apply(fbq, Array.prototype.slice.call(arguments));
+      } else {
+        // biome-ignore lint/complexity/noArguments: see above.
+        fbq.queue.push(arguments);
+      }
+    } as FbqFn;
+    fbq.queue = [];
+    fbq.push = fbq;
+    fbq.loaded = true;
+    fbq.version = "2.0";
+    window.fbq = fbq;
+    window._fbq = window._fbq ?? fbq;
+    return fbq;
+  }
+
+  // ClientRouter swaps re-fire astro:page-load — the scripts must be injected
+  // exactly once per real page load, then virtual pageviews take over.
+  let trackersLoaded = false;
+
   function loadTrackers(banner: HTMLElement): void {
     const gtagId = banner.dataset.gtagId ?? "";
     const metaPixelId = banner.dataset.metaPixelId ?? "";
 
+    if (trackersLoaded) {
+      if (gtagId !== "") {
+        gtag("event", "page_view", {
+          page_location: window.location.href,
+          page_title: document.title,
+        });
+      }
+      if (metaPixelId !== "") window.fbq?.("track", "PageView");
+      return;
+    }
+    trackersLoaded = true;
+
     if (gtagId !== "") {
       window.dataLayer = window.dataLayer ?? [];
-      const gtag = (...args: unknown[]): void => {
-        window.dataLayer?.push(args);
-      };
       gtag("js", new Date());
       gtag("config", gtagId);
       loadScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gtagId)}`);
     }
 
     if (metaPixelId !== "") {
-      const fbq: NonNullable<Window["fbq"]> = (...args: unknown[]) => {
-        fbq.queue?.push(args);
-      };
-      fbq.queue = [];
-      fbq.loaded = true;
-      window.fbq = window.fbq ?? fbq;
-      window.fbq("init", metaPixelId);
-      window.fbq("track", "PageView");
+      const fbq = ensureFbq();
+      fbq("init", metaPixelId);
+      fbq("track", "PageView");
       loadScript("https://connect.facebook.net/en_US/fbevents.js");
     }
   }
@@ -99,7 +160,7 @@ const { consent } = business.content;
     const banner = document.getElementById("consent-banner");
     if (!banner) return;
 
-    const choice = localStorage.getItem(STORAGE_KEY);
+    const choice = storedChoice();
     if (choice === "granted") {
       loadTrackers(banner);
       return;
@@ -109,12 +170,12 @@ const { consent } = business.content;
     banner.hidden = false;
 
     banner.querySelector("[data-consent-accept]")?.addEventListener("click", () => {
-      localStorage.setItem(STORAGE_KEY, "granted");
+      storeChoice("granted");
       banner.hidden = true;
       loadTrackers(banner);
     });
     banner.querySelector("[data-consent-decline]")?.addEventListener("click", () => {
-      localStorage.setItem(STORAGE_KEY, "denied");
+      storeChoice("denied");
       banner.hidden = true;
     });
   }
