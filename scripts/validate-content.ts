@@ -153,29 +153,54 @@ checkPhone(
 );
 
 // Hours: the schema validates HH:MM shape; the cross-field rules live here.
-// open > close is allowed (a bar open past midnight) — only open === close is
-// unrepresentable (a 24h business uses "00:00"–"23:59").
+// open > close is allowed within a range (a bar open past midnight) — only
+// open === close is unrepresentable (a 24h business uses "00:00"–"23:59",
+// a closed day uses an empty ranges array).
+function checkRanges(label: string, ranges: Array<{ open: string; close: string }>): void {
+  for (const r of ranges) {
+    if (r.open === r.close) {
+      errors.push(
+        `${label}: open and close are both "${r.open}" — a zero-length range is invalid ` +
+          '(24h = "00:00"–"23:59"; closed = an empty ranges array).',
+      );
+    }
+  }
+}
+
 const seenDays = new Set<string>();
 for (const h of result.data.data.hours) {
   if (seenDays.has(h.day)) {
     errors.push(`data.hours: duplicate entry for ${h.day} — each day may appear once.`);
   }
   seenDays.add(h.day);
-  if (h.open === h.close) {
-    errors.push(
-      `data.hours (${h.day}): open and close are both "${h.open}" — ` +
-        'a zero-length day is invalid (a 24h business uses "00:00"–"23:59").',
-    );
-  }
+  checkRanges(`data.hours (${h.day})`, h.ranges);
 }
 
-// statementDate: the schema regex allows impossible dates like 2026-13-45.
-const statementDate = result.data.content.legal.accessibility.statementDate;
-const parsedDate = new Date(`${statementDate}T00:00:00Z`);
-if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== statementDate) {
-  errors.push(
-    `content.legal.accessibility.statementDate ("${statementDate}") is not a real calendar date.`,
-  );
+// Dates: the schema regex allows impossible dates like 2026-13-45.
+function isRealDate(value: string): boolean {
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+for (const special of result.data.data.specialHours) {
+  if (!isRealDate(special.date)) {
+    errors.push(`data.specialHours ("${special.label}"): "${special.date}" is not a real date.`);
+  }
+  checkRanges(`data.specialHours (${special.date})`, special.ranges);
+}
+
+const legalDates: Array<[string, string]> = [
+  [
+    "content.legal.accessibility.statementDate",
+    result.data.content.legal.accessibility.statementDate,
+  ],
+  ["content.legal.accessibility.auditDate", result.data.content.legal.accessibility.auditDate],
+  ["content.legal.privacy.statementDate", result.data.content.legal.privacy.statementDate],
+];
+for (const [label, value] of legalDates) {
+  if (!isRealDate(value)) {
+    errors.push(`${label} ("${value}") is not a real calendar date.`);
+  }
 }
 
 if (errors.length > 0) {

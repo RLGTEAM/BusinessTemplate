@@ -65,6 +65,7 @@ const { consent } = business.content;
   declare global {
     interface Window {
       dataLayer?: IArguments[];
+      gtag?: (...args: unknown[]) => void;
       fbq?: FbqFn;
       _fbq?: FbqFn;
     }
@@ -143,6 +144,8 @@ const { consent } = business.content;
 
     if (gtagId !== "") {
       window.dataLayer = window.dataLayer ?? [];
+      // Exposed globally so lib/track.ts can fire conversion events.
+      window.gtag = gtag;
       gtag("js", new Date());
       gtag("config", gtagId);
       loadScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gtagId)}`);

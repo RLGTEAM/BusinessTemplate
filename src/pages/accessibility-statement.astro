@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getBusiness, telHref } from "@/lib/business";
+import { formatDate, getBusiness, telHref } from "@/lib/business";
 
 /**
  * Token-driven baseline design: everything below inherits the client's
@@ -47,8 +47,31 @@ const { accessibility } = business.content.legal;
         {accessibility.adjustments.map((item) => <li>{item}</li>)}
       </ul>
 
+      <h2 class="mt-12 font-display text-2xl text-secondary">
+        {accessibility.knownLimitationsTitle}
+      </h2>
+      <ul class="mt-4 list-disc space-y-3 ps-5 marker:text-primary">
+        {accessibility.knownLimitations.map((item) => <li>{item}</li>)}
+      </ul>
+
+      {
+        accessibility.physicalAccessibility.length > 0 && (
+          <>
+            <h2 class="mt-12 font-display text-2xl text-secondary">
+              {accessibility.physicalAccessibilityTitle}
+            </h2>
+            <ul class="mt-4 list-disc space-y-3 ps-5 marker:text-primary">
+              {accessibility.physicalAccessibility.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+
       <div class="mt-12 rounded-card border border-line bg-surface-alt p-6 md:p-8">
-        <h2 class="font-display text-xl text-secondary">{accessibility.coordinator.name}</h2>
+        <h2 class="font-display text-xl text-secondary">{accessibility.coordinator.role}</h2>
+        <p class="mt-2 font-semibold"><bdi>{accessibility.coordinator.name}</bdi></p>
         <ul class="mt-4 space-y-2">
           <li>
             <a
@@ -69,9 +92,16 @@ const { accessibility } = business.content.legal;
         </ul>
       </div>
 
-      <p class="mt-10 text-sm text-ink-muted">
-        <bdi class="force-ltr">{accessibility.statementDate}</bdi>
-      </p>
+      <div class="mt-10 space-y-1 text-sm text-ink-muted">
+        <p>
+          {accessibility.auditDateLabel}{" "}
+          <bdi class="force-ltr">{formatDate(business.locale, accessibility.auditDate)}</bdi>
+        </p>
+        <p>
+          {accessibility.statementDateLabel}{" "}
+          <bdi class="force-ltr">{formatDate(business.locale, accessibility.statementDate)}</bdi>
+        </p>
+      </div>
     </div>
   </main>
 </BaseLayout>

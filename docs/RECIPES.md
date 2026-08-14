@@ -161,6 +161,13 @@ Contract, verbatim from `src/lib/form.ts`'s doc comment:
 > `[data-form-status]` element with `role="status"` `aria-live="polite"`;
 > optional honeypot input `name="botcheck"`.
 
+Optional extras the helper understands:
+
+- A designed submit button wraps its label in `<span data-submit-text>` — the
+  sending-state swap then only touches that span, so icons/markup survive.
+- `data-captcha-error` — the message shown when hCaptcha is present but
+  unsolved (falls back to `data-error-message`).
+
 Minimal shape:
 
 ```astro
@@ -212,6 +219,31 @@ Rules:
   no-op. The key is baked in at BUILD time, and `npm run deploy` builds
   locally — so it has to be in your `.env`, not only in the Cloudflare
   dashboard.
+
+**Spam protection (recommended whenever a form ships).** The access key is
+public in the bundle by design, so the honeypot alone is bypassable by
+POSTing to the API directly. Web3Forms' zero-config hCaptcha closes that:
+they verify the token server-side, no keys or registration needed.
+
+```astro
+<!-- inside the form, before the submit button -->
+<div class="h-captcha" data-captcha="true"></div>
+```
+
+```html
+<!-- once per page that renders the form, before </body> -->
+<script is:inline src="https://web3forms.com/client/script.js" async defer></script>
+```
+
+`form.ts` refuses to submit while the widget is unsolved (shows
+`data-captcha-error`). Also enable hCaptcha in the Web3Forms dashboard so
+direct API posts without a token are rejected server-side — that setting is
+what actually closes the bypass.
+
+(No `integrity` hash on that script tag on purpose: it is a living
+third-party loader — Web3Forms updates it, and a pinned SRI hash would
+silently kill the captcha on their next release. The trust boundary here is
+the Web3Forms service itself, which already holds every submission.)
 
 ## 4. RTL survival kit
 

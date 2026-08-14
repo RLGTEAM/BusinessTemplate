@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getBusiness } from "@/lib/business";
+import { formatDate, getBusiness } from "@/lib/business";
 
 /**
  * Token-driven baseline design: everything below inherits the client's
@@ -42,6 +42,11 @@ const { privacy } = business.content.legal;
       <div class="mt-10 space-y-5">
         {privacy.body.map((paragraph) => <p>{paragraph}</p>)}
       </div>
+
+      <p class="mt-10 text-sm text-ink-muted">
+        {privacy.statementDateLabel}{" "}
+        <bdi class="force-ltr">{formatDate(business.locale, privacy.statementDate)}</bdi>
+      </p>
     </div>
   </main>
 </BaseLayout>

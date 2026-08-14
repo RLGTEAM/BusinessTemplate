@@ -1,4 +1,5 @@
 import { PUBLIC_WEB3FORMS_KEY } from "astro:env/client";
+import { trackConversion } from "./track";
 
 /**
  * Headless contact-form plumbing. The model designs 100% of the form's
@@ -12,6 +13,12 @@ import { PUBLIC_WEB3FORMS_KEY } from "astro:env/client";
  * role="status" aria-live="polite"; optional honeypot input name="botcheck".
  * A submit button whose label wraps in [data-submit-text] keeps icons/markup
  * intact through the sending-state swap; a bare text button also works.
+ *
+ * Spam protection beyond the honeypot: the access key is public by design,
+ * so real protection is Web3Forms' zero-config hCaptcha — add
+ * `<div class="h-captcha" data-captcha="true"></div>` plus their client
+ * script (RECIPES recipe 3) and this module refuses to submit without a
+ * solved token (Web3Forms verifies it server-side).
  *
  * Wired once in BaseLayout on astro:page-load — a page without a matching
  * form costs nothing.
@@ -96,13 +103,24 @@ async function submit(form: HTMLFormElement): Promise<void> {
       "success" in result &&
       result.success === true;
     showStatus(form, ok ? "success" : "error");
-    if (ok) form.reset();
+    if (ok) {
+      form.reset();
+      trackConversion("generate_lead");
+    }
   } catch {
     showStatus(form, "error");
   } finally {
     button.disabled = false;
     label.textContent = form.dataset.submitLabel ?? "";
   }
+}
+
+/** "" = widget present but unsolved; null = no captcha on this form. */
+function captchaToken(form: HTMLFormElement): string | null {
+  if (!form.querySelector(".h-captcha")) return null;
+  return (
+    form.querySelector<HTMLTextAreaElement>('textarea[name="h-captcha-response"]')?.value ?? ""
+  );
 }
 
 function bind(form: HTMLFormElement): void {
@@ -114,6 +132,17 @@ function bind(form: HTMLFormElement): void {
     // sit on screen next to fresh validation errors.
     hideStatus(form);
     if (!validate(form)) return;
+    if (captchaToken(form) === "") {
+      // hCaptcha rendered but not solved — Web3Forms would reject the
+      // submission server-side; say so instead of losing the message.
+      const status = form.querySelector<HTMLElement>("[data-form-status]");
+      if (status) {
+        status.textContent = form.dataset.captchaError ?? form.dataset.errorMessage ?? "";
+        status.classList.remove("hidden");
+        status.dataset.state = "error";
+      }
+      return;
+    }
     if (PUBLIC_WEB3FORMS_KEY === "") {
       // Endpoint not configured — surface the error state instead of a silent no-op.
       showStatus(form, "error");

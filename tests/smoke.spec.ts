@@ -158,18 +158,20 @@ test.describe("home page", () => {
 
   test("renders JSON-LD structured data", async ({ page }) => {
     await page.goto("/");
-    // LocalBusiness, Organization, WebSite, + FAQPage when content.faq has
-    // items. A client may legitimately ADD types (BreadcrumbList, Service…),
-    // so the required set is asserted, not an exact count.
+    // The business node (@type from data.schemaType) + WebSite, + FAQPage
+    // when content.faq has items. A client may legitimately ADD types
+    // (BreadcrumbList, Service…), so the required set is asserted, not an
+    // exact count.
     const scripts = page.locator('script[type="application/ld+json"]');
     const content = business.content as Record<string, unknown>;
     const faq = typeof content.faq === "object" && content.faq !== null ? content.faq : null;
     const hasFaq =
       Array.isArray((faq as Record<string, unknown> | null)?.items) &&
       ((faq as Record<string, unknown>).items as unknown[]).length > 0;
-    expect(await scripts.count()).toBeGreaterThanOrEqual(hasFaq ? 4 : 3);
+    expect(await scripts.count()).toBeGreaterThanOrEqual(hasFaq ? 3 : 2);
     const all = (await scripts.allTextContents()).join("\n");
-    for (const type of ["LocalBusiness", "Organization", "WebSite"]) {
+    const businessType = (business.data as { schemaType?: string }).schemaType ?? "LocalBusiness";
+    for (const type of [businessType, "WebSite"]) {
       expect(all, `homepage JSON-LD must include ${type}`).toContain(type);
     }
     if (hasFaq) {

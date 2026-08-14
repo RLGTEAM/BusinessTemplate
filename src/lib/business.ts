@@ -18,6 +18,17 @@ export function getDir(locale: Business["locale"]): "rtl" | "ltr" {
   return locale === "he" ? "rtl" : "ltr";
 }
 
+/** ISO "2026-07-22" → reader-facing date ("22.07.2026" for Hebrew sites,
+ *  "22/07/2026" for English) — raw ISO reads as machine output. */
+export function formatDate(locale: Business["locale"], iso: string): string {
+  return new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${iso}T00:00:00Z`));
+}
+
 /**
  * Canonical dialable form of a display phone string (also used verbatim as
  * the JSON-LD `telephone` value):

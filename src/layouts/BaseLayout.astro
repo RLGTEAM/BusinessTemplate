@@ -5,7 +5,7 @@ import JsonLd from "@/components/seo/JsonLd.astro";
 import SEO from "@/components/seo/SEO.astro";
 import ConsentBanner from "@/components/ui/ConsentBanner.astro";
 import { getBusiness, getDir } from "@/lib/business";
-import { faqJsonLd, localBusinessJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/jsonld";
+import { faqJsonLd, localBusinessJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import "@/styles/global.css";
 // Per-client design surface — loaded after global.css so it can re-skin
 // sections and override tokens (docs/DESIGN-DOCTRINE.md). Empty in the template.
@@ -59,7 +59,6 @@ const brandVars = [
     <Font cssVariable="--font-brand-display" preload />
     <Font cssVariable="--font-brand-body" preload />
     <JsonLd data={localBusinessJsonLd(business)} />
-    <JsonLd data={organizationJsonLd(business)} />
     <JsonLd data={websiteJsonLd(business)} />
     {faq && <JsonLd data={faq} />}
     <ClientRouter />
@@ -76,10 +75,12 @@ const brandVars = [
     <script>
       import { destroyAnimations, initAnimations } from "@/lib/animation";
       import { setupContactForms } from "@/lib/form";
+      import { setupConversionTracking } from "@/lib/track";
 
       document.addEventListener("astro:page-load", initAnimations);
       document.addEventListener("astro:before-swap", destroyAnimations);
       document.addEventListener("astro:page-load", setupContactForms);
+      document.addEventListener("astro:page-load", setupConversionTracking);
     </script>
     {
       business.data.analytics.cloudflareToken && (

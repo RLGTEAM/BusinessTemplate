@@ -22,6 +22,78 @@ const hexColor = z
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected HH:MM (24h)");
 
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
+
+const timeRange = z.object({ open: time, close: time }).strict();
+
+/**
+ * Schema.org LocalBusiness subtypes — the business @type is a real local-SEO
+ * signal ("Bakery" ranks for bakery queries in ways generic "LocalBusiness"
+ * does not). Curated to the verticals this studio actually serves; extending
+ * the list is a normal schema-first edit (any schema.org LocalBusiness
+ * subtype is valid).
+ */
+const schemaTypes = z.enum([
+  "LocalBusiness",
+  "AutoRepair",
+  "AutoWash",
+  "Attorney",
+  "AccountingService",
+  "Bakery",
+  "BarOrPub",
+  "BeautySalon",
+  "CafeOrCoffeeShop",
+  "ChildCare",
+  "ClothingStore",
+  "DaySpa",
+  "Dentist",
+  "DryCleaningOrLaundry",
+  "Electrician",
+  "ExerciseGym",
+  "FastFoodRestaurant",
+  "FinancialService",
+  "Florist",
+  "FoodEstablishment",
+  "FurnitureStore",
+  "GeneralContractor",
+  "GroceryStore",
+  "HairSalon",
+  "HardwareStore",
+  "HealthAndBeautyBusiness",
+  "HomeAndConstructionBusiness",
+  "HousePainter",
+  "HVACBusiness",
+  "IceCreamShop",
+  "InsuranceAgency",
+  "JewelryStore",
+  "LegalService",
+  "Locksmith",
+  "LodgingBusiness",
+  "MedicalBusiness",
+  "MedicalClinic",
+  "MobilePhoneStore",
+  "MovingCompany",
+  "NailSalon",
+  "Notary",
+  "Optician",
+  "PetStore",
+  "Pharmacy",
+  "Physician",
+  "Plumber",
+  "ProfessionalService",
+  "RealEstateAgent",
+  "Restaurant",
+  "RoofingContractor",
+  "ShoeStore",
+  "SportingGoodsStore",
+  "SportsActivityLocation",
+  "Store",
+  "TattooParlor",
+  "ToyStore",
+  "TravelAgency",
+  "VeterinaryCare",
+]);
+
 const urlOrEmpty = z.union([z.url(), z.literal("")]);
 
 const link = z
@@ -84,6 +156,11 @@ export const businessSchema = z
       .object({
         name: z.string().min(1),
         legalName: z.string().min(1),
+        /** ח.פ / ע.מ registration number — Israeli commercial practice expects
+         *  it in the footer; also emitted as taxID in JSON-LD. Optional. */
+        companyId: z.string().min(1).optional(),
+        /** Schema.org business subtype for JSON-LD (@type). */
+        schemaType: schemaTypes.default("LocalBusiness"),
         tagline: z.string(),
         contact: z
           .object({
@@ -103,7 +180,14 @@ export const businessSchema = z
                 'wa.me format: full country code, no leading 0, digits only — e.g. "972501234567"',
               )
               .optional(),
-            address: z.string().min(1),
+            /** Display street address, e.g. "הרצל 12, תל אביב". OPTIONAL — a
+             *  service-area business (mobile handyman, home tutor) has no
+             *  storefront; omit it (Google policy forbids inventing one) and
+             *  JSON-LD falls back to areaServed. */
+            address: z.string().min(1).optional(),
+            /** Locality on its own, e.g. "תל אביב" — feeds addressLocality in
+             *  structured data. */
+            city: z.string().min(1).optional(),
             geo: z
               .object({
                 lat: z.number().min(-90).max(90),
@@ -128,12 +212,30 @@ export const businessSchema = z
                 ]),
                 /** Display label in the site language, e.g. "ראשון". */
                 label: z.string().min(1),
-                open: time,
-                close: time,
+                /** Open ranges for the day. SPLIT SHIFTS are multiple entries
+                 *  (09:00–13:00 + 16:00–19:00). An EMPTY array = closed —
+                 *  list closed days explicitly so the site can render
+                 *  "שבת: סגור" and JSON-LD marks the day closed. */
+                ranges: z.array(timeRange),
               })
               .strict(),
           )
           .min(1),
+        /** Date-specific overrides (חגים / ערבי חג) — a full replacement for
+         *  that date's hours; empty ranges = closed. Feeds
+         *  specialOpeningHoursSpecification so holiday hours reach Google. */
+        specialHours: z
+          .array(
+            z
+              .object({
+                date: isoDate,
+                /** Display label, e.g. "ערב יום כיפור". */
+                label: z.string().min(1),
+                ranges: z.array(timeRange),
+              })
+              .strict(),
+          )
+          .default([]),
         services: z
           .array(
             z
@@ -154,6 +256,32 @@ export const businessSchema = z
             tiktok: urlOrEmpty,
           })
           .strict(),
+        /** Local-presence links — the strongest local-SEO signals a small
+         *  business has. Empty string = doesn't exist (never invent). */
+        local: z
+          .object({
+            /** The Google Business Profile / Maps place URL — joins sameAs
+             *  and hasMap in JSON-LD (bidirectional site↔GBP linkage). */
+            googleBusinessProfile: urlOrEmpty.default(""),
+            /** Direct "write a review" link (g.page/r/…/review) — the actual
+             *  local-rank growth lever; surface it prominently post-service. */
+            reviewUrl: urlOrEmpty.default(""),
+            /** Waze navigation link — "נווט בוויז" is table stakes on Israeli
+             *  small-business sites. */
+            wazeUrl: urlOrEmpty.default(""),
+          })
+          .strict()
+          .default({ googleBusinessProfile: "", reviewUrl: "", wazeUrl: "" }),
+        /** REAL aggregate rating (from Google reviews) → AggregateRating
+         *  stars in search results. NEVER invent or round up — absent means
+         *  no stars markup, which is always better than fake stars. */
+        reviews: z
+          .object({
+            ratingValue: z.number().min(1).max(5),
+            reviewCount: z.number().int().min(1),
+          })
+          .strict()
+          .optional(),
         serviceAreas: z.array(z.string().min(1)),
         /** Schema.org priceRange for LocalBusiness, e.g. "₪₪". Empty omits it. */
         priceRange: z.string().default(""),
@@ -194,6 +322,11 @@ export const businessSchema = z
             defaultDescription: z.string().min(1).max(170),
             /** Filename inside public/, e.g. "og-default.png". */
             ogImage: z.string().min(1),
+            /** Square brand-mark filename inside public/ (e.g. "logo.png") —
+             *  becomes the JSON-LD logo. Optional: the generated favicon tile
+             *  is an initial, not a logo; set this only when a real logo
+             *  exists (Google wants an actual brand mark, not the OG banner). */
+            logo: z.string().min(1).optional(),
             /**
              * google-site-verification meta-tag token (content value only, no HTML).
              * Written by `npm run gsc:setup`; BaseLayout renders the tag when present.
@@ -274,25 +407,55 @@ export const businessSchema = z
               .object({
                 title: z.string().min(1),
                 intro: z.array(z.string().min(1)).min(1),
-                /** What the site implements (bullet list). */
+                /** What the site implements (bullet list) — claims must be
+                 *  TRUE for this build, not aspirational boilerplate. */
                 adjustments: z.array(z.string().min(1)).min(1),
+                /** ת"י 5568 requires stating known limitations explicitly —
+                 *  if none are known, say so in the single item. */
+                knownLimitationsTitle: z.string().min(1),
+                knownLimitations: z.array(z.string().min(1)).min(1),
+                /** Physical-premises arrangements (the regulations cover the
+                 *  SERVICE, not only the website). Empty = no public premises
+                 *  (service-area business) — the section is hidden. */
+                physicalAccessibilityTitle: z.string().min(1),
+                physicalAccessibility: z.array(z.string().min(1)).default([]),
                 coordinator: z
                   .object({
+                    /** Role title, e.g. "רכז/ת נגישות" — the statement must
+                     *  identify the role, not just a bare name. */
+                    role: z.string().min(1),
                     name: z.string().min(1),
                     phone: z.string().min(1),
                     email: z.email(),
                   })
                   .strict(),
-                /** ISO date, e.g. "2026-07-22". */
-                statementDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+                /** When the site was last checked for accessibility. */
+                auditDateLabel: z.string().min(1),
+                auditDate: isoDate,
+                /** When this statement was last updated. */
+                statementDateLabel: z.string().min(1),
+                statementDate: isoDate,
               })
               .strict(),
             privacy: z
               .object({
                 title: z.string().min(1),
                 body: z.array(z.string().min(1)).min(1),
+                statementDateLabel: z.string().min(1),
+                statementDate: isoDate,
               })
               .strict(),
+            /** Optional תקנון (terms of use / cancellation policy) — needed
+             *  when the business takes bookings or payments (חוק הגנת
+             *  הצרכן). The client repo adds a self-contained
+             *  pages/terms.astro modeled on privacy.astro. */
+            terms: z
+              .object({
+                title: z.string().min(1),
+                body: z.array(z.string().min(1)).min(1),
+              })
+              .strict()
+              .optional(),
           })
           .strict(),
 
@@ -305,9 +468,30 @@ export const businessSchema = z
          *
          * - `faq` is the canonical shape for FAQPage JSON-LD + llms.txt (AEO):
          *   include it whenever the business has real FAQs.
+         * - `testimonials` is the canonical social-proof shape — real client
+         *   quotes only. (Deliberately NOT emitted as Review JSON-LD:
+         *   self-published reviews violate Google's guidelines; star markup
+         *   comes from data.reviews instead.)
          * - `shell` exists ONLY for the template's unbuilt starter page —
          *   delete it (schema + JSON) when building the real site.
          * ──────────────────────────────────────────────────────────────────── */
+        testimonials: z
+          .object({
+            title: z.string().optional(),
+            items: z
+              .array(
+                z
+                  .object({
+                    quote: z.string().min(1),
+                    name: z.string().min(1),
+                    role: z.string().optional(),
+                  })
+                  .strict(),
+              )
+              .min(1),
+          })
+          .strict()
+          .optional(),
         faq: z
           .object({
             title: z.string().optional(),
