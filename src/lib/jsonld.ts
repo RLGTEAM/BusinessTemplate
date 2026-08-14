@@ -134,6 +134,24 @@ export function websiteJsonLd(business: Business): JsonLd {
   };
 }
 
+/** BreadcrumbList for subpages (service/city landing pages) — pass the trail
+ *  from the homepage down, e.g. [{name, path: "/"}, {name, path: "/plumbing/"}]. */
+export function breadcrumbJsonLd(
+  business: Business,
+  items: Array<{ name: string; path: string }>,
+): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(business.data.seo.siteUrl, item.path),
+    })),
+  };
+}
+
 export function faqJsonLd(business: Business): JsonLd | null {
   if (!business.content.faq || business.content.faq.items.length === 0) return null;
   return {

@@ -20,6 +20,8 @@ interface Props {
    * emitting it site-wide, e.g. on /privacy/, violates their guidelines).
    */
   withFaqJsonLd?: boolean;
+  /** Keep this page out of search indexes (404, thank-you pages). */
+  noindex?: boolean;
 }
 
 const business = await getBusiness();
@@ -55,12 +57,20 @@ const brandVars = [
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <SEO business={business} title={Astro.props.title} description={Astro.props.description} />
+    <SEO
+      business={business}
+      title={Astro.props.title}
+      description={Astro.props.description}
+      noindex={Astro.props.noindex}
+    />
     <Font cssVariable="--font-brand-display" preload />
     <Font cssVariable="--font-brand-body" preload />
     <JsonLd data={localBusinessJsonLd(business)} />
     <JsonLd data={websiteJsonLd(business)} />
     {faq && <JsonLd data={faq} />}
+    {/* Per-page head extras — subpages inject BreadcrumbList JSON-LD here
+        (RECIPES recipe 10). */}
+    <slot name="head" />
     <ClientRouter />
   </head>
   <body>

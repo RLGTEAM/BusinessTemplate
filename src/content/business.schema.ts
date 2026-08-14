@@ -388,6 +388,9 @@ export const businessSchema = z
             declineLabel: z.string().min(1),
             /** Link text to the privacy policy page. */
             privacyLabel: z.string().min(1),
+            /** "Manage cookie preferences" — rendered on the privacy page so a
+             *  stored choice can be changed (consent must be withdrawable). */
+            manageLabel: z.string().min(1),
           })
           .strict(),
         notFound: z

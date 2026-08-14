@@ -53,7 +53,8 @@ if (!FONT_PAIRINGS[pairingKey]) {
 export default defineConfig({
   site: business.data.seo.siteUrl,
   output: "static",
-  integrations: [sitemap()],
+  // The 404 page must never appear in the sitemap (it also carries noindex).
+  integrations: [sitemap({ filter: (page) => !page.includes("/404") })],
   vite: {
     plugins: [tailwindcss()],
   },

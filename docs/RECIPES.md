@@ -569,3 +569,93 @@ Rules:
 - This bar counts toward the page contract's "clear contact path reachable"
   — it doesn't replace the nav's own contact link, but on mobile it's
   usually the one visitors actually use.
+
+## 10. Subpages (service pages, service × city landing pages)
+
+Why: the one-pager is the DEFAULT, not the ceiling. When a client needs
+service detail pages or service-per-city landing pages (the highest-yield
+local-SEO play: "אינסטלטור בחולון"), the plumbing is already here — this
+recipe is the canonical way to use it. Everything stays schema-first.
+
+1. **Content model** — add a per-client pages shape to `business.schema.ts`
+   (there is deliberately no canonical `content.pages` shipped: its fields
+   depend on the design). The non-negotiables are a `slug`, a per-page
+   `title`, and a per-page `description`:
+
+```ts
+// business.schema.ts — inside content, per-client region
+servicePages: z
+  .array(
+    z.object({
+      slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+      /** Per-page <title> — targets THIS page's query, not the homepage's. */
+      title: z.string().min(1).max(70),
+      description: z.string().min(1).max(170),
+      heading: z.string().min(1),
+      body: z.array(z.string().min(1)).min(1),
+    }).strict(),
+  )
+  .optional(),
+```
+
+2. **Route** — one dynamic route generates them all:
+
+```astro
+---
+// src/pages/[slug].astro
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import JsonLd from "@/components/seo/JsonLd.astro";
+import { getBusiness } from "@/lib/business";
+import { breadcrumbJsonLd } from "@/lib/jsonld";
+
+export async function getStaticPaths() {
+  const business = await getBusiness();
+  return (business.content.servicePages ?? []).map((page) => ({
+    params: { slug: page.slug },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const business = await getBusiness();
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <JsonLd
+    data={breadcrumbJsonLd(business, [
+      { name: business.data.name, path: "/" },
+      { name: page.heading, path: `/${page.slug}/` },
+    ])}
+    slot="head"
+  />
+  <!-- header/nav/footer: same components as the homepage -->
+  <main id="main">
+    <h1>{page.heading}</h1>
+    {page.body.map((paragraph) => <p>{paragraph}</p>)}
+  </main>
+</BaseLayout>
+```
+
+(If `BaseLayout` has no head slot in your clone, render the `<JsonLd>` at the
+top of `<main>` — JSON-LD is valid anywhere in the document.)
+
+Rules:
+
+- **Per-page SEO is the whole point**: every page gets its own `title` /
+  `description` via BaseLayout props, its own canonical (automatic — SEO.astro
+  canonicalizes per pathname), and a `BreadcrumbList` via `breadcrumbJsonLd()`.
+  Never let subpages fall back to the homepage's default title.
+- The sitemap picks new routes up automatically (`@astrojs/sitemap`).
+- Nav: cross-PAGE links use full paths (`/plumbing/`) — the contract tests
+  ignore non-`#` hrefs by design. Mark the current page's nav link with
+  `aria-current="page"` (recipe 7's scroll-spy `aria-current` handles
+  `#section` links on the one-pager only).
+- Coverage does NOT extend automatically: `tests/a11y.spec.ts` scans a fixed
+  path list and the smoke suite targets `/`. ADD a client-repo spec that
+  loops over the new slugs (axe + the h1 rule) — the contract suite is
+  add-only, never edited.
+- City pages must have REAL differentiated content (local proof, areas,
+  testimonials from that city) — a template paragraph with the city name
+  swapped is doorway-page territory and Google treats it accordingly.
+- The FAQ stays on the page that renders it (`withFaqJsonLd` on that page
+  only).

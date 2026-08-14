@@ -180,8 +180,30 @@ const { consent } = business.content;
     banner.querySelector("[data-consent-decline]")?.addEventListener("click", () => {
       storeChoice("denied");
       banner.hidden = true;
+      // Withdrawing AFTER trackers already ran this session: a reload is the
+      // only way to actually stop them (script tags can't be un-executed).
+      if (trackersLoaded) window.location.reload();
     });
   }
 
+  /** [data-consent-reopen] (privacy page) — consent must be withdrawable:
+   *  clears the stored choice and re-shows the banner. */
+  function setupConsentReopen(): void {
+    const banner = document.getElementById("consent-banner");
+    if (!banner) return;
+    for (const trigger of document.querySelectorAll("[data-consent-reopen]")) {
+      trigger.addEventListener("click", () => {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {
+          // Private mode — nothing stored anyway.
+        }
+        banner.hidden = false;
+        banner.scrollIntoView({ block: "end" });
+      });
+    }
+  }
+
   document.addEventListener("astro:page-load", setupConsent);
+  document.addEventListener("astro:page-load", setupConsentReopen);
 </script>

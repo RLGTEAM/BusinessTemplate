@@ -249,16 +249,28 @@ run through this skill isn't finished, even if Step 6 is green.
 npm run test
 npm run test:e2e
 npm run test:ltr-build
+npm run build && npm run lhci
 npx playwright test --grep @visual --update-snapshots
-npm run test:visual
+npm run preflight
 ```
 
 If the Execution plan's continuous validation was followed, `npm run test`
 is a seconds-long confirmation — any failure here means a step skipped its
 own check; fix the habit along with the failure. The slow suites run once,
 in this order (e2e surfaces the widest class of defects first; ltr-build
-rebuilds `dist/` to the real locale when it finishes, so visual snapshots
-come after it, against the correct build).
+rebuilds `dist/` to the EN locale, so the plain `npm run build` after it
+restores the real locale for `lhci` and the snapshots). `lhci` checks the
+budgets the build is judged on (LCP ≤ 2.5s, TBT ≤ 200ms, CLS ≤ 0.1) — a
+budget failure is a build defect, not an ops problem; fix it now, not after
+push. The `--update-snapshots` run CREATES the visual baselines for this
+fresh design (there is nothing meaningful to compare a first build against —
+the check protects FUTURE edits, from the next change onward).
+
+`npm run preflight` last: it reports every remaining launch blocker
+(placeholders, fake coordinator, demo geo, missing OG, broken links). On a
+build with real client data it should pass or leave only items the client
+must still supply — copy its output verbatim into the report's BLOCKING
+section. Do not "fix" a preflight failure by inventing data.
 
 ## Step 7 — Report
 

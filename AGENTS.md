@@ -15,7 +15,10 @@ npm run preview           # serve dist/
 npm run lint              # biome check .
 npm run format            # biome check --write .
 npm run typecheck         # astro check
-npm run validate:content  # business.json: schema + WCAG palette contrast + phone/WhatsApp formats
+npm run validate:content  # business.json: schema + WCAG palette contrast + phone/hours/date checks
+npm run preflight         # LAUNCH gate: placeholders, skeleton denylist, OG file, broken links,
+                          # form key, analytics↔privacy consistency — FAILS on the skeleton by
+                          # design; runs automatically inside production deploys
 npm run test              # validate:content + lint + typecheck
 npm run test:e2e          # Playwright smoke + axe tests (builds + previews automatically)
 npm run test:ltr-build    # builds the English/LTR variant, checks structure (dist/ is rebuilt to the real locale afterward)
@@ -23,8 +26,14 @@ npm run test:visual       # visual regression snapshots (local only, platform-sp
 npm run deploy:setup      # one-time: create the client's Cloudflare Pages project
 npm run deploy            # test gate + build + upload dist/ to Cloudflare Pages
 npm run deploy:preview    # build + upload to the "preview" branch (shareable preview URL)
-npm run generate:placeholders # starter placeholder art — rename outputs to match your image fields
-npm run generate:og       # regenerate OG image + favicon/icon set from business.json
+npm run generate:placeholders # starter placeholder art — never overwrites existing files (--force)
+npm run generate:og       # OG image (headless Chromium — real Hebrew shaping) + favicon/icon set;
+                          # icons are only written when missing (--force overwrites)
+npm run gsc:setup         # Search Console: verify ownership + add property + submit sitemap
+npm run report            # owner report: GSC clicks/queries/pages + deltas for this site
+npm run setup:skills      # install the pinned agent-skill set (once per machine)
+npm run sync:template     # CLIENT repos: pull template-owned fixes onto a review branch
+                          # (docs/CHANGELOG.md explains each TEMPLATE_VERSION)
 npm run lhci              # Lighthouse CI against dist/ (run build first)
 ```
 
@@ -61,11 +70,16 @@ src/
                                      below); starter placeholders via npm run generate:placeholders
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
                                      DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
-                                     patterns for nav/forms/sections) · PLAYBOOK.md (owner
-                                     operating procedure) · superpowers/ (archive of shipped
+                                     patterns for nav/forms/sections/subpages) · PLAYBOOK.md (owner
+                                     operating procedure) · OPERATIONS.md (studio/fleet runbook:
+                                     registry, DNS, monitoring, rollback) · CHANGELOG.md (per-
+                                     TEMPLATE_VERSION sync notes) · superpowers/ (archive of shipped
                                      redesign plans — history, not instructions)
-scripts/                           ← validate-content.ts, generate-placeholders.ts, generate-og.ts,
-                                     check-ltr-build.ts, deploy.ts (Cloudflare Pages upload)
+scripts/                           ← validate-content.ts, preflight.ts (launch gate),
+                                     generate-placeholders.ts, generate-og.ts, check-ltr-build.ts,
+                                     deploy.ts (Cloudflare Pages upload), setup-gsc.ts,
+                                     setup-skills.ts, sync-template.ts, report.ts
+TEMPLATE_VERSION                   ← calver stamp a clone carries; sync-template compares against it
 tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright) +
                                      contract.ts (expectations derived from the frozen core —
                                      tests never assume a section exists)
@@ -76,11 +90,17 @@ Per-client artifacts that exist only in CLIENT repos, never in the template: `do
 
 ## The business.json contract
 
-- `data` = facts (NAP, hours, services, SEO). `voice` = tone + palette. `content` = every visible string, per section.
+- `data` = facts (NAP, hours, services, local links, SEO). `voice` = tone + palette. `content` = every visible string, per section.
 - **The shipped file is a placeholder skeleton**: every `[bracketed]` value must be replaced for a
-  real client. Final sweep — must return NOTHING for a finished site:
-  `rg '\[[^0-9"][^"]*\]' src/content/business/business.json`
-  (matches bracketed placeholders only; a bare `rg "\["` also hits every JSON array opening).
+  real client. The sweep is mechanized: `npm run preflight` fails on any bracketed placeholder,
+  every known skeleton value (fake phones/coordinator, example.com, the demo geo pin), a missing
+  OG file, and broken internal links in dist/ — production deploys run it automatically.
+- Hours are `ranges: [{open, close}]` per day — split shifts are multiple entries, an EMPTY array
+  is an explicit closed day (renderable + marked closed in JSON-LD); `data.specialHours` overrides
+  specific dates (חגים). `data.local` carries GBP/review/Waze links; `data.reviews` is a REAL
+  Google aggregate rating (never invented) → AggregateRating stars; `data.schemaType` picks the
+  schema.org LocalBusiness subtype. `data.contact.address` is optional — service-area businesses
+  ship without one (never invent a storefront).
 - `content.legal.accessibility.coordinator` must contain REAL contact details before launch —
   the accessibility statement is a legal requirement in Israel (ת"י 5568).
 - **No hardcoded business content in components.** New copy → add a field to `business.schema.ts`, then to `business.json`, then read it via `getBusiness()`.
@@ -109,11 +129,14 @@ Per-client artifacts that exist only in CLIENT repos, never in the template: `do
   pairings mapped in astro.config.mjs; components only use `font-display`/`font-sans`).
 - **Content split** — `data` + `voice` + the `content` frozen core (`nav`, `ui`, `consent`,
   `notFound`, `legal`) are identical in every repo. The per-client region ships NO content
-  shapes beyond two optional canonical blocks: `faq` (the canonical shape for FAQPage
-  JSON-LD + llms.txt — include it whenever the business has real FAQs) and `shell`
-  (the template's unbuilt starter page only — delete it, schema + JSON, when building the
-  real site). Everything else is authored from scratch per client, schema-first. Components
-  still read ONLY via `getBusiness()`.
+  shapes beyond three optional canonical blocks: `faq` (feeds FAQPage JSON-LD + llms.txt —
+  emitted ONLY on the page that renders it, via BaseLayout's `withFaqJsonLd` prop),
+  `testimonials` (canonical social-proof shape — real quotes only; star markup comes from
+  `data.reviews`, never from self-published Review JSON-LD), and `shell` (the template's
+  unbuilt starter page only — delete it, schema + JSON, when building the real site).
+  Everything else is authored from scratch per client, schema-first — the schema is
+  `.strict()`, so a typo'd JSON key fails the build. Components still read ONLY via
+  `getBusiness()`. Subpages (service/city landing pages): RECIPES recipe 10.
 
 ## RTL rules (non-negotiable)
 

@@ -14,7 +14,8 @@
  *   --dry-run         print the plan, upload nothing
  */
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { businessSchema } from "../src/content/business.schema";
 
@@ -140,10 +141,25 @@ if (hasFlag("setup")) {
         "  (`npx wrangler whoami`).",
     );
   }
+  // Pin the resolved name into .env: a later siteUrl change (rebrand, new
+  // domain) must not silently re-derive a DIFFERENT project and orphan this
+  // one while it keeps serving the live site.
+  if (!fromEnvFile("CLOUDFLARE_PAGES_PROJECT")) {
+    appendFileSync(
+      envPath,
+      `${existsSync(envPath) ? "\n" : ""}CLOUDFLARE_PAGES_PROJECT="${project}"\n`,
+    );
+    console.log(`✓ Pinned CLOUDFLARE_PAGES_PROJECT="${project}" in .env`);
+  }
   process.exit(0);
 }
 
 // ── preflight ────────────────────────────────────────────────────────────────
+// Wrangler only reads the token from process env — surface a .env value so
+// "put it in .env" (the obvious place) actually works.
+if (!process.env.CLOUDFLARE_API_TOKEN && fromEnvFile("CLOUDFLARE_API_TOKEN")) {
+  process.env.CLOUDFLARE_API_TOKEN = fromEnvFile("CLOUDFLARE_API_TOKEN");
+}
 const authenticated =
   Boolean(process.env.CLOUDFLARE_API_TOKEN) ||
   !/not authenticated|you are not logged in/i.test(
@@ -197,7 +213,9 @@ if (!hasFlag("skip-build")) {
 }
 
 // Production branches must clear the launch gate (placeholders, broken links,
-// missing form key, OG image…). Previews are working drafts and skip it.
+// missing form key, OG image…). Previews are working drafts and skip it —
+// but a public *.pages.dev draft must never get indexed, so previews get an
+// X-Robots-Tag appended to the built _headers before upload.
 if (branch !== "preview") {
   try {
     run("npx tsx scripts/preflight.ts");
@@ -206,6 +224,17 @@ if (branch !== "preview") {
       "Preflight failed — fix the launch blockers above before a production deploy.\n" +
         "  (Shareable drafts go through `npm run deploy:preview`, which skips this gate.)",
     );
+  }
+} else {
+  const headersPath = join(distPath, "_headers");
+  const noindexRule =
+    "\n# Preview deploys must not be indexed (appended by deploy.ts)\n/*\n  X-Robots-Tag: noindex\n";
+  if (
+    !existsSync(headersPath) ||
+    !readFileSync(headersPath, "utf-8").includes("X-Robots-Tag: noindex")
+  ) {
+    appendFileSync(headersPath, noindexRule);
+    console.log("  (preview) appended X-Robots-Tag: noindex to dist/_headers");
   }
 }
 

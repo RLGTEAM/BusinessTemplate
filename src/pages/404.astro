@@ -6,7 +6,7 @@ const business = await getBusiness();
 const { notFound } = business.content;
 ---
 
-<BaseLayout title={`${notFound.title} — ${business.data.name}`}>
+<BaseLayout title={`${notFound.title} — ${business.data.name}`} noindex>
   <main id="main">
     <h1>{notFound.title}</h1>
     <p>{notFound.body}</p>
