@@ -20,6 +20,7 @@
     "test:e2e": "playwright test --grep-invert @visual",
     "deploy": "npm run test && tsx scripts/deploy.ts",
     "gsc:setup": "tsx scripts/setup-gsc.ts",
+    "setup:skills": "tsx scripts/setup-skills.ts",
     "deploy:preview": "tsx scripts/deploy.ts --branch=preview",
     "deploy:setup": "tsx scripts/deploy.ts --setup",
     "lhci": "lhci autorun",

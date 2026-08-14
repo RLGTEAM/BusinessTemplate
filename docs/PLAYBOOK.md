@@ -9,7 +9,12 @@ operations, not a replacement for them.
 1. **Duplicate.** Template repo → **Use this template** → a new private
    `client-name` repo → `git clone <client-repo-url> && cd client-name` →
    `npm install`. First time on a machine, also run
-   `npx playwright install chromium` (once per machine, not per client).
+   `npx playwright install chromium` AND `npm run setup:skills` (both once
+   per machine, not per client). `setup:skills` installs the studio's
+   required agent-skill set — the build workflow invokes these skills by
+   name (Hebrew copy, CRO, web-quality audits, GSAP…), so a machine without
+   them produces weaker builds. Idempotent; rerun with `-- --force` to pull
+   upstream skill updates. Restart Claude Code after installing.
 
 2. **Scrape.** Open the client's socials and Google Business profile in a
    Chrome tab group; drive Claude-in-Chrome to fill `docs/brief.md` from

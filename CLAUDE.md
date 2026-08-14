@@ -12,6 +12,22 @@ Declared in `.mcp.json`, pre-allowed in `.claude/settings.json` — use them, do
 - **a11y** — run axe-core checks after touching forms, nav, color tokens, or heading structure.
 - **github** / **cloudflare** — available but NOT pre-approved (they mutate real infrastructure and need OAuth via `/mcp`). Always confirm with the user before deploy/DNS/repo mutations. Routine deploys don't need the `cloudflare` server at all — `npm run deploy` covers them (see AGENTS.md → Deploy); reach for the MCP server only for DNS, custom domains, or dashboard-level settings.
 
+## Required agent skills (mandatory)
+
+The build workflow depends on a pinned set of globally-installed agent skills
+(`scripts/setup-skills.ts` is the authoritative list): `accessibility`,
+`core-web-vitals`, `seo`, `web-design-guidelines`, `gsap-core`, `seo-audit`,
+`cro`, `local-seo`, `hebrew-rtl-best-practices`, `hebrew-content-writer`,
+`israeli-accessibility-compliance`.
+
+- **Before starting a client build (`/new-client`) or a design/SEO/a11y task**,
+  check your available-skills list for these names. If ANY is missing, run
+  `npm run setup:skills` first (installs only what's missing; needs network),
+  then tell the user to restart the session so the new skills load — newly
+  installed skills are not visible until restart.
+- Use them at the steps where `/new-client` and `docs/PLAYBOOK.md` call for
+  them — don't work from memory in a domain one of these skills covers.
+
 ## Claude-specific notes
 
 - After editing `business.json` or `business.schema.ts`, run `npm run validate:content` before anything else — it gives the fastest, clearest error messages (schema, palette contrast, phone/WhatsApp formats).
