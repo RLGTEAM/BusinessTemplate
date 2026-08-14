@@ -41,6 +41,11 @@ const brandVars = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content={palette.primary} />
+    {
+      business.data.seo.googleSiteVerification && (
+        <meta name="google-site-verification" content={business.data.seo.googleSiteVerification} />
+      )
+    }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />

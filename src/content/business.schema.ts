@@ -152,6 +152,11 @@ export const businessSchema = z.object({
       defaultDescription: z.string().min(1).max(170),
       /** Filename inside public/, e.g. "og-default.png". */
       ogImage: z.string().min(1),
+      /**
+       * google-site-verification meta-tag token (content value only, no HTML).
+       * Written by `npm run gsc:setup`; BaseLayout renders the tag when present.
+       */
+      googleSiteVerification: z.string().optional(),
     }),
   }),
 

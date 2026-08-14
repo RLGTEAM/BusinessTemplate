@@ -279,8 +279,9 @@ End with exactly these sections:
    then `npx wrangler login` → `npm run deploy:setup` → `npm run deploy:preview`.
    Do NOT run any deploy command yourself — list them for the operator.
 6. **After production deploy (operator steps, list them)** — Google Search
-   Console: `npm run gsc:setup` (verifies the domain via a Cloudflare DNS TXT
-   record, adds the property, submits the sitemap — one-time OAuth setup in
+   Console: `npm run gsc:setup` twice (first run writes the verification
+   meta-tag token into business.json → commit + redeploy → second run
+   verifies + submits the sitemap — one-time OAuth setup in
    `docs/PLAYBOOK.md`). Then the local-SEO basics for the client: Google
    Business Profile exists and links to the site, NAP on the site matches
    the GBP listing exactly (the `local-seo` skill, if installed, is the

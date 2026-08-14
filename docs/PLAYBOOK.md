@@ -86,10 +86,14 @@ operations, not a replacement for them.
 
 ## Search Console (`npm run gsc:setup`)
 
-One command wires a launched site into Google Search Console: it verifies
-domain ownership via a Cloudflare DNS TXT record, adds the domain property
-(`sc-domain:<domain>` — covers www/apex/http/https at once), and submits the
-sitemap. Idempotent — safe to rerun.
+One command wires a launched site into Google Search Console using the
+**meta-tag** verification method — no DNS access or extra Cloudflare
+permissions needed. It fetches the site's verification token from Google and
+writes it into `data.seo.googleSiteVerification` in `business.json`
+(BaseLayout renders the `google-site-verification` meta tag); after you
+commit + `npm run deploy`, running it again confirms the tag is live,
+verifies ownership, adds the URL-prefix property, and submits the sitemap.
+Idempotent — safe to rerun at any point; it tells you which phase you're in.
 
 **One-time studio setup** (once ever, not per client):
 
@@ -102,12 +106,11 @@ sitemap. Idempotent — safe to rerun.
    studio's Google account and prints `GOOGLE_OAUTH_REFRESH_TOKEN` to add to
    `.env`. The token works for every client site owned by that account.
 
-**Per client**: `CLOUDFLARE_API_TOKEN` in `.env` needs **Zone:Read +
-DNS:Edit** on the client's zone (the Pages-only deploy token can't create
-the TXT record — mint one token with Pages + Zone + DNS permissions and use
-it for both). Then, after the production deploy: `npm run gsc:setup`.
-At handoff (step 9), add the client as a user on the property in Search
-Console — ownership stays with the studio account that verified it.
+**Per client**, after the production deploy: `npm run gsc:setup` (writes the
+token) → commit → `npm run deploy` → `npm run gsc:setup` again (verifies +
+submits). The token is site-specific but NOT a secret — committing it is
+correct. At handoff (step 9), add the client as a user on the property in
+Search Console — ownership stays with the studio account that verified it.
 
 ## Getting the best out of it
 

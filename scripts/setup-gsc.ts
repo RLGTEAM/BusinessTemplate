@@ -1,7 +1,7 @@
 /**
- * Google Search Console setup for a deployed production site.
+ * Google Search Console setup for a deployed production site (meta-tag method).
  *
- *   npm run gsc:setup            # verify domain (Cloudflare DNS TXT) → add property → submit sitemap
+ *   npm run gsc:setup            # ensure meta tag → verify → add property → submit sitemap
  *   npm run gsc:setup -- --auth  # one-time: mint the Google OAuth refresh token (browser flow)
  *   npm run gsc:setup -- --dry-run
  *
@@ -10,16 +10,15 @@
  *     client from any Google Cloud project with the Search Console API and the
  *     Site Verification API enabled (one client serves every client site).
  *   GOOGLE_OAUTH_REFRESH_TOKEN — minted once per Google account via --auth.
- *   CLOUDFLARE_API_TOKEN — must carry Zone:Read + DNS:Edit for the client's zone
- *     (the Pages-only deploy token is NOT enough; make one token with both).
  *
- * The domain property (sc-domain:example.co.il) is used, so verification is a
- * DNS TXT record on the zone apex and covers www/apex/http/https at once.
- * Everything is idempotent: existing TXT records, an already-verified domain,
- * an already-added property, and a resubmitted sitemap are all fine.
+ * Verification is the google-site-verification META TAG: the script fetches the
+ * token from Google, writes it into `data.seo.googleSiteVerification` in
+ * business.json (BaseLayout renders the tag), and on the next run — after the
+ * operator rebuilds and deploys — confirms the tag is live, verifies ownership,
+ * adds the URL-prefix property, and submits the sitemap. Idempotent throughout.
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { businessSchema } from "../src/content/business.schema";
@@ -146,107 +145,35 @@ async function accessToken(
   return access;
 }
 
-// ---------------------------------------------------------------- Cloudflare DNS
+// ---------------------------------------------------------------- Steps
 
-interface Zone {
-  id: string;
-  name: string;
-}
-
-/** www.cafe.example.co.il → try cafe.example.co.il, example.co.il, co.il until a zone matches. */
-async function findZone(cfToken: string, hostname: string): Promise<Zone> {
-  const labels = hostname.replace(/^www\./, "").split(".");
-  for (let i = 0; i < labels.length - 1; i++) {
-    const candidate = labels.slice(i).join(".");
-    const body = await api(
-      `https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(candidate)}`,
-      { headers: { authorization: `Bearer ${cfToken}` } },
-      "Cloudflare zone lookup",
-    );
-    const first = Array.isArray(body.result) ? body.result[0] : undefined;
-    if (isRecord(first) && typeof first.id === "string" && typeof first.name === "string") {
-      return { id: first.id, name: first.name };
-    }
-  }
-  fail(`no Cloudflare zone found for ${hostname} — is the domain on this Cloudflare account?`);
-}
-
-async function ensureTxtRecord(cfToken: string, zone: Zone, content: string): Promise<void> {
-  const headers = { authorization: `Bearer ${cfToken}`, "content-type": "application/json" };
-  const existing = await api(
-    `https://api.cloudflare.com/client/v4/zones/${zone.id}/dns_records?type=TXT&name=${encodeURIComponent(zone.name)}`,
-    { headers },
-    "Cloudflare DNS record lookup",
-  );
-  const records = Array.isArray(existing.result) ? existing.result : [];
-  if (
-    records.some((r) => isRecord(r) && typeof r.content === "string" && r.content.includes(content))
-  ) {
-    console.log("✓ verification TXT record already present");
-    return;
-  }
-  if (dryRun) {
-    console.log(`[dry-run] would create TXT @ ${zone.name}: ${content}`);
-    return;
-  }
-  await api(
-    `https://api.cloudflare.com/client/v4/zones/${zone.id}/dns_records`,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ type: "TXT", name: zone.name, content, ttl: 300 }),
-    },
-    "Cloudflare TXT record creation",
-  );
-  console.log("✓ verification TXT record created");
-}
-
-// ---------------------------------------------------------------- Google APIs
-
-async function verifyDomain(google: Record<string, string>, domain: string): Promise<void> {
-  const site = { site: { type: "INET_DOMAIN", identifier: domain } };
-  const tokenBody = await api(
+/** Ask Google for the META verification token; the API may wrap it in the full tag. */
+async function fetchMetaToken(google: Record<string, string>, property: string): Promise<string> {
+  const body = await api(
     "https://www.googleapis.com/siteVerification/v1/token",
     {
       method: "POST",
       headers: google,
-      body: JSON.stringify({ ...site, verificationMethod: "DNS_TXT" }),
+      body: JSON.stringify({
+        site: { type: "SITE", identifier: property },
+        verificationMethod: "META",
+      }),
     },
     "site-verification token request",
   );
-  const txt = tokenBody.token;
-  if (typeof txt !== "string") fail("Google returned no verification token");
+  const raw = body.token;
+  if (typeof raw !== "string") fail("Google returned no verification token");
+  return /content="([^"]+)"/.exec(raw)?.[1] ?? raw;
+}
 
-  const cfToken = requireEnv("CLOUDFLARE_API_TOKEN");
-  const zone = await findZone(cfToken, domain);
-  if (zone.name !== domain) {
-    fail(
-      `domain property must be the zone apex: use sc-domain:${zone.name} (siteUrl points at ${domain})`,
-    );
+/** Persist the token into business.json (UTF-8, no BOM — a BOM breaks the build). */
+function writeTokenToBusinessJson(token: string): void {
+  const parsed: unknown = JSON.parse(readFileSync(jsonPath, "utf-8").replace(/^﻿/, ""));
+  if (!isRecord(parsed) || !isRecord(parsed.data) || !isRecord(parsed.data.seo)) {
+    fail("business.json has no data.seo object");
   }
-  await ensureTxtRecord(cfToken, zone, txt);
-  if (dryRun) {
-    console.log("[dry-run] would poll Google verification, add the property, submit the sitemap");
-    process.exit(0);
-  }
-
-  // DNS propagation: poll up to ~6 minutes with 20s spacing.
-  for (let attempt = 1; ; attempt++) {
-    const res = await fetch(
-      "https://www.googleapis.com/siteVerification/v1/webResource?verificationMethod=DNS_TXT",
-      { method: "POST", headers: google, body: JSON.stringify(site) },
-    );
-    if (res.ok) {
-      console.log("✓ domain ownership verified with Google");
-      return;
-    }
-    if (attempt >= 18) {
-      const body = await res.text();
-      fail(`verification did not succeed after ${attempt} attempts: ${body.slice(0, 300)}`);
-    }
-    console.log(`… DNS not visible to Google yet (attempt ${attempt}/18), retrying in 20s`);
-    await new Promise((r) => setTimeout(r, 20_000));
-  }
+  parsed.data.seo.googleSiteVerification = token;
+  writeFileSync(jsonPath, `${JSON.stringify(parsed, null, 2)}\n`, { encoding: "utf-8" });
 }
 
 async function main(): Promise<void> {
@@ -258,10 +185,13 @@ async function main(): Promise<void> {
     JSON.parse(readFileSync(jsonPath, "utf-8").replace(/^﻿/, "")) as unknown,
   );
   if (!parsed.success) fail("business.json is invalid — run `npm run validate:content` first.");
-  const siteUrl = new URL(parsed.data.data.seo.siteUrl);
-  const domain = siteUrl.hostname.replace(/^www\./, "");
-  if (domain === "example.com")
+  const seo = parsed.data.data.seo;
+  const siteUrl = new URL(seo.siteUrl);
+  if (siteUrl.hostname.replace(/^www\./, "") === "example.com") {
     fail("data.seo.siteUrl is still the placeholder — set the real domain first.");
+  }
+  /** URL-prefix property, e.g. "https://example.co.il/" — trailing slash required. */
+  const property = new URL("/", siteUrl).href;
 
   const access = await accessToken(
     clientId,
@@ -269,10 +199,69 @@ async function main(): Promise<void> {
     requireEnv("GOOGLE_OAUTH_REFRESH_TOKEN"),
   );
   const google = { authorization: `Bearer ${access}`, "content-type": "application/json" };
-  const property = `sc-domain:${domain}`;
-  console.log(`Search Console setup for ${property}`);
+  console.log(`Search Console setup for ${property} (meta-tag verification)`);
 
-  await verifyDomain(google, domain);
+  const token = await fetchMetaToken(google, property);
+
+  // Phase 1 — the token must be in business.json (BaseLayout renders the tag).
+  if (seo.googleSiteVerification !== token) {
+    if (dryRun) {
+      console.log(`[dry-run] would write data.seo.googleSiteVerification = ${token}`);
+      process.exit(0);
+    }
+    writeTokenToBusinessJson(token);
+    console.log("✓ token written to data.seo.googleSiteVerification in business.json");
+    console.log(
+      "\nNow ship it, then run this command again to finish verification:\n" +
+        "  npm run validate:content   (sanity)\n" +
+        "  git add/commit             (the token is not a secret)\n" +
+        "  npm run deploy\n" +
+        "  npm run gsc:setup\n",
+    );
+    process.exit(0);
+  }
+
+  // Phase 2 — token already in business.json: confirm it is LIVE before asking Google.
+  const liveHtml = await fetch(property).then(
+    (r) =>
+      r.ok
+        ? r.text()
+        : fail(`could not fetch ${property} (HTTP ${r.status}) — is the site deployed?`),
+    () => fail(`could not reach ${property} — is the site deployed?`),
+  );
+  if (!liveHtml.includes(`content="${token}"`)) {
+    fail(
+      `the live page at ${property} does not carry the verification meta tag yet —\n` +
+        "  run `npm run deploy` (production) and try again.",
+    );
+  }
+  console.log("✓ verification meta tag is live");
+  if (dryRun) {
+    console.log("[dry-run] would verify ownership, add the property, submit the sitemap");
+    process.exit(0);
+  }
+
+  // Google fetches the page itself — quick retry loop for CDN propagation.
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(
+      "https://www.googleapis.com/siteVerification/v1/webResource?verificationMethod=META",
+      {
+        method: "POST",
+        headers: google,
+        body: JSON.stringify({ site: { type: "SITE", identifier: property } }),
+      },
+    );
+    if (res.ok) {
+      console.log("✓ ownership verified with Google");
+      break;
+    }
+    if (attempt >= 6) {
+      const body = await res.text();
+      fail(`verification did not succeed after ${attempt} attempts: ${body.slice(0, 300)}`);
+    }
+    console.log(`… Google can't see the tag yet (attempt ${attempt}/6), retrying in 15s`);
+    await new Promise((r) => setTimeout(r, 15_000));
+  }
 
   await api(
     `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}`,
