@@ -28,5 +28,10 @@ export default defineConfig({
     url: "http://localhost:4322",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Astro 7.2 daemonizes `astro preview` automatically whenever it detects an
+    // AI coding agent, so the foreground process exits instantly and Playwright
+    // reports "webServer exited early". Force foreground — the test harness owns
+    // this server's lifecycle. Docs: astro.build/en/guides/build-with-ai/#background-mode
+    env: { ASTRO_PREVIEW_BACKGROUND: "0" },
   },
 });
