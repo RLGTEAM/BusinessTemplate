@@ -17,8 +17,15 @@ operations, not a replacement for them.
    upstream skill updates. Restart Claude Code after installing.
 
 2. **Scrape.** Open the client's socials and Google Business profile in a
-   Chrome tab group; drive Claude-in-Chrome to fill `docs/brief.md` from
-   what it finds. Tag every fact `[scraped]` (found online, unverified) or
+   Chrome tab group (Instagram, Facebook About+reviews, Maps with reviews
+   sorted by newest + photos tab, existing site, one directory), then run
+   **`/fill-brief`** — it reads all tabs in one pass, fills `docs/brief.md`,
+   places any client-supplied photos in `src/assets/images/`, records
+   source conflicts instead of resolving them, and ends with the
+   WhatsApp checklist of the facts only the client can supply (coordinator
+   first — longest lead time). Paste the client's answers back tagged
+   `[client-confirmed]`. Get real photos BEFORE `/new-client` whenever
+   possible — the concept designs around the actual photography. Tag every fact `[scraped]` (found online, unverified) or
    `[client-confirmed]` (the client said it directly) — `/new-client` treats
    scraped-only NAP, prices, and hours as provisional and lists them for
    confirmation before launch. Dump raw texture into the brief's "Raw

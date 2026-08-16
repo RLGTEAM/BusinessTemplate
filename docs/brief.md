@@ -1,6 +1,8 @@
 # Client brief — [business name]
 
-> Fill during the sales call / intake. Paste the whole file to Claude Code with `/new-client`.
+> Fill during the sales call / intake — or stage the client's socials in a
+> Chrome tab group and run `/fill-brief` to scrape and fill this file in one
+> pass. Paste the whole file to Claude Code with `/new-client`.
 > Fields marked * are required; the skill will ask about anything left blank.
 
 > Tag every fact with its provenance: `[scraped]` (found online, unverified) or
@@ -48,10 +50,26 @@
 
 ## Content material
 
-- Photos provided? (list files / "use placeholders for now"):
+- Photos provided? (list files placed in `src/assets/images/` with a
+  one-line description each, or "use placeholders for now" — get real
+  photos BEFORE `/new-client` whenever possible: the concept designs its
+  palette and hero around the actual photography, and a site composed on
+  placeholders was designed for images that don't exist. Client-sent files
+  only — never scraped IG/Maps images):
 - Real testimonials? (quote + name + role, or "placeholders, clearly marked"):
 - FAQ topics the client gets asked a lot:
 - Anything the about section must mention (story, years, certifications):
+
+## Legal (ת"י 5568 — the most common launch BLOCKER; ask FIRST, longest lead time)
+
+- Accessibility coordinator name [client-confirmed only]:
+- Coordinator phone:
+- Coordinator email:
+- (Under 25 employees a management contact suffices — real details either
+  way; `/new-client` ships a flagged placeholder and blocks launch without
+  them. Never invent a person.)
+- Google rating + review count (real numbers from Maps, feeds the site's
+  AggregateRating — never estimated) [scraped]:
 
 ## Raw texture (from scraping — the design material)
 
