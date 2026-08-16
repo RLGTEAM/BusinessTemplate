@@ -135,6 +135,12 @@ h4 {
   outline: none;
 }
 
+/* Body scroll lock while a full-height drawer is open (src/lib/nav.ts flips
+   this — an open drawer over a still-scrolling page reads as broken). */
+body.is-locked {
+  overflow: hidden;
+}
+
 /* Motion is opt-in: the animation layer reveals [data-reveal] elements.
    If JS fails or reduced motion is preferred, everything stays visible. */
 @media (prefers-reduced-motion: reduce) {

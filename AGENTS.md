@@ -56,6 +56,11 @@ src/
                                      marquee/parallax/counter aliveness primitives
   lib/form.ts                      ← headless contact-form logic; setupContactForms() binds
                                      any form[data-contact-form] (markup contract in docs/RECIPES.md)
+  lib/nav.ts                       ← headless nav mechanics (drawer a11y/focus/scroll-lock,
+                                     data-scrolled, aria-current scroll-spy, contact-bar tuck) —
+                                     markup contract in RECIPES 2+7; NEVER hand-roll a drawer script
+  lib/hours.ts                     ← headless open-now logic (Asia/Jerusalem, midnight-crossing
+                                     ranges, specialHours) + serializeSchedule(); RECIPES recipe 11
   layouts/BaseLayout.astro         ← html lang/dir, brand CSS vars, SEO, fonts, JSON-LD
   components/seo/                  ← SEO/JsonLd
   components/ui/                   ← ConsentBanner only (legal machinery)
@@ -70,7 +75,12 @@ src/
                                      below); starter placeholders via npm run generate:placeholders
 docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
                                      DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
-                                     patterns for nav/forms/sections/subpages) · PLAYBOOK.md (owner
+                                     patterns for nav/forms/sections/subpages) · TRAPS.md (measured
+                                     perf/a11y/RTL failures from shipped builds — read before
+                                     composing and before the Lighthouse gate) · PORTFOLIO.md
+                                     (design fingerprints of shipped sites — the anti-sameness
+                                     memory; read before concepting, append at handoff) ·
+                                     PLAYBOOK.md (owner
                                      operating procedure) · OPERATIONS.md (studio/fleet runbook:
                                      registry, DNS, monitoring, rollback) · CHANGELOG.md (per-
                                      TEMPLATE_VERSION sync notes) · superpowers/ (archive of shipped
@@ -159,6 +169,7 @@ Per-client artifacts that exist only in CLIENT repos, never in the template: `do
 
 - Sections: `<section id="...">` matching a `content.nav` href, `scroll-mt-20`, `section-pad`, one `<h1>` per page (the hero section owns it). Patterns in `docs/RECIPES.md`.
 - Client scripts: bind inside a named `setup*()` called from `document.addEventListener("astro:page-load", ...)`; pass strings from JSON via `data-*` attributes, never literals in scripts.
+- Headless mechanics ship in `src/lib/` (form, nav, hours) behind data-attribute contracts — clients author markup + CSS only; never re-derive drawer/scroll-state/open-now logic per client. Scroll STATE (`data-scrolled`, `aria-current`) is nav.ts's job outside the reduced-motion guard; only MOTION goes in `registerCustomAnimations()`.
 - TypeScript: no `any` (use `unknown` + narrowing), no non-null `!`. Zod at every runtime boundary.
 - SEO: per-page overrides via BaseLayout props; JSON-LD only in `lib/jsonld.ts`.
 

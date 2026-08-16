@@ -38,9 +38,14 @@ Wall-clock discipline for the whole build. Three rules:
    the first two sections exist, take ONE 390-wide screenshot of the real
    page (dev server is fine for this mid-build sanity check — final review
    still uses the production build) and self-check it against the doctrine's
-   anti-AI-tells and the concept's still frame. Course-correct now, while a
-   change costs minutes — Step 5.5 rounds should confirm quality, not
-   discover its absence.
+   anti-AI-tells and the concept's still frame. At the SAME checkpoint run
+   `npm run build && npm run lhci` once (~90s): every shipped build has
+   failed a Lighthouse budget, and every one discovered it at the final
+   gate, after the expensive decisions were locked — the hero's LCP
+   strategy, fonts, and any texture/filter work are all set by this point,
+   and `docs/TRAPS.md` lists what usually breaks the budgets. Course-correct
+   now, while a change costs minutes — Step 5.5 rounds and the Step 6 gate
+   should confirm quality, not discover its absence.
 
 ## Step 0 — Ingest the brief
 
@@ -62,10 +67,20 @@ Wall-clock discipline for the whole build. Three rules:
 
 ## Step 1 — Concept (before any code)
 
+**First read `docs/PORTFOLIO.md`** — the fingerprints of every shipped site
+and the spent-material list. The failure it exists to stop is real and
+measured: with no cross-client memory, three of the first four builds chose
+the same metaphor family, three the same font pairing, four the same accent
+family — each one scoring itself "distinctive." Its rules are binding here:
+no candidate may repeat a shipped metaphor family, and the judge caps
+Distinctiveness on portfolio collisions (fontPairing, accent family, page
+form + metaphor).
+
 Generate THREE distinct concept candidates in the doctrine's four-line format
 (metaphor / color story / composition / motion identity + still frame).
 When an agent-dispatch tool is available, generate them as three PARALLEL
-subagents, each given the brief + doctrine and a different forcing lens
+subagents, each given the brief + doctrine + PORTFOLIO.md and a different
+forcing lens
 (e.g. "the client's craft as material", "the customer's moment of need",
 "break the section-stack") — parallel generation is faster AND the lenses
 prevent three variations on the same idea. Judge and pick inline yourself.
@@ -74,12 +89,25 @@ shell's section list, compositions you've built before — as material to
 react against, not a scaffold to fill in: a concept is allowed, and
 encouraged, to discard the suggested structure entirely and invent its own
 composition, as long as the doctrine's floor, page contract, and Craft bars
-hold. At least ONE of the three candidates must break from the conventional
-section-stack structure in some real way.
+hold. Each candidate NAMES its page form (doctrine: "a page is a form
+before it is a list of sections"), and the three candidates must not all
+share one form. At least ONE candidate must break from the conventional
+section-stack structure in some real way — and per the doctrine's
+mobile-first bar, that candidate is sketched AT 390 FIRST, as a native
+phone composition, before any judgment about it is made.
+
 Self-critique each against: (a) would this client's customers recognize it
 instantly, (b) feasibility on the floor (contrast pairs, RTL, reduced-motion
-still frame), (c) distance from the reference-template look and from previous
-clients if known. Pick the strongest.
+still frame), (c) distance from every `docs/PORTFOLIO.md` entry AND from the
+generic AI-site look, stated explicitly per candidate. Pick the strongest.
+**Selection rules:** a candidate may be rejected only for failing THIS
+client or the floor — never for being unusual; "degrades at 390" is not a
+valid rejection unless its 390-native sketch was actually attempted; and if
+the safe section-stack wins over the structure-breaker, `docs/concept.md`
+must argue in one or two sentences why the breaker fails this client
+specifically. Breaking the shipped mold is a value in itself: when two
+candidates serve the client equally, the one further from the portfolio
+wins.
 
 The chosen concept MUST specify, binding for every build:
 
@@ -103,9 +131,14 @@ The chosen concept MUST specify, binding for every build:
 Sketch concept candidates MOBILE-FIRST: describe the 390px composition
 first, desktop as the adaptation.
 
-Write `docs/concept.md` containing the
-chosen concept in full plus the two rejected candidates with one line each on
-why they lost. Commit it alone: `feat: design concept for <client>`.
+Write `docs/concept.md` containing the chosen concept in full plus the two
+rejected candidates. **Budget the prose:** the chosen concept in at most
+~500 words plus the nav-concept and choreography-plan sections (the
+choreography plan works well as a 5-row table: category → section →
+moment); each rejected candidate in ~60 words including why it lost and
+what was kept. Past concept docs ran to 19KB — the length went to
+self-persuasion, not design; the build reads the concept, not an essay.
+Commit it alone: `feat: design concept for <client>`.
 
 ## Step 2 — Schema-first content
 
@@ -175,25 +208,28 @@ Execute the committed concept, 0→100:
 - Honor the page contract: one `h1`, nav `#id` links all resolve, footer with
   legal links, contact path reachable, decorative = `aria-hidden` +
   `pointer-events-none`.
-- The header is the most defect-prone deliverable of past builds — give it
-  its own build-and-verify pass. After wiring the drawer and scroll behavior,
-  open the REAL page in the Playwright MCP browser at 390 and at desktop
-  width and OPERATE the nav: toggle open/close, press Escape, click a nav
-  link (the drawer must close and the page must land on the right section
-  with nothing clipped under the sticky header), confirm the scrolled state
-  and `aria-current` active styling actually trigger, and confirm the open
-  drawer is fully styled and sits ABOVE all page content (no hero decor
-  bleeding through, no unstyled default list).
-  **Run the whole 390 pass TWICE: once at the top of the page, then again
-  after scrolling to mid-page so `data-scrolled` styling is active.** Every
-  shipped site has had a drawer that worked at scroll-0 and broke when
-  scrolled — the containing-block trap in RECIPES recipe 2 (`backdrop-filter`
-  / `transform` on the header root or a drawer ancestor). Follow that
-  recipe's canonical structure: effects on the inner bar, drawer a sibling
-  of it, header root positioning-only. The contract smoke suite now fails
-  the build on a trapped drawer, so catching it here saves a gate round.
-  Fix everything found before
-  Step 5.5 — the judge automatic-fails broken nav mechanics.
+- The header's MECHANICS are shipped: `src/lib/nav.ts` provides the drawer
+  behavior, `data-scrolled`, `aria-current`, and the contact-bar tuck off
+  the markup contract in RECIPES recipes 2 + 7 — **write no drawer or
+  scroll-state script; author markup + CSS only** (bespoke header MOTION
+  still goes in `custom.ts`, driven off the same attributes). An open-now
+  status, if the design wants one, is `src/lib/hours.ts` via RECIPES
+  recipe 11 — never reimplemented. What remains yours is the DESIGN of all
+  of it, and one verify pass: open the REAL page in the Playwright MCP
+  browser at 390 and at desktop width and OPERATE the nav — toggle
+  open/close, press Escape, click a nav link (the drawer must close and the
+  page must land on the right section with nothing clipped under the sticky
+  header), confirm the scrolled state and `aria-current` styling actually
+  trigger, and confirm the open drawer is fully styled and sits ABOVE all
+  page content.
+  **Run the 390 pass at the top of the page AND after scrolling to
+  mid-page** — the containing-block trap in RECIPES recipe 2 is CSS-side
+  (`backdrop-filter`/`transform` on the header root or a drawer ancestor),
+  so the helper cannot prevent it; follow the recipe's canonical structure:
+  effects on the inner bar, drawer a sibling of it, header root
+  positioning-only. The contract smoke suite fails the build on a trapped
+  drawer, so catching it here saves a gate round. Fix everything found
+  before Step 5.5 — the judge automatic-fails broken nav mechanics.
 - Restyle the legal pages (`src/pages/accessibility-statement.astro`,
   `src/pages/privacy.astro`) into the concept's design language — this is the
   Execution plan's parallel subagent: dispatch it as soon as the color story
@@ -283,7 +319,19 @@ End with exactly these sections:
 3. **Placeholders remaining** — images, testimonials, copy awaiting real
    content.
 4. **Design decisions** — the concept (link `docs/concept.md`), palette
-   adjustments, fontPairing, composition summary.
+   adjustments, fontPairing, composition summary — plus the site's
+   **portfolio fingerprint** as a ready-to-paste `docs/PORTFOLIO.md` table
+   row (metaphor family / page form / palette family / accent / fontPairing
+   / signature element / motion identity): the operator appends it to the
+   TEMPLATE repo at handoff so future builds diverge from this one.
+4b. **Promote candidates** — REQUIRED, even if empty (then say why). Every
+   trap discovered (a measured perf regression, a defect class the gate
+   missed → `docs/TRAPS.md` entry), and every broadly-useful invention (a
+   pattern → RECIPES, logic → a headless `src/lib` helper, a token/preset)
+   with a one-line generalization sketch. This is the promote loop's
+   trigger — past builds fixed template-level defects (font preload, stale
+   ScrollTrigger ends) in the client repo only, and every later client paid
+   for them again.
 5. **Deploy checklist** — `data.seo.siteUrl` matches the real domain (it drives
    canonical URLs, sitemap, JSON-LD, and the Cloudflare Pages project name);
    `PUBLIC_WEB3FORMS_KEY` is in the local `.env`, created with the CLIENT's

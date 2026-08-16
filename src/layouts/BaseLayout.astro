@@ -63,8 +63,11 @@ const brandVars = [
       description={Astro.props.description}
       noindex={Astro.props.noindex}
     />
+    {/* Preload ONLY the display face — the h1 needs it for first paint. A
+        second preload puts ~36KB at high priority in front of the LCP image
+        and measurably delays it (docs/TRAPS.md); the body face swaps in. */}
     <Font cssVariable="--font-brand-display" preload />
-    <Font cssVariable="--font-brand-body" preload />
+    <Font cssVariable="--font-brand-body" />
     <JsonLd data={localBusinessJsonLd(business)} />
     <JsonLd data={websiteJsonLd(business)} />
     {faq && <JsonLd data={faq} />}
@@ -85,11 +88,16 @@ const brandVars = [
     <script>
       import { destroyAnimations, initAnimations } from "@/lib/animation";
       import { setupContactForms } from "@/lib/form";
+      import { setupOpenNow } from "@/lib/hours";
+      import { setupSiteNav, teardownSiteNav } from "@/lib/nav";
       import { setupConversionTracking } from "@/lib/track";
 
       document.addEventListener("astro:page-load", initAnimations);
       document.addEventListener("astro:before-swap", destroyAnimations);
+      document.addEventListener("astro:page-load", setupSiteNav);
+      document.addEventListener("astro:before-swap", teardownSiteNav);
       document.addEventListener("astro:page-load", setupContactForms);
+      document.addEventListener("astro:page-load", setupOpenNow);
       document.addEventListener("astro:page-load", setupConversionTracking);
     </script>
     {

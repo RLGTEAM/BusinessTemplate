@@ -16,6 +16,29 @@ are the ONLY hard constraints; everything else is yours to overrule. A safe
 page that fills in the suggested structure is a worse outcome than a bold
 page that breaks it beautifully.
 
+**Sameness is a portfolio-level failure the single build cannot see.**
+Each build runs with no memory of the others, and a model's stable taste
+re-derives the same favorite moves in every fresh repo, each time believing
+they're original — the first four shipped sites chose the same metaphor
+family three times, the same font pairing three times, and the same accent
+family four times, while each one's own review scored it "distinctive."
+`docs/PORTFOLIO.md` is the cross-client memory: read it before concepting,
+treat its "spent material" list as used up, and know that the judge scores
+Distinctiveness against it. Every client deserves the site only THEIR
+business could have produced — not the studio's house style with new words.
+
+**A page is a form before it is a list of sections.** The vertical stack of
+full-width color bands is ONE form — the one every shipped site has used.
+Others are just as legal on this floor: a document/menu the visitor reads
+(typographic, ruled, almost no "sections"); a single pinned scene the
+scroll transforms; chapters with radically different layout grammars; a
+spine/rail the content hangs off; a conversation that answers the
+visitor's questions in order; a map- or photo-first page where text
+annotates the image. The concept names its form FIRST, then decides what
+the nav means inside it (anchors must still resolve — where they point is
+the design's call). None of these excuse the contract: one h1, resolving
+nav, reachable contact path, complete reduced-motion still frame.
+
 ## The floor (non-negotiable, unchanged)
 
 - RTL: logical properties/utilities only; `--dir-factor` / `--angle-brand` /
@@ -102,6 +125,15 @@ the first pass; they are not a post-review patch list.
    RECIPES) is the strong default for service businesses. The type scale must
    hold at 390 — no truncation, no horizontal overflow. No information exists
    only on hover. Full-height heroes use `100dvh` plus safe-area-insets.
+   **Mobile-first is NOT stack-first.** "It collapses to a stack at 390" has
+   killed every structure-breaking concept candidate so far — because those
+   candidates were sketched as desktop gestures and then tested on a phone.
+   Design the unusual form AT 390 from the start: a pinned scene, a
+   document page, a chapter sequence, an edge-bleeding rail all have native
+   390 expressions that are not a band stack. A concept whose 390 sketch is
+   just the safe stack hasn't broken anything — and a candidate may not be
+   rejected FOR its 390 behavior unless its 390 composition was actually
+   attempted first.
 2. **The header is a designed component, not chrome.** Three requirements,
    all mandatory: scroll-aware behavior — tint, shrink, blur, or a
    concept-fitting response past a scroll threshold (pattern in RECIPES,
@@ -135,10 +167,19 @@ the first pass; they are not a post-review patch list.
    purple-indigo defaults; a hero that's headline + two buttons + a
    stock-photo overlay; identical section rhythm down the page (same
    padding, same alternation); Tailwind-default shadows everywhere;
-   decorative English labels sprinkled on a Hebrew site. Prescribe instead:
-   intentional asymmetry; at least one overlap or broken-grid moment;
-   display-to-body type-scale contrast of 3x or more; bespoke inline-SVG
-   iconography/motifs derived from the concept.
+   decorative English labels sprinkled on a Hebrew site. Plus the
+   editorial-courage tells a shipped build's operator caught after the
+   rubric passed it: more than two distinct corner radii on the page (pick
+   ONE shape idea and commit); the page's largest content block rendered as
+   a uniform bordered-card grid (a menu is a menu, a list is a list — the
+   most generic pattern in web design is not a default); nothing beyond the
+   hero bleeding, overlapping, or breaking the column at 390 (16–32px
+   "broken grid" offsets are invisible on a phone); the accent color
+   appearing ONLY as button fill (the safest possible use of an accent).
+   Prescribe instead: intentional asymmetry; at least one overlap or
+   broken-grid moment that survives at 390; display-to-body type-scale
+   contrast of 3x or more; bespoke inline-SVG iconography/motifs derived
+   from the concept.
 
 ## The toolkit
 
@@ -184,11 +225,18 @@ the first pass; they are not a post-review patch list.
 Write the concept in four lines — if you can't, it isn't one concept yet:
 
 1. **Metaphor** — one thing from the client's world their customers instantly
-   recognize (vinyl / steam / thread / clipper lines).
-2. **Color story** — which sections go light / tinted / dark; where the accent
-   burns brightest (usually the CTA). Rhythm, not stripes.
-3. **Composition** — the actual page: which sections exist, what each one *is*,
-   in what order, and why that order serves this business.
+   recognize (vinyl / steam / thread / clipper lines). Check it against
+   `docs/PORTFOLIO.md` first: a metaphor family that already shipped is
+   spent material, not a foundation to vary.
+2. **Color story** — the LOGIC by which color moves through the page and
+   where the accent burns brightest (usually the CTA). Light/tinted/dark
+   band rhythm is one logic among many — a single dramatic turn, one
+   saturated world, ink-on-paper with a single burning object, a duotone
+   are all color stories. Coherent intent, not stripes — and not
+   necessarily bands.
+3. **Composition** — name the page FORM first (see "A page is a form" at
+   the top of this doc), then the actual page: what exists, in what order,
+   and why that order serves this business.
 4. **Motion identity** — one recognizable identity (easing, direction,
    character), expressed across the required aliveness inventory (see
    "Aliveness" in Craft bars, above) rather than one movement copy-pasted

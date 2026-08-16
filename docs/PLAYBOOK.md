@@ -95,7 +95,11 @@ operations, not a replacement for them.
    catch it (repeat this canary monthly for maintained form clients). Hand
    over Google Search Console access to the client (or their marketing
    contact). Archive the filled `docs/brief.md` in the client repo as the
-   record of what was agreed. Finally, register the client in the studio
+   record of what was agreed. **Append the site's design fingerprint to the
+   TEMPLATE repo's `docs/PORTFOLIO.md`** — the `/new-client` report ends
+   with the ready-to-paste row; this is what stops the next build from
+   rhyming with this one, so skipping it re-creates the sameness problem.
+   Finally, register the client in the studio
    layer ([docs/OPERATIONS.md](./OPERATIONS.md)): the `clients.json` entry
    (domain, repo, Pages project, `TEMPLATE_VERSION`, maintenance plan,
    domain renewal date) and the uptime monitor.

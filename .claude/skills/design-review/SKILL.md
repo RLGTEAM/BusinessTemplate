@@ -88,31 +88,48 @@ explicitly in this round's `docs/design-review.md` log entry.
 ## Fresh eyes
 
 The agent that built the site scoring its own work tends to grade
-generously — it already believes in the choices it just made. When an
-agent-dispatch tool is available (e.g. this session's `Agent` tool), run the
+generously — it already believes in the choices it just made. Every shipped
+build so far scored itself inline and PASSED work the operator then
+rejected as boring. When an agent-dispatch tool is available (e.g. this
+session's `Agent` tool), run the
 scoring pass (automatic fails + scored rubric below) as a FRESH subagent
-invocation that receives ONLY: this skill file, the screenshots just taken,
+invocation that receives ONLY: this skill file, `docs/PORTFOLIO.md`, the
+screenshots just taken,
 and the relevant code paths (`docs/concept.md`, `src/pages/index.astro`,
 `src/lib/animation/custom.ts`, `src/styles/custom.css`) — not the building
-session's own reasoning, rationale, or prior self-assessment. Treat its
+session's own reasoning, rationale, or prior self-assessment. **Invoking
+this skill IS the user's request to dispatch that scoring subagent** — the
+skill is user-installed workflow configuration, so a general
+"don't use subagents unprompted" session rule does not apply to this step;
+do not skip fresh eyes because of it. Treat the subagent's
 verdict as authoritative; fold it into this session's log and fix/loop from
-there. If no such tool is available, score inline but stay skeptical of your
-own build.
+there. If no dispatch tool exists at all, score inline but stay skeptical
+of your own build — and say in the log that scoring was inline.
 
 ## Scored rubric
 
 Score each 1–5 with one line of evidence — cite what you SAW in a screenshot
 or read in the code, never an assumption:
 
-- **Distinctiveness** — would someone who has seen previous client sites (if
-  known) and the generic AI-site look recognize this as a different site
-  immediately? Check the anti-AI-tells list in `docs/DESIGN-DOCTRINE.md`'s
-  Craft bars — 2 or more tells present caps this axis at 2.
+- **Distinctiveness** — judged against `docs/PORTFOLIO.md`, not from
+  memory: would someone who has seen the shipped sites recognize this as a
+  DIFFERENT designer's work? Sharing metaphor family + page form, or
+  fontPairing + accent family, with any portfolio entry caps this axis
+  at 2 (unless `docs/concept.md` explicitly argues the repeat against that
+  specific entry). Check the anti-AI-tells list in
+  `docs/DESIGN-DOCTRINE.md`'s Craft bars — including the editorial-courage
+  tells (radius uniformity beyond 2 shapes, largest block as uniform card
+  grid, nothing bleeding/overlapping at 390, accent only as button fill) —
+  2 or more tells present caps this axis at 2. Presence of A concept is not
+  distinctiveness; ask whether the EXECUTION is brave enough that the
+  operator wouldn't call it safe.
 - **Concept expression** — is the concept from `docs/concept.md` visible on
   the page (motifs, color story, composition), not just claimed in prose?
-- **Color story** — do sections carry rhythm (light / tinted / dark
-  variation)? Is the accent focused where it matters (usually the CTA), not
-  scattered?
+- **Color story** — does color move through the page with intent, following
+  the concept's OWN logic (a band rhythm, one dramatic turn, a single
+  saturated world, ink-and-one-burning-object — any coherent logic
+  qualifies; a band stack is not required)? Is the accent focused where it
+  matters (usually the CTA), not scattered?
 - **Typography** — does the pairing carry the concept? Warn if `handmade`
   (Amatic SC) carries long headings — it's display-only and turns illegible
   past a few words.

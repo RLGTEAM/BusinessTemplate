@@ -2,11 +2,14 @@
 
 Every prebuilt section was deleted (`docs/superpowers/specs/2026-07-24-primitives-only-design.md`).
 There is nothing to gut or reskin — you build every component from zero, per
-client. These nine recipes are the RTL/a11y-correct patterns worth not
+client. These recipes are the RTL/a11y-correct patterns worth not
 re-deriving from scratch each time. Each is a **minimal snippet plus the rules
 that make it correct** — deliberately incomplete, never a paste-able
-component. Consult `docs/DESIGN-DOCTRINE.md` for the floor and page contract
-these patterns exist to satisfy.
+component. Where a recipe's MECHANICS ship as a headless helper (nav,
+form, hours), the recipe is the markup contract for it — author markup +
+CSS, never the script. Consult `docs/DESIGN-DOCTRINE.md` for the floor and
+page contract these patterns exist to satisfy, and `docs/TRAPS.md` for the
+measured failures these patterns encode.
 
 ## 1. Section skeleton
 
@@ -38,63 +41,49 @@ Rules:
 ## 2. Accessible mobile nav
 
 Why: a disclosure pattern that's keyboard-operable and doesn't leave
-screen-reader users guessing at open/closed state. Distilled from the
-pre-deletion `Header.astro` (`git show a8e87ba:src/components/sections/Header.astro`).
+screen-reader users guessing at open/closed state. The MECHANICS are shipped
+and tested in `src/lib/nav.ts` (wired once in BaseLayout, like the form
+helper) — every shipped build used to re-derive them by hand and every one
+shipped a different subset of the behaviors. **Write NO drawer script.**
+Author only the markup contract and the design:
 
 ```astro
 <button
   type="button"
-  id="menu-toggle"
+  data-nav-toggle
   aria-expanded="false"
   aria-controls="mobile-menu"
   aria-label={content.ui.openMenu}
   data-open-label={content.ui.openMenu}
   data-close-label={content.ui.closeMenu}
 >
-  <!-- icon -->
+  <!-- icon — the toggle's design is yours -->
 </button>
 
-<div id="mobile-menu" hidden>
-  <!-- nav links -->
+<div id="mobile-menu" data-close-ms="300" hidden>
+  <!-- nav links; optionally a [data-nav-close] button.
+       Style the OPEN state off [data-open]:
+       #mobile-menu[data-open] { opacity: 1; ... }  -->
 </div>
-
-<script>
-  function setupMobileNav(): void {
-    const toggle = document.getElementById("menu-toggle");
-    const menu = document.getElementById("mobile-menu");
-    if (!(toggle instanceof HTMLButtonElement) || !(menu instanceof HTMLElement)) return;
-
-    const setOpen = (open: boolean): void => {
-      toggle.setAttribute("aria-expanded", String(open));
-      toggle.setAttribute("aria-label", (open ? toggle.dataset.closeLabel : toggle.dataset.openLabel) ?? "");
-      menu.hidden = !open;
-    };
-
-    toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
-    for (const link of menu.querySelectorAll("a")) link.addEventListener("click", () => setOpen(false));
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
-        setOpen(false);
-        toggle.focus();
-      }
-    });
-  }
-
-  document.addEventListener("astro:page-load", setupMobileNav);
-</script>
 ```
+
+`nav.ts` then provides, for free: `aria-expanded` + label swap, the
+frame-deferred `data-open` (so entrance transitions/staggers actually run),
+`hidden` landing after `data-close-ms` (links never tabbable while
+invisible), focus into the panel, focus trap, Escape + focus return, body
+scroll lock (`.is-locked`, released on page swap), and close-on-link-click
+via `pointerdown` (beats the capture-phase Lenis anchor handler) + `click`
+(keyboard).
 
 Rules:
 
-- `aria-expanded` + `aria-controls` on the button; `hidden` (not just a CSS
-  class) on the panel when closed.
 - Labels come from `content.ui.openMenu` / `content.ui.closeMenu` — never
-  hardcode "פתח תפריט"/"Menu". Swap the `aria-label` on toggle so it always
-  announces the NEXT action, not the current state.
-- Escape closes the menu and returns focus to the toggle. Clicking any link
-  inside closes it too.
-- Binding lives in a named `setup*()` registered on `astro:page-load` (never
-  bare top-level script code — it must survive Astro's page swaps).
+  hardcode "פתח תפריט"/"Menu".
+- Design the open drawer's entrance off `[data-open]` in CSS (stagger via
+  `--i` custom properties on items if wanted) — JS never styles anything.
+- Set `data-close-ms` to match your close transition's duration.
+- Add `data-lenis-prevent` to the drawer's scrollable region so a long menu
+  scrolls inside the open drawer.
 
 Known failure modes — these are the defects real builds keep shipping;
 verify each one by OPERATING the nav in a browser (the new-client skill's
@@ -361,53 +350,35 @@ Rules:
 
 ## 7. Scroll-aware header
 
-Why: `docs/DESIGN-DOCTRINE.md`'s header bar mandates two attribute-driven
-behaviors — a scroll-past-threshold state and an active-section indicator —
-so the client's own CSS owns every visual response; JS only ever flips an
-attribute.
+Why: `docs/DESIGN-DOCTRINE.md`'s header bar mandates a scroll-past-threshold
+state and an active-section indicator. Both are shipped in `src/lib/nav.ts`
+— **write no scroll-state script**; they are STATE, not motion, so they live
+OUTSIDE the reduced-motion guard (a reduced-motion user still gets the
+tinted header and `aria-current`) and read the live scroll position, immune
+to the stale-`maxScroll` trap that shipped in a real build (docs/TRAPS.md).
 
-```ts
-// src/lib/animation/custom.ts
-export function registerCustomAnimations({ ScrollTrigger }: CustomAnimationContext): undefined {
-  const header = document.querySelector("header");
-  if (header instanceof HTMLElement) {
-    ScrollTrigger.create({
-      start: "top -80",
-      end: () => ScrollTrigger.maxScroll(window) + 1,
-      onToggle: ({ isActive }) => header.toggleAttribute("data-scrolled", isActive),
-    });
-  }
-
-  for (const section of document.querySelectorAll<HTMLElement>("section[id]")) {
-    const links = document.querySelectorAll<HTMLElement>(`a[href="#${section.id}"]`);
-    if (links.length === 0) continue;
-    ScrollTrigger.create({
-      trigger: section,
-      start: "top center",
-      end: "bottom center",
-      onToggle: ({ isActive }) => {
-        for (const link of links) {
-          if (isActive) link.setAttribute("aria-current", "true");
-          else link.removeAttribute("aria-current");
-        }
-      },
-    });
-  }
-
-  return undefined;
-}
+```astro
+<header data-site-header data-scrolled-threshold="80" class="sticky top-0 z-50">
+  <div class="header-bar">…toggle + desktop nav…</div>
+  <div id="mobile-menu" hidden>…</div>
+</header>
 ```
+
+`nav.ts` provides: `data-scrolled` on `[data-site-header]` past the
+threshold (default 80px), and `aria-current="true"` on every `a[href="#id"]`
+copy (desktop nav AND drawer) while its `section[id]` crosses the viewport
+center. Your CSS owns every visual response:
 
 ```css
 /* the component's own <style>, or custom.css */
-header[data-scrolled] {
+[data-site-header][data-scrolled] .header-bar {
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
 
-a[aria-current] {
+.nav-link[aria-current] {
   color: var(--color-primary);
-  text-decoration: underline;
+  text-decoration: underline; /* a visible state, not color alone */
 }
 ```
 
@@ -415,8 +386,8 @@ Rules:
 
 - The header stays `position: sticky; top: 0` regardless of `data-scrolled` —
   the attribute changes appearance, never position.
-- `header[data-scrolled]` styling targets the INNER bar
-  (`header[data-scrolled] .header-bar { ... }`), never the header root, and
+- `[data-scrolled]` styling targets the INNER bar
+  (`[data-scrolled] .header-bar { ... }`), never the header root, and
   never adds `backdrop-filter`/`filter`/`transform` to the root or to any
   ancestor of a fixed drawer — that creates a containing block and breaks
   the drawer in the scrolled state only (recipe 2's containing-block trap;
@@ -425,26 +396,14 @@ Rules:
   taller designed header needs a matching larger `scroll-mt-*` on EVERY
   section, or anchored content lands clipped beneath the header — verify by
   clicking every nav link at 390, not by eyeballing the CSS.
-- `end: () => ScrollTrigger.maxScroll(window) + 1` on the scrolled-state
-  trigger — a `start`-only ScrollTrigger defaults its `end` to `max` computed
-  ONCE at creation time; on a page shorter than the viewport at load (or one
-  that grows via images/fonts), that stale `max` can fall short of the
-  page's real bottom, so the trigger goes inactive before the user reaches
-  it and the header un-tints at the footer. The `+ 1` guarantees the trigger
-  is still active at the exact bottom of the page.
-- Attribute-driven toggles only: JS calls `setAttribute`/`toggleAttribute`,
-  never `el.style.*` — ALL visual response lives in CSS via
-  `header[data-scrolled]` (the component's own `<style>` or `custom.css`) and
-  `a[aria-current]`.
-- Nav links usually exist twice (desktop nav + mobile drawer) — always target
-  all copies with `querySelectorAll`, setting/removing `aria-current` on each
-  match.
-- Both `ScrollTrigger`s are created synchronously inside
-  `registerCustomAnimations` — no manual cleanup; `mm.revert()` on
-  `astro:before-swap` tears them down automatically.
-- This recipe is the MECHANISM only. The drawer's own design — staggered
-  entrance, full styling — is the client's work per DESIGN-DOCTRINE's header
-  bar requirement; this pattern doesn't touch the drawer.
+- Bespoke scroll-driven header MOTION (a wordmark that shrinks, a CTA that
+  rides in) still belongs in `registerCustomAnimations()` — but drive it off
+  the same `[data-scrolled]` attribute or its own trigger; never duplicate
+  the state logic.
+- Sticky contact bar tuck: give the bar `data-contact-bar
+  data-tuck-when="#hero-ctas"` and style `[data-tucked]` in CSS — the bar
+  hides while the hero's own CTAs are on screen and returns after. JS only
+  ever adds the attribute, so no-JS visitors keep the contact path.
 
 ## 8. Motion helpers
 
@@ -672,3 +631,48 @@ Rules:
   swapped is doorway-page territory and Google treats it accordingly.
 - The FAQ stays on the page that renders it (`withFaqJsonLd` on that page
   only).
+
+## 11. Open-now status (headless)
+
+Why: "are they open RIGHT NOW" is the question a phone visitor arrives with,
+and the naive implementation ships two real bugs (wrong after midnight,
+wrong time zone abroad) and one measured perf trap (docs/TRAPS.md: ICU
+timezone data on the critical path delaying the hero LCP). The logic ships
+tested in `src/lib/hours.ts`, wired in BaseLayout — author only the markup
+and labels:
+
+```astro
+---
+import { getBusiness } from "@/lib/business";
+import { serializeSchedule } from "@/lib/hours";
+
+const business = await getBusiness();
+// Labels come from the CLIENT's own content schema (schema-first, as ever).
+const { openNow } = business.content.hero;
+---
+
+<p
+  data-open-now
+  data-schedule={serializeSchedule(business.data)}
+  data-label-open={openNow.open}
+  data-label-closed={openNow.closed}
+  data-label-until={openNow.until}
+  data-label-opens={openNow.opensAt}
+  hidden
+>
+  <span data-open-now-text></span>
+</p>
+```
+
+Rules:
+
+- The element ships `hidden` — the full hours table elsewhere on the page is
+  the no-JS answer; a status that is silently WRONG is worse than one that
+  is absent. The helper reveals it (idle-deferred, off the LCP path) and
+  toggles `data-open` while the business is open — style both states in CSS.
+- The computation runs in Asia/Jerusalem regardless of the device's zone,
+  honors `data.specialHours` (חגים), and handles ranges that cross midnight
+  in both directions — covered by `tests/hours.spec.ts`; don't reimplement.
+- The rendered text is `<open-label> · <until-label> 23:30` — times are
+  numeric runs; if your design wraps them differently, keep `.force-ltr`
+  off Hebrew phrases and on bare numeric runs only (docs/TRAPS.md).
