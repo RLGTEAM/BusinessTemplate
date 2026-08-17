@@ -78,6 +78,41 @@ commit as the fix — that's what makes the next build faster than this one.
     recipe 2; the contract smoke suite fails the build on it. Effects go on
     the inner bar, never the header root.
 
+## Navigation
+
+14. **A drawer that closes on `pointerdown` eats its own link activations.**
+    Closing starts the drawer's exit transition while the finger is still
+    down; the link slides out from under the pointer and the browser never
+    fires `click` at all. Measured on a shipped site: a 0ms tap navigated, and
+    120ms / 250ms / 400ms presses all did nothing — i.e. it worked for every
+    automated test and for no human being. The operator reported it three
+    times before it was reproduced. `nav.ts` now releases only the scroll lock
+    on `pointerdown` and closes on `click`. **Test drawer links with a HELD
+    press (`mouse.down()` → wait 200ms → `mouse.up()`), never `tap()`/`click()`
+    alone — an instant tap cannot catch this class of bug.**
+15. **`preventDefault()` + a smooth scroll that no-ops = a dead link.** The
+    anchor handler cancels the browser's native jump before delegating to
+    Lenis. Any condition where `lenis.scrollTo()` fails to move the page
+    therefore kills in-page navigation outright, silently. Observed when
+    `window.innerHeight` reports 0 (embedded/automated/offscreen tabs): Lenis
+    derives its scroll from the viewport height, computes a zero-length
+    scroll, and moves nothing while native scrolling still works perfectly.
+    `index.ts` now skips Lenis at zero height and falls back to a native jump
+    if the page hasn't moved 250ms after the click.
+16. **Lenis applies `scroll-margin-top` itself.** Passing
+    `{ offset: -marginTop }` on top of that subtracts it twice, so anchors
+    landed at 2x the margin under Lenis and 1x via any native path — two
+    different landings depending on which code path ran. Pass no offset.
+17. **`inset-inline-0` is not a Tailwind utility.** It compiles to nothing, so
+    a `fixed` bar written with it is shrink-to-fit instead of spanning the
+    viewport. The mobile contact bar and a client header both shipped visibly
+    broken this way. Use `inset-x-0`.
+18. **The drawer tests skip themselves without `id="menu-toggle"`.**
+    `smoke.spec.ts` and `a11y.spec.ts` select the toggle by that id and
+    `test.skip()` when it is missing — so a build that follows only the
+    documented `data-nav-toggle` contract runs neither the drawer tests nor
+    the containing-block-trap test that is meant to fail the build. Green
+    output, zero coverage. RECIPES recipe 2 now documents the id.
 ## Build hygiene
 
 12. **UTF-8 BOM in `business.json`** breaks `JSON.parse` at config load

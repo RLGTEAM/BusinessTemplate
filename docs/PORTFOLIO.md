@@ -38,6 +38,7 @@ never silently.
 | 2 | natan-meathouse (2026-07) | steakhouse | **ritual sequence** (the board arrives, the evening unfolds) | vertical band stack | near-black char + cream | gold `#d8a13c` (ember red 2nd) | `poster` | the board (pinned/tilted); sear divider | sear/char, slats |
 | 3 | under-the-tree (2026-07) | café | **time-of-day arc** ("שעון הצל", 07:00 → midnight) | vertical band stack | cream/kraft + forest | gold `#a99841` | `poster` | shade-clock rail; canopy; ticker | one day passing |
 | 4 | barbarini (2026-08) | café-restaurant | **time-of-day arc** (dawn → night bands) | vertical band stack | cream/sand + night wine | amber `#E09A2E` | `poster` | taboon arch (only curve on the site); day-rail scrub | "falling light" — settle, never snap |
+| 5 | nook-cafe (2026-08) | café | **the place itself** — photo-led; the courtyard is the product | full-bleed video hero → framed photography beside copy → one dark band | warm cream/kraft + espresso | rust `#e2703a` | `bold` (Karantina) | hero video loop of the branded takeaway cups; menu set as a ruled document with scrubbed leader dots | "sunlight" — slow push-in, photographs drift inside their frames |
 
 ## Spent material (do not reuse without an explicit argument)
 
@@ -54,6 +55,26 @@ never silently.
 - **Furniture:** a marquee/ticker band (3/4); a "cream card glowing on a
   dark band" moment (2/4).
 
-All four clients so far are food businesses — some SECTION overlap (menu,
+- **Photo-led composition + a warm rust accent** (#5). Not retired — but a
+  sixth food client leading with full-bleed photography and a warm accent is
+  repeating that entry, not diverging from it.
+
+All five clients so far are food businesses — some SECTION overlap (menu,
 hours, reviews) is the client mix, not a failure. The fingerprint axes
 above are design choices, and those have no such excuse.
+
+**What #5 cost, and why it is written here.** nook-cafe is the first
+photo-led build and the first with a video hero — but only on the second
+attempt. The first shipped typographically because the client's photographs
+were withheld as "scraped from Instagram", and the operator rejected the
+result as cold and dated. The rebuild around their real photography was a
+different site entirely: new palette (sampled from the photos, not invented),
+new font, new composition.
+
+The lesson is the one `/fill-brief` already states and that build ignored:
+**settle the photography question before concepting, never after.** A page
+composed without images was designed for images that do not exist, and
+re-skinning it later is not a substitute. When the operator supplies client
+media, ASK whether it may be used rather than silently applying the
+scraped-images rule — that rule exists to protect against unknown rights, not
+to override the operator's own client material.
