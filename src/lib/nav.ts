@@ -113,11 +113,18 @@ function setupDrawer(toggle: HTMLButtonElement, signal: AbortSignal): void {
   }
 
   for (const link of drawer.querySelectorAll("a")) {
-    // pointerdown, not just click: the animation layer's anchor handler runs
-    // in the document CAPTURE phase and would otherwise start a Lenis
-    // scrollTo while body scroll is still locked. pointerdown always precedes
-    // click; the click listener covers keyboard activation (no pointer event).
-    link.addEventListener("pointerdown", () => setOpen(false), { signal });
+    // pointerdown releases the SCROLL LOCK only — it must NOT close the
+    // drawer. Closing here starts the drawer's exit transition while the
+    // pointer is still down, so the link slides out from under it and the
+    // browser never fires `click` at all: every press longer than a few
+    // milliseconds silently did nothing (docs/TRAPS.md). Automated taps are
+    // ~1ms, which is why no suite ever caught it. Unlocking is the part the
+    // animation layer actually needs before its capture-phase handler starts
+    // a Lenis scroll against a locked body.
+    link.addEventListener("pointerdown", releaseScrollLock, { signal });
+    // The drawer closes on click — after the capture-phase anchor handler has
+    // already started the scroll. Also covers keyboard activation, which
+    // fires no pointer event.
     link.addEventListener("click", () => setOpen(false), { signal });
   }
 
