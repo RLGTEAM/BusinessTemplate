@@ -114,7 +114,10 @@ for (const [label, value] of legalDates) {
   }
 }
 
-if (content.shell) {
+// Guarded with `in` rather than a direct property read: /new-client DELETES
+// content.shell from the schema when the real site ships, so a bare
+// `content.shell` fails typecheck in exactly the repos that did it right.
+if ("shell" in content && content.shell) {
   errors.push(
     "content.shell still exists — the starter shell (schema field + JSON block + " +
       "pages/index.astro) must be deleted when the real site is built.",

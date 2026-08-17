@@ -50,6 +50,7 @@ Author only the markup contract and the design:
 ```astro
 <button
   type="button"
+  id="menu-toggle"
   data-nav-toggle
   aria-expanded="false"
   aria-controls="mobile-menu"
@@ -77,6 +78,11 @@ via `pointerdown` (beats the capture-phase Lenis anchor handler) + `click`
 
 Rules:
 
+- `id="menu-toggle"` is REQUIRED, not decorative: `tests/smoke.spec.ts` and
+  `tests/a11y.spec.ts` locate the toggle by that id and `test.skip()` when it
+  is absent. Ship the toggle without it and the drawer tests — including the
+  containing-block-trap test that is supposed to FAIL the build — silently do
+  not run at all.
 - Labels come from `content.ui.openMenu` / `content.ui.closeMenu` — never
   hardcode "פתח תפריט"/"Menu".
 - Design the open drawer's entrance off `[data-open]` in CSS (stagger via
@@ -486,7 +492,7 @@ import { telHref, whatsappHref } from "@/lib/business";
 ---
 
 <div
-  class="fixed inset-inline-0 bottom-0 z-40 flex min-h-14 items-center gap-2 border-t border-line bg-surface p-2 md:hidden"
+  class="fixed inset-x-0 bottom-0 z-40 flex min-h-14 items-center gap-2 border-t border-line bg-surface p-2 md:hidden"
   style="padding-block-end: env(safe-area-inset-bottom)"
 >
   <a
@@ -512,7 +518,7 @@ import { telHref, whatsappHref } from "@/lib/business";
 
 Rules:
 
-- `md:hidden fixed inset-inline-0 bottom-0 z-40 min-h-14` — mobile-only,
+- `md:hidden fixed inset-x-0 bottom-0 z-40 min-h-14` — mobile-only,
   spans the full inline axis; `padding-block-end: env(safe-area-inset-bottom)`
   clears the iOS home-indicator area.
 - Phone via `telHref()`, WhatsApp via `whatsappHref()` (or
@@ -537,7 +543,10 @@ Rules:
   with a home-indicator inset, so the spacer needs the same
   `padding-block-end: env(safe-area-inset-bottom)`, not just the same
   `min-h-14`.
-- Logical properties only: `inset-inline-0`, never `left-0 right-0`.
+- `inset-x-0`, never `left-0 right-0` written separately. NOTE: there is no
+  `inset-inline-0` utility in Tailwind — it silently does nothing, and the bar
+  becomes shrink-to-fit instead of spanning the screen. `inset-x-0` sets both
+  physical edges to 0, which is direction-agnostic anyway.
 - This bar counts toward the page contract's "clear contact path reachable"
   — it doesn't replace the nav's own contact link, but on mobile it's
   usually the one visitors actually use.
