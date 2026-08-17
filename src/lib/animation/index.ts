@@ -60,7 +60,37 @@ function setupAnchorScrolling(lenis: Lenis): () => void {
       target.setAttribute("tabindex", "-1");
     }
     target.focus({ preventScroll: true });
-    lenis.scrollTo(target, { offset: -marginTop });
+
+    // Where native navigation would have landed. preventDefault() has already
+    // cancelled the browser's own jump, so if the smooth scroll fails to move
+    // the page, nothing else will — the link would simply be dead.
+    const startY = window.scrollY;
+    const targetY = Math.max(
+      0,
+      Math.round(target.getBoundingClientRect().top + startY - marginTop),
+    );
+    const needsToMove = Math.abs(targetY - startY) > 2;
+
+    // No `offset` here: current Lenis honours scroll-margin-top itself, so
+    // passing it again subtracted it twice and anchors landed at 2x the
+    // margin. Lenis also derives its scroll from the viewport height; some
+    // contexts report window.innerHeight === 0 (embedded/automated/offscreen
+    // tabs) and it then computes a zero-length scroll and moves nothing at
+    // all, while native scrolling still works. Don't hand it the scroll then.
+    if (window.innerHeight > 0) {
+      lenis.scrollTo(target);
+    }
+
+    if (!needsToMove) return;
+
+    // Safety net for every other way the smooth scroll can fail to start: if
+    // the page hasn't budged shortly after the click, jump natively. A
+    // smooth-scroll library failing must degrade to a jump, never to nothing.
+    window.setTimeout(() => {
+      if (Math.abs(window.scrollY - startY) < 2) {
+        window.scrollTo({ top: targetY, behavior: "auto" });
+      }
+    }, 250);
   };
 
   // Capture phase: Astro's ClientRouter also handles same-page hash links on
