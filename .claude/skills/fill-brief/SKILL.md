@@ -84,6 +84,9 @@ later was designed for images that don't exist.
   the client checklist (Step 5) — they have the longest lead time after
   the coordinator. Scraped IG/Maps images are low-res and rights-murky;
   never copy them into `src/assets/images/`.
+- Once photos are placed, run `npm run sample:palette` and paste its
+  candidate block into the brief's Voice & brand section tagged `[scraped]`
+  — `/new-client` Step 1 starts its color story from those hexes.
 
 ## Step 4 — Write the brief
 

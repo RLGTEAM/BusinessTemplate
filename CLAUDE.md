@@ -31,6 +31,7 @@ The build workflow depends on a pinned set of globally-installed agent skills
 ## Claude-specific notes
 
 - After editing `business.json` or `business.schema.ts`, run `npm run validate:content` before anything else — it gives the fastest, clearest error messages (schema, palette contrast, phone/WhatsApp formats).
+- `docs/concept.md` (client repos) must carry the machine-readable fingerprint block (`docs/PORTFOLIO.md` → Fingerprint format) — `npm run validate:divergence` reads it and fails the concept on a collision with a shipped site. Write it in `/new-client` Step 1; keep it current when `voice.palette.accent` or `design.fontPairing` change.
 - NEVER run `npm run deploy` / `deploy:preview` / `deploy:setup` unprompted — they publish to a real client-facing URL and create real Cloudflare projects. Ask first, every time.
 - `npm run test:e2e` builds and serves itself on port 4322, so it can run alongside `npm run dev` (4321). Never point tests at the dev server — dev image transforms are flaky under parallel load and poison visual baselines.
 - Windows note: write files as UTF-8 **without BOM** — a BOM in `business.json` breaks `JSON.parse` at build time.

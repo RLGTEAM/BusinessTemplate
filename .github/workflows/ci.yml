@@ -38,6 +38,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test
+      # Skips with exit 0 in the template (no docs/concept.md); catches a
+      # malformed docs/portfolio.json on every push.
+      - run: npm run validate:divergence
       - run: npm run test:ltr-build
 
   e2e:

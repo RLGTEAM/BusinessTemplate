@@ -7,8 +7,10 @@ description: Build a client site 0→100 from a brief — concept generation + s
 
 Turn `docs/brief.md` into a designed, validated site. Run WITHOUT stopping for
 user input: make the best call, record it, and surface every assumption in the
-final report. Read `docs/DESIGN-DOCTRINE.md` first — it is the contract for
-everything below (the floor, the page contract, the toolkit, the process).
+final report. Read `docs/DESIGN-DOCTRINE.md` first — it is the design contract
+(the floor, the page contract, the Craft bars); `AGENTS.md` is the engineering
+contract. This skill is PROCESS — it references those docs and never restates
+their rules.
 
 ## Execution plan — pipeline, don't queue
 
@@ -24,28 +26,21 @@ Wall-clock discipline for the whole build. Three rules:
 2. **Fan out independent work with subagents** (when an agent-dispatch tool is
    available). The dependency chain is: concept → schema+content+palette →
    `custom.css` tokens/color story → everything else. Once the color story is
-   in `custom.css`, these are independent of the main page build and MUST run
-   as parallel subagents while you compose `index.astro`:
-   - **Legal-pages restyle** (Step 4's legal bullet): a subagent that reads
-     `docs/concept.md` + `src/styles/custom.css` and restyles ONLY
+   in `custom.css`, run these as parallel subagents while you compose
+   `index.astro` (never fan out two agents that write the same file):
+   - **Legal-pages restyle**: a subagent that reads `docs/concept.md` +
+     `src/styles/custom.css` and restyles ONLY
      `src/pages/accessibility-statement.astro` + `src/pages/privacy.astro`.
-     It touches no other files, so it cannot conflict with the page build.
-   - **OG + icon generation** (Step 5's `npm run generate:og`): runs any time
-     after `business.json` + palette are final.
-   Never fan out two agents that write the same file.
-3. **Shift the review left.** The expensive failure mode is a Step 5.5 FAIL
-   round (rebuild + re-screenshot + re-judge). Prevent it: after the hero and
-   the first two sections exist, take ONE 390-wide screenshot of the real
-   page (dev server is fine for this mid-build sanity check — final review
-   still uses the production build) and self-check it against the doctrine's
-   anti-AI-tells and the concept's still frame. At the SAME checkpoint run
-   `npm run build && npm run lhci` once (~90s): every shipped build has
-   failed a Lighthouse budget, and every one discovered it at the final
-   gate, after the expensive decisions were locked — the hero's LCP
-   strategy, fonts, and any texture/filter work are all set by this point,
-   and `docs/TRAPS.md` lists what usually breaks the budgets. Course-correct
-   now, while a change costs minutes — Step 5.5 rounds and the Step 6 gate
-   should confirm quality, not discover its absence.
+   - **OG + icon generation** (`npm run generate:og`): any time after
+     `business.json` + palette are final.
+3. **Shift the review left.** After the hero and the first two sections
+   exist, take ONE 390-wide screenshot of the real page and self-check it
+   against the doctrine's Craft bar 4 (anti-AI tells) and the concept's still
+   frame. At the SAME checkpoint run `npm run build && npm run lhci` once
+   (~90s): every shipped build has failed a Lighthouse budget at the final
+   gate, after the expensive decisions (hero LCP strategy, fonts, textures)
+   were locked — `docs/TRAPS.md` lists what usually breaks the budgets.
+   Course-correct now, while a change costs minutes.
 
 ## Step 0 — Ingest the brief
 
@@ -56,89 +51,91 @@ Wall-clock discipline for the whole build. Three rules:
   and add it to the report's blocking list.
 - Geo coordinates (`data.contact.geo.lat`/`.lng`): if the brief has no
   `[client-confirmed]` coordinates, geocode the real address yourself
-  (WebSearch — e.g. look it up on Google Maps and read the lat/lng off the
-  pin) and tag the result `[scraped]`/provisional in Step 7's
-  confirm-with-client list. NEVER leave the skeleton's demo coordinates in
-  place — they validate fine but silently ship a wrong map pin in the
-  LocalBusiness JSON-LD for a real business.
-- The "raw texture" section is your design material — read it before
-  inventing anything. The concept must come from the client's world, not from
-  a generic industry stereotype.
+  (WebSearch — read the lat/lng off a Google Maps pin) and tag the result
+  `[scraped]`/provisional in Step 7's confirm-with-client list. NEVER leave
+  the skeleton's demo coordinates — they validate fine but ship a wrong map
+  pin in the LocalBusiness JSON-LD.
+- The "raw texture" section is the design material — Step 1a mines it before
+  anything is invented.
 
 ## Step 1 — Concept (before any code)
 
-**First read `docs/PORTFOLIO.md`** — the fingerprints of every shipped site
-and the spent-material list. The failure it exists to stop is real and
-measured: with no cross-client memory, three of the first four builds chose
-the same metaphor family, three the same font pairing, four the same accent
-family — each one scoring itself "distinctive." Its rules are binding here:
-no candidate may repeat a shipped metaphor family, and the judge caps
-Distinctiveness on portfolio collisions (fontPairing, accent family, page
-form + metaphor).
+### 1a. From raw texture to concept (sources before filters)
+
+The template's rules are FILTERS. They cannot make a concept distinctive —
+only the client's own material can. Derive, don't invent:
+
+1. **Quote-mine the brief.** Pull 6–10 verbatim fragments from its Raw
+   texture — reviews, the business's own repeated phrases, the photo
+   descriptions — into your working notes.
+2. **Metaphor candidates must cite evidence.** Every candidate names ≥ 2 of
+   those quotes as its source. A metaphor with no quote behind it is a model
+   prior, not a concept — discard it.
+3. **Sample the palette, don't imagine it.** `npm run sample:palette` when
+   the client's photos are in `src/assets/images/`. The color story starts
+   from those hexes; an invented palette needs one sentence in
+   `docs/concept.md` saying why the photographs don't serve.
+4. **Pick the pairing from what's unused.**
+   `npm run validate:divergence -- --summary` prints which of the fifteen
+   pairings, metaphor families, page forms, and accent families the portfolio
+   has already spent. Choose from the unused sets unless `docs/concept.md`
+   argues the repeat. (No shell available? Read `docs/portfolio.json`
+   directly.) Read `docs/PORTFOLIO.md` once for WHY this matters — the
+   measured sameness story and the nook-cafe lesson.
+
+### 1b. Three candidates
 
 Generate THREE distinct concept candidates in the doctrine's four-line format
 (metaphor / color story / composition / motion identity + still frame).
 When an agent-dispatch tool is available, generate them as three PARALLEL
-subagents, each given the brief + doctrine + PORTFOLIO.md and a different
-forcing lens
-(e.g. "the client's craft as material", "the customer's moment of need",
-"break the section-stack") — parallel generation is faster AND the lenses
-prevent three variations on the same idea. Judge and pick inline yourself.
-Treat the template's structural suggestions — RECIPES patterns, the starter
-shell's section list, compositions you've built before — as material to
-react against, not a scaffold to fill in: a concept is allowed, and
-encouraged, to discard the suggested structure entirely and invent its own
-composition, as long as the doctrine's floor, page contract, and Craft bars
-hold. Each candidate NAMES its page form (doctrine: "a page is a form
-before it is a list of sections"), and the three candidates must not all
-share one form. At least ONE candidate must break from the conventional
-section-stack structure in some real way — and per the doctrine's
-mobile-first bar, that candidate is sketched AT 390 FIRST, as a native
-phone composition, before any judgment about it is made.
+subagents, each given the brief + doctrine + the `--summary` output and a
+different forcing lens (e.g. "the client's craft as material", "the
+customer's moment of need", "break the section-stack"). Judge and pick
+inline yourself.
 
-Self-critique each against: (a) would this client's customers recognize it
-instantly, (b) feasibility on the floor (contrast pairs, RTL, reduced-motion
-still frame), (c) distance from every `docs/PORTFOLIO.md` entry AND from the
-generic AI-site look, stated explicitly per candidate. Pick the strongest.
-**Selection rules:** a candidate may be rejected only for failing THIS
-client or the floor — never for being unusual; "degrades at 390" is not a
-valid rejection unless its 390-native sketch was actually attempted; and if
-the safe section-stack wins over the structure-breaker, `docs/concept.md`
-must argue in one or two sentences why the breaker fails this client
-specifically. Breaking the shipped mold is a value in itself: when two
-candidates serve the client equally, the one further from the portfolio
-wins.
+- Each candidate NAMES its page form (doctrine's forms list) as a kebab-case
+  slug, and the three candidates must not all share one form. At least ONE
+  candidate breaks from the section-stack structure in some real way — and
+  per Craft bar 1, that candidate is sketched AT 390 FIRST, as a native phone
+  composition, before any judgment about it.
+- Self-critique each against: (a) would this client's customers recognize it
+  instantly, (b) feasibility on the floor (contrast pairs, RTL, reduced-motion
+  still frame), (c) distance from every shipped fingerprint AND from the
+  generic AI-site look, stated explicitly per candidate.
+- **Selection rules:** a candidate may be rejected only for failing THIS
+  client or the floor — never for being unusual; "degrades at 390" is not a
+  valid rejection unless its 390-native sketch was actually attempted; if the
+  safe section-stack wins over the structure-breaker, `docs/concept.md` must
+  argue in one or two sentences why the breaker fails this client
+  specifically. When two candidates serve the client equally, the one further
+  from the portfolio wins.
 
-The chosen concept MUST specify, binding for every build:
+The chosen concept MUST satisfy the doctrine's Divergence hard rules 1–7 —
+including the **nav concept** (how the header expresses the concept, its
+scroll-aware behavior, the drawer's design) and the **choreography plan**
+(Craft bar 3's five categories mapped to actual sections; a 5-row table
+works well) as written prose in `docs/concept.md`.
 
-1. A bespoke hero treatment — a hero designed for this client, not a generic centered-headline default.
-2. At least one fully bespoke section.
-3. A signature motion implemented in `src/lib/animation/custom.ts`
-   (`registerCustomAnimations`) — not just default `data-reveal` presets.
-4. A non-default color story: the page cannot ship all-default-white
-   surfaces unless `docs/concept.md` explicitly argues why light-minimal
-   serves THIS client.
-5. No shell markup / `content.shell` remains.
-6. A **nav concept**: how the header expresses the concept, its scroll-aware
-   behavior, and the mobile drawer's design — not just the a11y mechanics
-   (RECIPES covers the mechanism; the design is the concept's job).
-7. A **choreography plan**: the doctrine's five-part aliveness inventory
-   (Craft bar 3, `docs/DESIGN-DOCTRINE.md`) mapped to actual sections — which
-   section gets which scroll-driven moment, what the hero timeline
-   sequences, what the ambient motion is, what the micro-interaction
-   character is.
+Write `docs/concept.md`: the chosen concept in at most ~500 words plus the
+nav-concept and choreography-plan sections; each rejected candidate in ~60
+words including why it lost and what was kept. The build reads the concept,
+not an essay.
 
-Sketch concept candidates MOBILE-FIRST: describe the 390px composition
-first, desktop as the adaptation.
+### 1c. Fingerprint + validate (gate — before any code)
 
-Write `docs/concept.md` containing the chosen concept in full plus the two
-rejected candidates. **Budget the prose:** the chosen concept in at most
-~500 words plus the nav-concept and choreography-plan sections (the
-choreography plan works well as a 5-row table: category → section →
-moment); each rejected candidate in ~60 words including why it lost and
-what was kept. Past concept docs ran to 19KB — the length went to
-self-persuasion, not design; the build reads the concept, not an essay.
-Commit it alone: `feat: design concept for <client>`.
+Write the fingerprint block into `docs/concept.md` (format:
+`docs/PORTFOLIO.md` → Fingerprint format;
+`npm run validate:divergence -- --print-template` prints an empty one), then:
+
+    npm run validate:divergence
+
+It must exit 0 before you write a line of page code. On a collision: change
+the concept, or — only when the client's world genuinely demands the repeat —
+add an `argues` entry naming the specific prior client and why. A
+(pageForm + metaphorFamily) collision cannot be argued away; that is the same
+site twice.
+
+Commit the concept alone: `feat: design concept for <client>`.
 
 ## Step 2 — Schema-first content
 
@@ -159,125 +156,107 @@ Commit it alone: `feat: design concept for <client>`.
   line below is the one deliberate, isolated exception. Hebrew sites keep a
   bidi test line (Hebrew + Latin name + ₪ price) in visible body copy — the
   smoke suite scans for it. Make it read as real copy the client's own
-  business would plausibly say, not an inserted fixture — e.g. a menu/product
-  line naming something with a genuine Latin brand name at a real ₪ price
-  ("מנת ה-Signature Burger שלנו ב-₪68"), built from whatever the client's
-  actual business supports (an imported product, a partner brand, a
-  delivery-app mention) — never a sentence invented purely to pass the test.
+  business would plausibly say (an imported product, a partner brand, a
+  delivery-app mention at a real ₪ price) — never a sentence invented purely
+  to pass the test.
 - Respect `voice` in every sentence. Save UTF-8 WITHOUT BOM.
 - Hebrew sites: invoke the `hebrew-content-writer` skill (if installed)
   before authoring copy — pick the register deliberately (dugri vs. business
   vs. formal) from `voice`, use ktiv maleh, and keep gendered address
   consistent across every string. Copy quality is a rubric axis, not polish.
 - Sweep: `rg '\[[^0-9"][^"]*\]' src/content/business/business.json` — only
-  deliberate flagged placeholders may remain, and every one of them goes in
-  the report. (The bidi line is real copy and contains no brackets. Don't use
-  a bare `rg "\["` — it matches every JSON array opening.)
+  deliberate flagged placeholders may remain, and every one goes in the
+  report. (Don't use a bare `rg "\["` — it matches every JSON array opening.)
 
 ## Step 3 — Palette
 
-`voice.palette` drives the theme, including the neutrals: `surface`,
-`surfaceAlt`, `ink`, `inkMuted`, `line` — schema defaults are the reference
-light theme, but a dark or deep-tinted site is a first-class choice, not a
-workaround. `npm run validate:content` enforces WCAG AA (≥ 4.5:1) on all 9
-pairs the template actually uses (ink/ink-muted × surface/surface-alt,
-primary/secondary × surface/surface-alt, accent↔secondary) against the REAL
-palette values. If a brand color fails, adjust until it passes and note the
-change in the report. New color-as-text pairs → add to
-`scripts/validate-content.ts` in the same commit.
+Run `npm run sample:palette` first: with client photos in
+`src/assets/images/`, the palette is sampled, not invented — inventing one
+needs a stated reason in `docs/concept.md` (PORTFOLIO's #5 lesson). The
+sampler pre-checks the same 9 WCAG pairs `validate:content` enforces
+(contract: AGENTS.md → Palette contract; pair list: `scripts/lib/color.ts`).
+Paste the suggestion into `voice.palette` (adjusting for the concept's color
+story), run `npm run validate:content`, and note any nudge in the report.
+Dark or deep-tinted palettes are first-class. A new color-as-text pair → add
+it to `contrastPairs()` in `scripts/lib/color.ts` in the same commit.
+If the palette's accent changed hue family from the fingerprint, update the
+fingerprint and rerun `npm run validate:divergence`.
 
 ## Step 4 — Design and build the page
 
 Execute the committed concept, 0→100:
 
-- Build order is mobile-first: compose at 390, then adapt up — never
-  desktop-first.
+- Build order is mobile-first: compose at 390, then adapt up (Craft bar 1) —
+  never desktop-first.
 - Compose `src/pages/index.astro` yourself, replacing the starter shell
-  entirely, and in the SAME change DELETE `content.shell` from schema+JSON
-  (the starter page throws if `shell` is missing while it's still the page
-  rendering — deleting both together avoids a spurious build failure).
-  Build every component from zero. Consult `docs/RECIPES.md` for
-  the RTL/a11y-correct patterns (nav, form contract, section skeleton) —
-  recipe 7 (scroll-aware header) and recipe 9 (mobile sticky contact bar)
-  are mandatory for the Craft bars above, not optional polish.
+  entirely, and in the SAME change DELETE `content.shell` from schema+JSON.
+  Build every component from zero. Consult `docs/RECIPES.md` for the
+  RTL/a11y-correct markup contracts — recipe 7 (scroll-aware header) and
+  recipe 9 (mobile sticky contact bar) are mandatory for the Craft bars.
   Forms are optional — only if the client wants one, wired to the headless
-  helper.
+  helper (RECIPES 3).
 - Shape/rhythm: override `--shape-radius-card`, `--shape-radius-button`,
   `--section-py` in `src/styles/custom.css`; color story with tokens +
-  `color-mix()` there too. Pick `design.fontPairing` to match the concept.
-- Honor the page contract: one `h1`, nav `#id` links all resolve, footer with
-  legal links, contact path reachable, decorative = `aria-hidden` +
-  `pointer-events-none`.
+  `color-mix()` there too. Pick `design.fontPairing` to match the concept
+  (Step 1a rule 4).
+- Honor the page contract (doctrine): one `h1`, nav `#id` links resolve,
+  footer with legal links, contact path reachable, decorative =
+  `aria-hidden` + `pointer-events-none`.
 - The header's MECHANICS are shipped: `src/lib/nav.ts` provides the drawer
   behavior, `data-scrolled`, `aria-current`, and the contact-bar tuck off
   the markup contract in RECIPES recipes 2 + 7 — **write no drawer or
   scroll-state script; author markup + CSS only** (bespoke header MOTION
   still goes in `custom.ts`, driven off the same attributes). An open-now
   status, if the design wants one, is `src/lib/hours.ts` via RECIPES
-  recipe 11 — never reimplemented. What remains yours is the DESIGN of all
-  of it, and one verify pass: open the REAL page in the Playwright MCP
-  browser at 390 and at desktop width and OPERATE the nav — toggle
-  open/close, press Escape, click a nav link (the drawer must close and the
-  page must land on the right section with nothing clipped under the sticky
-  header), confirm the scrolled state and `aria-current` styling actually
-  trigger, and confirm the open drawer is fully styled and sits ABOVE all
-  page content.
+  recipe 11 — never reimplemented.
+- **Nav verify pass** (the judge automatic-fails broken nav mechanics): open
+  the REAL page in the Playwright MCP browser at 390 and at desktop width
+  and OPERATE the nav — toggle open/close, press Escape, click a nav link
+  (drawer closes, page lands on the right section, nothing clipped under
+  the sticky header), confirm the scrolled state and `aria-current` styling
+  trigger, confirm the open drawer sits fully styled ABOVE all page content.
   **Run the 390 pass at the top of the page AND after scrolling to
-  mid-page** — the containing-block trap in RECIPES recipe 2 is CSS-side
-  (`backdrop-filter`/`transform` on the header root or a drawer ancestor),
-  so the helper cannot prevent it; follow the recipe's canonical structure:
-  effects on the inner bar, drawer a sibling of it, header root
-  positioning-only. The contract smoke suite fails the build on a trapped
-  drawer, so catching it here saves a gate round. Fix everything found
-  before Step 5.5 — the judge automatic-fails broken nav mechanics.
-- Restyle the legal pages (`src/pages/accessibility-statement.astro`,
-  `src/pages/privacy.astro`) into the concept's design language — this is the
+  mid-page** — the containing-block trap (TRAPS 11) is CSS-side and only
+  breaks in the scrolled state; follow RECIPES 2's canonical structure.
+- Restyle the legal pages into the concept's design language — this is the
   Execution plan's parallel subagent: dispatch it as soon as the color story
-  lands in `custom.css`, and let it run while you compose the page. They ship
-  with a neutral token-driven baseline that inherits palette and fonts, but
-  baseline is not designed: carry the color story, the typography scale, and
-  the concept's treatment (back-link affordance, card/rule styling) into
-  them. They are part of every build, not an appendix — the doctrine's page
-  contract requires it.
-- Motion: the concept's ONE motion identity. Default entrances via
-  `data-reveal` choices, tuned with `data-reveal-duration` /
-  `data-reveal-delay` / `data-reveal-distance` / `data-reveal-start` (and
-  `data-reveal-stagger` on groups); the `blur` and `clip` presets are the two
-  sanctioned exceptions to transforms/opacity-only. Bespoke motion goes in
-  `registerCustomAnimations()` in `src/lib/animation/custom.ts` — the entry
-  point called inside the reduced-motion-guarded matchMedia context.
+  lands in `custom.css`. They are part of every build, not an appendix (page
+  contract).
+- Motion: the concept's ONE motion identity across the aliveness inventory
+  (Craft bar 3). Entrances via `data-reveal` presets and their tuning
+  attributes; bespoke motion in `registerCustomAnimations()`
+  (`src/lib/animation/custom.ts`); helpers per AGENTS.md → Animation rules.
 - New user-visible behavior → ADD a test in the client repo. The contract
   smoke suite is never edited.
 - Section order and CTA placement are conversion decisions, not aesthetics:
-  the contact path (phone/WhatsApp) must be reachable within one thumb-move
-  at every scroll depth, and the page's first viewport must answer "what,
-  where, why you" before any decorative band. The `cro` skill (if installed)
-  is the checklist for this — apply it while composing, not after.
-- Before Step 5.5, SELF-CHECK the aliveness inventory and the anti-AI-tells
-  list (Craft bars 3 and 4, `docs/DESIGN-DOCTRINE.md`) and fix any gaps — the
-  judge automatic-fails an incomplete inventory. Run the `web-design-guidelines`
-  skill's checklist (if installed) as part of this same pass — it catches
-  interaction/a11y/polish defects the rubric's axes assume are already met.
-- Also before Step 5.5, verify `docs/concept.md` actually contains the nav
-  concept (Step 1 item 6) and the choreography plan (item 7) for the chosen
-  concept AS WRITTEN PROSE, not just realized in code — design-review caps
-  Concept expression at 2 if either is missing.
+  the contact path must be reachable within one thumb-move at every scroll
+  depth, and the first viewport answers "what, where, why you" before any
+  decorative band. The `cro` skill (if installed) is the checklist — apply
+  it while composing, not after.
+- Before Step 5.5, self-check against DOCTRINE Craft bar 3 (the five-part
+  aliveness inventory) and Craft bar 4 (the named anti-AI tells) — read them
+  there; do not work from memory. The judge automatic-fails an incomplete
+  inventory. Run the `web-design-guidelines` skill's checklist (if
+  installed) in the same pass.
+- Also verify `docs/concept.md` actually contains the nav concept and the
+  choreography plan AS WRITTEN PROSE — design-review caps Concept expression
+  at 2 if either is missing.
 
 ## Step 5 — Images + OG
 
-Client photos into `src/assets/images/`; add image fields to the client schema
-as the design needs (schema-first, resolved via `resolveImage()` per
+Client photos into `src/assets/images/`; add image fields to the client
+schema as the design needs (schema-first, resolved via `resolveImage()` per
 `docs/RECIPES.md` recipe 5). Regenerate the OG image + favicon/icon set:
 `npm run generate:og`. Every image still showing a placeholder goes in the
 report.
 
 ## Step 5.5 — Design review (the judge)
 
-Invoke the `design-review` skill against the built site. It owns the rubric
-and the automatic-fail checks — do not inline them here. The build must reach
-PASS, or exhaust the skill's 3 rounds with every round's verdict logged to
-`docs/design-review.md`, before moving to the final gate. A site that hasn't
-run through this skill isn't finished, even if Step 6 is green.
+Invoke the `design-review` skill against the built site. It owns the rubric,
+the automatic-fail checks, and the comparative distinctiveness pass — do not
+inline them here. The build must reach PASS, or exhaust the skill's 3 rounds
+with every round's verdict logged to `docs/design-review.md`, before moving
+to the final gate.
 
 ## Step 6 — Gate (all must pass; fix, don't skip)
 
@@ -287,26 +266,22 @@ npm run test:e2e
 npm run test:ltr-build
 npm run build && npm run lhci
 npx playwright test --grep @visual --update-snapshots
+npm run validate:divergence
 npm run preflight
 ```
 
 If the Execution plan's continuous validation was followed, `npm run test`
-is a seconds-long confirmation — any failure here means a step skipped its
-own check; fix the habit along with the failure. The slow suites run once,
-in this order (e2e surfaces the widest class of defects first; ltr-build
-rebuilds `dist/` to the EN locale, so the plain `npm run build` after it
-restores the real locale for `lhci` and the snapshots). `lhci` checks the
-budgets the build is judged on (LCP ≤ 2.5s, TBT ≤ 200ms, CLS ≤ 0.1) — a
-budget failure is a build defect, not an ops problem; fix it now, not after
-push. The `--update-snapshots` run CREATES the visual baselines for this
-fresh design (there is nothing meaningful to compare a first build against —
-the check protects FUTURE edits, from the next change onward).
+is a seconds-long confirmation. The slow suites run once, in this order
+(ltr-build rebuilds `dist/` to the EN locale, so the plain `npm run build`
+after it restores the real locale for `lhci` and the snapshots). The
+budgets are AGENTS.md → Commands; a budget failure is a build defect, not an
+ops problem. The `--update-snapshots` run CREATES the visual baselines for
+this fresh design. `validate:divergence` re-confirms the fingerprint after
+any fix-round accent/pairing changes.
 
-`npm run preflight` last: it reports every remaining launch blocker
-(placeholders, fake coordinator, demo geo, missing OG, broken links). On a
-build with real client data it should pass or leave only items the client
-must still supply — copy its output verbatim into the report's BLOCKING
-section. Do not "fix" a preflight failure by inventing data.
+`npm run preflight` last: it reports every remaining launch blocker — copy
+its output verbatim into the report's BLOCKING section. Do not "fix" a
+preflight failure by inventing data.
 
 ## Step 7 — Report
 
@@ -318,31 +293,31 @@ End with exactly these sections:
    coordinates (Step 0).
 3. **Placeholders remaining** — images, testimonials, copy awaiting real
    content.
-4. **Design decisions** — the concept (link `docs/concept.md`), palette
-   adjustments, fontPairing, composition summary — plus the site's
-   **portfolio fingerprint** as a ready-to-paste `docs/PORTFOLIO.md` table
-   row (metaphor family / page form / palette family / accent / fontPairing
-   / signature element / motion identity): the operator appends it to the
-   TEMPLATE repo at handoff so future builds diverge from this one.
+4. **Design decisions** — concept (link `docs/concept.md`), palette
+   provenance (which hexes came from `sample:palette`, which were nudged for
+   contrast, any invented with the stated reason), fontPairing, composition
+   summary — plus TWO handoff artifacts:
+   a. the **fingerprint object** copied verbatim out of `docs/concept.md`'s
+      block, with `"screenshot": "portfolio/<client>.png"` added, ready to
+      append to the TEMPLATE repo's `docs/portfolio.json` `entries` array;
+   b. the **390-wide full-page screenshot** taken in Step 5.5, named
+      `<client>.png`, for the template's `docs/portfolio/`.
+   PLAYBOOK step 9 is where the operator files both. Skipping either
+   re-creates the sameness problem for the next client.
 4b. **Promote candidates** — REQUIRED, even if empty (then say why). Every
-   trap discovered (a measured perf regression, a defect class the gate
-   missed → `docs/TRAPS.md` entry), and every broadly-useful invention (a
-   pattern → RECIPES, logic → a headless `src/lib` helper, a token/preset)
-   with a one-line generalization sketch. This is the promote loop's
-   trigger — past builds fixed template-level defects (font preload, stale
-   ScrollTrigger ends) in the client repo only, and every later client paid
-   for them again.
-5. **Deploy checklist** — `data.seo.siteUrl` matches the real domain (it drives
-   canonical URLs, sitemap, JSON-LD, and the Cloudflare Pages project name);
+   trap discovered (a measured regression → `docs/TRAPS.md` entry), and
+   every broadly-useful invention (a pattern → RECIPES, logic → a headless
+   `src/lib` helper, a token/preset) with a one-line generalization sketch.
+   Past builds fixed template-level defects in the client repo only, and
+   every later client paid for them again.
+5. **Deploy checklist** — `data.seo.siteUrl` matches the real domain;
    `PUBLIC_WEB3FORMS_KEY` is in the local `.env`, created with the CLIENT's
-   email (direct uploads build locally — a dashboard-only key never ships);
-   then `npx wrangler login` → `npm run deploy:setup` → `npm run deploy:preview`.
-   Do NOT run any deploy command yourself — list them for the operator.
+   email; then `npx wrangler login` → `npm run deploy:setup` →
+   `npm run deploy:preview`. Do NOT run any deploy command yourself — list
+   them for the operator.
 6. **After production deploy (operator steps, list them)** — Google Search
-   Console: `npm run gsc:setup` twice (first run writes the verification
-   meta-tag token into business.json → commit + redeploy → second run
-   verifies + submits the sitemap — one-time OAuth setup in
-   `docs/PLAYBOOK.md`). Then the local-SEO basics for the client: Google
-   Business Profile exists and links to the site, NAP on the site matches
-   the GBP listing exactly (the `local-seo` skill, if installed, is the
-   checklist).
+   Console: `npm run gsc:setup` twice (write token → commit + redeploy →
+   verify + submit; OAuth setup in `docs/PLAYBOOK.md`). Then the local-SEO
+   basics: Google Business Profile exists and links to the site, NAP on the
+   site matches the GBP listing exactly (the `local-seo` skill, if
+   installed, is the checklist).

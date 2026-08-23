@@ -25,7 +25,11 @@ operations, not a replacement for them.
    WhatsApp checklist of the facts only the client can supply (coordinator
    first — longest lead time). Paste the client's answers back tagged
    `[client-confirmed]`. Get real photos BEFORE `/new-client` whenever
-   possible — the concept designs around the actual photography. Tag every fact `[scraped]` (found online, unverified) or
+   possible — photos beat every other choice you make, and the concept
+   designs around the actual photography. With photos in
+   `src/assets/images/`, run `npm run sample:palette` — the color story
+   starts from the client's real photographs, not an invented palette
+   (PORTFOLIO's #5 lesson). Tag every fact `[scraped]` (found online, unverified) or
    `[client-confirmed]` (the client said it directly) — `/new-client` treats
    scraped-only NAP, prices, and hours as provisional and lists them for
    confirmation before launch. Dump raw texture into the brief's "Raw
@@ -47,9 +51,9 @@ operations, not a replacement for them.
      are fine to start from otherwise — `npm run generate:placeholders`).
    - `.env` exists (copy `.env.example`) with a Web3Forms key created on the
      **client's** email — only if they actually want a contact form.
-   - A note on what previous clients' sites looked like — distinctiveness
-     input for the concept stage, so this build doesn't rhyme with the last
-     one.
+   - Nothing to prepare for distinctiveness — `docs/portfolio.json` +
+     `npm run validate:divergence` carry the cross-client memory into the
+     concept stage automatically.
 
 4. **Run `/new-client`** from the repo root. It runs unattended, start to
    finish: three design concepts → self-critique → the chosen concept
@@ -102,10 +106,14 @@ operations, not a replacement for them.
    catch it (repeat this canary monthly for maintained form clients). Hand
    over Google Search Console access to the client (or their marketing
    contact). Archive the filled `docs/brief.md` in the client repo as the
-   record of what was agreed. **Append the site's design fingerprint to the
-   TEMPLATE repo's `docs/PORTFOLIO.md`** — the `/new-client` report ends
-   with the ready-to-paste row; this is what stops the next build from
-   rhyming with this one, so skipping it re-creates the sameness problem.
+   record of what was agreed. **File the site's fingerprint in the TEMPLATE repo**: append the
+   JSON object the `/new-client` report ends with to `docs/portfolio.json`'s
+   `entries` array, and save the review's 390-wide full-page screenshot as
+   `docs/portfolio/<client>.png` (capture spec: `docs/PORTFOLIO.md` →
+   Fingerprint format). Then run `npm run validate:divergence -- --summary`
+   in the template to confirm the entry parses. This is what stops the next
+   build from rhyming with this one — skipping either artifact re-creates
+   the sameness problem.
    Finally, register the client in the studio
    layer ([docs/OPERATIONS.md](./OPERATIONS.md)): the `clients.json` entry
    (domain, repo, Pages project, `TEMPLATE_VERSION`, maintenance plan,
@@ -148,7 +156,9 @@ Search Console — ownership stays with the studio account that verified it.
 - **Brief richness beats everything.** Every downstream artifact — concept,
   palette, motion identity, copy voice — derives from the brief's raw
   texture. If a run disappoints, the highest-leverage fix is a richer brief,
-  not more adjectives in your feedback.
+  not more adjectives in your feedback. Photos are the strongest single
+  input (a full-bleed hero lives or dies by the photo behind it) — settle
+  the photography question before concepting, never after.
 - **Use the judge adversarially.** If a delivered site feels samey or dead,
   open `docs/design-review.md` and read what was scored and why — then
   challenge it ("Aliveness got 4 but I count two animations; re-judge with

@@ -72,11 +72,29 @@ commit as the fix — that's what makes the next build faster than this one.
     were under it (20px-tall footer links, a 285×30 hero phone link).
     Check every `<a>`/`<button>` at 390 during the mobile pass — the axe
     suite does not fully catch this.
-11. **The containing-block drawer trap.** `backdrop-filter`/`transform` on
-    the header root (often only in the scrolled state) traps the
-    fixed-position drawer. Full write-up + canonical structure in RECIPES
-    recipe 2; the contract smoke suite fails the build on it. Effects go on
-    the inner bar, never the header root.
+11. **The containing-block drawer trap (every shipped site has hit this).**
+    `filter`, `backdrop-filter`, `transform`, `perspective`,
+    `will-change: transform`, or `contain: layout|paint` on `<header>` — or
+    ANY ancestor of the drawer — makes that element the containing block for
+    `position: fixed` descendants: a fixed full-screen drawer inside it stops
+    covering the viewport and gets trapped in the header's box ("won't open",
+    or paints behind the page). The killer variant applies a glass effect
+    only in the scrolled state (`header[data-scrolled] { backdrop-filter: … }`):
+    the drawer works at the top of the page and breaks the moment the user
+    scrolls — which is why a nav check performed at scroll-0 always passes
+    and the bug ships anyway. Canonical structure that makes this impossible:
+    RECIPES recipe 2 (effects on the inner bar, header root positioning-only,
+    drawer a sibling of the bar). The contract smoke suite fails the build on
+    it — in the scrolled state, where it actually breaks.
+
+## Build hygiene
+
+12. **UTF-8 BOM in `business.json`** breaks `JSON.parse` at config load
+    (PowerShell `Out-File -Encoding utf8` writes one). Write UTF-8 without
+    BOM.
+13. **`test:ltr-build` leaves an English build in `dist/`** — rebuild before
+    serving or measuring dist afterwards (the gate's ordering in
+    `/new-client` Step 6 already accounts for this).
 
 ## Navigation
 
@@ -113,11 +131,3 @@ commit as the fix — that's what makes the next build faster than this one.
     documented `data-nav-toggle` contract runs neither the drawer tests nor
     the containing-block-trap test that is meant to fail the build. Green
     output, zero coverage. RECIPES recipe 2 now documents the id.
-## Build hygiene
-
-12. **UTF-8 BOM in `business.json`** breaks `JSON.parse` at config load
-    (PowerShell `Out-File -Encoding utf8` writes one). Write UTF-8 without
-    BOM.
-13. **`test:ltr-build` leaves an English build in `dist/`** — rebuild before
-    serving or measuring dist afterwards (the gate's ordering in
-    `/new-client` Step 6 already accounts for this).

@@ -6,64 +6,44 @@ building a client site — design the page 0→100 on top of them.
 Nothing structural is prescribed; everything structural is available. The test
 gate, not a list of allowed layouts, decides what ships.
 
-**Every structural suggestion in this repo is a suggestion.** The recipes,
-the starter shell's section list, the composition examples below — even the
-assumption that the page is a vertical stack of familiar sections — are raw
-material, not a mold. Be critical of them: when the concept is better served
-by discarding a suggested structure and composing something no previous
-client site has, do that. The floor, the page contract, and the Craft bars
-are the ONLY hard constraints; everything else is yours to overrule. A safe
-page that fills in the suggested structure is a worse outcome than a bold
-page that breaks it beautifully.
-
-**Sameness is a portfolio-level failure the single build cannot see.**
-Each build runs with no memory of the others, and a model's stable taste
-re-derives the same favorite moves in every fresh repo, each time believing
-they're original — the first four shipped sites chose the same metaphor
-family three times, the same font pairing three times, and the same accent
-family four times, while each one's own review scored it "distinctive."
-`docs/PORTFOLIO.md` is the cross-client memory: read it before concepting,
-treat its "spent material" list as used up, and know that the judge scores
-Distinctiveness against it. Every client deserves the site only THEIR
-business could have produced — not the studio's house style with new words.
+Every structural suggestion in this repo is a suggestion. The recipes, the
+starter shell's section list, the compositions below — raw material, not a
+mold. Only the floor, the page contract, the divergence rules, and the Craft
+bars are binding; discard the rest whenever the concept is better served
+without it. A safe page that fills in the suggested structure is a worse
+outcome than a bold page that breaks it beautifully.
 
 **A page is a form before it is a list of sections.** The vertical stack of
-full-width color bands is ONE form — the one every shipped site has used.
-Others are just as legal on this floor: a document/menu the visitor reads
-(typographic, ruled, almost no "sections"); a single pinned scene the
-scroll transforms; chapters with radically different layout grammars; a
-spine/rail the content hangs off; a conversation that answers the
-visitor's questions in order; a map- or photo-first page where text
-annotates the image. The concept names its form FIRST, then decides what
-the nav means inside it (anchors must still resolve — where they point is
-the design's call). None of these excuse the contract: one h1, resolving
-nav, reachable contact path, complete reduced-motion still frame.
+full-width color bands is ONE form — and a spent one (see `docs/portfolio.json`).
+Equally legal on this floor:
 
-## The floor (non-negotiable, unchanged)
+- a document/menu the visitor reads (typographic, ruled, almost no "sections")
+- a single pinned scene the scroll transforms
+- chapters with radically different layout grammars
+- a spine/rail the content hangs off
+- a conversation answering the visitor's questions in order
+- a map- or photo-first page where text annotates the image
 
-- RTL: logical properties/utilities only; `--dir-factor` / `--angle-brand` /
-  `--origin-inline-start` / `--bg-pos-inline-start` for what doesn't auto-flip;
-  `<bdi>` for mixed runs; `.force-ltr` for phones/prices/emails; no
-  letter-spacing on Hebrew.
-- Copy lives in `business.json`, read via `getBusiness()` — never hardcoded.
-  Images via `resolveImage()`; hrefs via `resolveHref()`.
-- Colors are tokens (`--color-primary|secondary|accent|surface|…`); tints via
-  `color-mix()`. Text sits only on validated contrast pairs, computed against
-  the REAL palette values (9 pairs built into `scripts/validate-content.ts`:
-  ink/ink-muted × surface/surface-alt, primary/secondary × surface/surface-alt,
-  accent↔secondary) — `text-primary` on `bg-surface`; on dark surfaces use
-  `text-surface`. New color-as-text pair → add it to
-  `scripts/validate-content.ts` first.
-- Reduced motion = static page. Design the still frame first. Motion lives
-  inside the matchMedia context (`src/lib/animation/index.ts`; bespoke motion
-  via `registerCustomAnimations` in `src/lib/animation/custom.ts`); entrances
-  via `data-reveal`; animate transforms/opacity only — with exactly two
-  sanctioned exceptions: the `blur` preset (filter) and the `clip` preset
-  (dir-aware clip-path).
+The concept names its form FIRST — that name is the fingerprint's `pageForm`
+slug — then decides what the nav means inside it (anchors must still resolve;
+where they point is the design's call). No form excuses the page contract.
+
+## The floor (non-negotiable)
+
+The engineering floor is canonical in `AGENTS.md` — RTL rules, animation
+rules, the business.json contract, conventions, and the gate + Lighthouse
+budgets (AGENTS.md → Commands). Design-side additions:
+
+- Text sits only on validated contrast pairs — the 9-pair list lives in
+  `scripts/lib/color.ts` and is enforced by `npm run validate:content`;
+  `text-primary` on `bg-surface`, text on dark surfaces is `text-surface`.
+  A new color-as-text pair → add it to `contrastPairs()` first.
+- Reduced motion = static page. Design the still frame first; all motion
+  lives inside the matchMedia guard (AGENTS.md → Animation rules).
 - Decorative elements: `aria-hidden="true"` + `pointer-events-none`.
-- No new dependencies. TypeScript strict, no `any`, Zod at runtime boundaries.
-- The gate: `npm run test` + `npm run test:e2e` + `npm run test:ltr-build`
-  green; Lighthouse budgets hold (LCP ≤ 2.5s, TBT ≤ 200ms, CLS ≤ 0.1).
+- Divergence from shipped sites is mechanized: `npm run validate:divergence`
+  must pass on the concept's fingerprint before any page code (rules in
+  `scripts/lib/divergence.ts`, story in `docs/PORTFOLIO.md`).
 
 ## The page contract (what every site must keep)
 
@@ -77,79 +57,62 @@ nav, reachable contact path, complete reduced-motion still frame.
   body copy.
 - A clear contact path (form, WhatsApp, or phone) reachable from the nav.
 - The two legal pages (`/accessibility-statement/`, `/privacy/`) are part of
-  the design, not an appendix: the template ships them with a token-driven
-  baseline (they inherit palette + fontPairing automatically), and every
-  build restyles them into the concept's design language — typography scale,
-  color story, back-link treatment. The one visitor who opens the
-  accessibility statement is the one an off-concept, neglected page damages
-  most.
+  the design, not an appendix: every build restyles them into the concept's
+  design language — typography scale, color story, back-link treatment.
 - `content.faq` is the canonical OPTIONAL shape feeding FAQPage JSON-LD +
-  llms.txt — include it (real Q&A) whenever the business has FAQs; without
-  it the site emits 3 JSON-LD blocks and that is fine.
+  llms.txt — include it (real Q&A) whenever the business has FAQs.
 - The contract-driven smoke suite passes with ZERO edits. New user-visible
   behavior gets **added** tests in the client repo; never weaken the suite.
 
 ## Divergence (hard rules)
 
 A site that passes the floor and the page contract can still be the
-reference template with different words on it. These five, plus the
-Craft-bar concept requirements (the nav concept and the choreography plan —
-see Craft bars 2 and 3, below), are binding for every client build and are
-enforced at the concept stage in `/new-client` Step 1:
+reference template with different words on it. These are binding for every
+client build, enforced at the concept stage in `/new-client` Step 1:
 
-1. A bespoke hero treatment — a hero designed for this client, not a generic centered-headline default.
+1. A bespoke hero treatment — a hero designed for this client, not a generic
+   centered-headline default.
 2. At least one fully bespoke section.
 3. A signature motion implemented in `registerCustomAnimations()`
    (`src/lib/animation/custom.ts`).
 4. A non-default color story — no all-default-white page unless
    `docs/concept.md` explicitly argues light-minimal serves THIS client.
 5. The page must not contain shell markup or `content.shell`.
+6. A **nav concept** and a **choreography plan** written in `docs/concept.md`
+   (Craft bars 2 and 3 below name what they must cover).
+7. The concept's fingerprint collides with no shipped site:
+   `npm run validate:divergence` exits 0 (format: `docs/PORTFOLIO.md` →
+   Fingerprint format; spent material: `npm run validate:divergence -- --summary`).
 
 The design-review skill (`.claude/skills/design-review/SKILL.md`) is the
-single source for how the built result is judged against these rules and the
-rest of the rubric — this doc doesn't restate the scoring. A site that fails
-that review isn't finished, even with a green test gate.
+single source for how the built result is judged — this doc doesn't restate
+the scoring. A site that fails that review isn't finished, even with a green
+test gate.
 
 ## Craft bars (what top-tier means)
 
 Passing the floor, the page contract, and divergence proves the site is legal
-and different — not that it's good. These four bars are where real
-`/new-client` runs have kept falling short: a weak navbar, a page that feels
-static, a desktop-first layout squeezed onto a phone, an unmistakably
-AI-generated look, motion bolted on as an afterthought. Design to these from
-the first pass; they are not a post-review patch list.
+and different — not that it's good. Design to these from the first pass:
 
-1. **Mobile-first — the phone is the primary canvas.** Compose at 390px
-   FIRST; desktop is the adaptation, never the reverse. The primary CTA stays
-   thumb-reachable; a sticky mobile contact bar (tel/WhatsApp — pattern in
-   RECIPES) is the strong default for service businesses. The type scale must
-   hold at 390 — no truncation, no horizontal overflow. No information exists
-   only on hover. Full-height heroes use `100dvh` plus safe-area-insets.
-   **Mobile-first is NOT stack-first.** "It collapses to a stack at 390" has
-   killed every structure-breaking concept candidate so far — because those
-   candidates were sketched as desktop gestures and then tested on a phone.
-   Design the unusual form AT 390 from the start: a pinned scene, a
-   document page, a chapter sequence, an edge-bleeding rail all have native
-   390 expressions that are not a band stack. A concept whose 390 sketch is
-   just the safe stack hasn't broken anything — and a candidate may not be
-   rejected FOR its 390 behavior unless its 390 composition was actually
-   attempted first.
-2. **The header is a designed component, not chrome.** Three requirements,
-   all mandatory: scroll-aware behavior — tint, shrink, blur, or a
-   concept-fitting response past a scroll threshold (pattern in RECIPES,
-   wired via `registerCustomAnimations`); active-section indication —
-   `aria-current` plus a visible state, not a color change alone; a DESIGNED
-   mobile drawer — staggered entrance, full styling. The RECIPES a11y
-   pattern (expand/collapse, Escape, focus return) is the accessibility
-   floor here, not the design. The header is historically the MOST
-   defect-prone deliverable of real builds — treat it as a first-class
-   section with its own build-and-verify pass: before design review, OPERATE
-   the nav in a real browser at 390 and at desktop width — open/close the
-   drawer, Escape, click a link (drawer closes, the page lands on the right
-   section with nothing clipped under the sticky header), scrolled state
-   toggles on and off, active-section indication follows scroll, the open
-   drawer sits fully styled ABOVE all page content. Never assume the drawer
-   works because the markup looks right.
+1. **Mobile-first — the phone is the primary canvas.**
+   - Compose at 390px FIRST; desktop is the adaptation, never the reverse.
+   - Primary CTA thumb-reachable; a sticky mobile contact bar (RECIPES 9) is
+     the strong default for service businesses.
+   - Type scale holds at 390 — no truncation, no horizontal overflow; no
+     information exists only on hover; full-height heroes use `100dvh` +
+     safe-area-insets.
+   - **Mobile-first is NOT stack-first**: design the unusual form AT 390 from
+     the start — a pinned scene, a document page, a rail all have native 390
+     expressions that are not a band stack. A concept may not be rejected FOR
+     its 390 behavior unless its 390-native composition was actually attempted.
+2. **The header is a designed component, not chrome.** All three mandatory:
+   - scroll-aware response past a threshold (mechanics: RECIPES 7);
+   - active-section indication — `aria-current` plus a visible state, not
+     color alone;
+   - a DESIGNED mobile drawer — staggered entrance, full styling (a11y floor:
+     RECIPES 2).
+   Before design review, OPERATE the nav in a real browser at 390 and desktop,
+   at scroll-0 AND mid-page (the verify pass in `/new-client` Step 4).
 3. **Aliveness — one identity, MANY expressions.** One motion IDENTITY —
    consistent easing, direction, character — expressed across a REQUIRED
    five-part inventory, never as a single repeated trick: (a) hero entrance
@@ -162,94 +125,68 @@ the first pass; they are not a post-review patch list.
    same preset everywhere. All five stay inside the reduced-motion guard —
    the still frame remains complete without any of them.
 4. **Anti-AI tells.** Named list to avoid — the judge checks for these:
-   uniform same-radius card grids of three; emoji as icons (inline SVG
-   only); center-aligning everything; generic gradient blobs or
-   purple-indigo defaults; a hero that's headline + two buttons + a
-   stock-photo overlay; identical section rhythm down the page (same
-   padding, same alternation); Tailwind-default shadows everywhere;
-   decorative English labels sprinkled on a Hebrew site. Plus the
-   editorial-courage tells a shipped build's operator caught after the
-   rubric passed it: more than two distinct corner radii on the page (pick
-   ONE shape idea and commit); the page's largest content block rendered as
-   a uniform bordered-card grid (a menu is a menu, a list is a list — the
-   most generic pattern in web design is not a default); nothing beyond the
-   hero bleeding, overlapping, or breaking the column at 390 (16–32px
-   "broken grid" offsets are invisible on a phone); the accent color
-   appearing ONLY as button fill (the safest possible use of an accent).
-   Prescribe instead: intentional asymmetry; at least one overlap or
-   broken-grid moment that survives at 390; display-to-body type-scale
-   contrast of 3x or more; bespoke inline-SVG iconography/motifs derived
-   from the concept.
+   - *Classic tells*: uniform same-radius card grids of three; emoji as icons
+     (inline SVG only); center-aligning everything; generic gradient blobs or
+     purple-indigo defaults; a hero that's headline + two buttons + a
+     stock-photo overlay; identical section rhythm down the page (same
+     padding, same alternation); Tailwind-default shadows everywhere;
+     decorative English labels sprinkled on a Hebrew site.
+   - *Editorial-courage tells*: more than two distinct corner radii on the
+     page (pick ONE shape idea and commit); the page's largest content block
+     rendered as a uniform bordered-card grid (a menu is a menu, a list is a
+     list); nothing beyond the hero bleeding, overlapping, or breaking the
+     column at 390 (16–32px "broken grid" offsets are invisible on a phone);
+     the accent color appearing ONLY as button fill.
+   - *Prescribe instead*: intentional asymmetry; at least one overlap or
+     broken-grid moment that survives at 390; display-to-body type-scale
+     contrast of 3x or more; bespoke inline-SVG iconography/motifs derived
+     from the concept.
 
-## The toolkit
+## The toolkit (pointers, not restatements)
 
-- **Tokens** (`global.css`): brand colors from `voice.palette`, neutrals
-  included (`surface`, `surfaceAlt`, `ink`, `inkMuted`, `line` — defaults are
-  the reference light theme; a dark site is a first-class palette, not a
-  hack). Shadows derive from `ink`. Shape/rhythm via `--shape-radius-card`,
-  `--shape-radius-button`, `--section-py` — override per client in
-  `custom.css`, never literal radii or `py-*`.
+- **Tokens**: `src/styles/global.css` — brand colors + neutrals from
+  `voice.palette` (dark sites are first-class); shape/rhythm via
+  `--shape-radius-card` / `--shape-radius-button` / `--section-py`,
+  overridden per client in `custom.css`, never literal radii or `py-*`.
 - **Fonts**: `design.fontPairing` — fifteen self-hosted Hebrew-capable
-  pairings, each with its own weight set (the one design decision that stays
-  data; fonts register at build time). `handmade` (Amatic SC) is
-  display-only — headings, never body copy, and never long headings.
-  Components only use `font-display` / `font-sans`.
-- **Recipes** (`docs/RECIPES.md`) — RTL/a11y-correct patterns distilled from
-  experience; consult before building nav, forms, sections.
+  pairings; `astro.config.mjs` documents each one's personality. `handmade`
+  (Amatic SC) is display-only — headings, never body copy, never long
+  headings. Components only use `font-display` / `font-sans`.
+- **Recipes**: `docs/RECIPES.md` — the markup contracts for nav, form,
+  sections, contact bar, subpages, open-now.
+- **Animation**: presets, tuning attributes, `registerCustomAnimations()`,
+  and the three aliveness helpers are specified in AGENTS.md → Animation
+  rules and `src/lib/animation/helpers.ts`'s doc comment.
 - **Composition**: `src/pages/index.astro` ships as an unbuilt contract
   shell — replace it entirely; delete `content.shell`.
-- **Animation**: `data-reveal` presets for entrances (`slide-start`,
-  `slide-end`, `scale`, `blur`, `clip`), each tunable per-element via
-  `data-reveal-duration` / `-delay` / `-distance` / `-start` (and `-stagger`
-  on `data-reveal-group`). `blur` (animates `filter`) and `clip` (animates
-  `clipPath`, dir-aware) are the TWO sanctioned exceptions to
-  transforms/opacity-only — everything else stays on transforms/opacity.
-  Bespoke GSAP/ScrollTrigger goes in `registerCustomAnimations()` in
-  `src/lib/animation/custom.ts` — the entry point, called inside the
-  reduced-motion-guarded matchMedia context (tweens created synchronously
-  revert on swap; return cleanup only for listeners/observers you own). Lenis
-  + ScrollTrigger are pre-synced; importing gsap adds ~0 bytes. Three
-  aliveness primitives ship in `src/lib/animation/helpers.ts` — `marquee()`,
-  `parallax()`, `counter()` — headless (no markup opinions), RTL-safe (mind
-  logical direction), called only from `registerCustomAnimations()`. Each
-  keeps the still-frame contract: the server-rendered markup must already
-  show the final state (the complete marquee content before duplication, the
-  formatted target number before `counter()` re-animates it) so reduced-motion
-  and no-JS visitors see it correctly at rest.
-- **Schema**: `data` + `voice` are frozen. The per-client region of `content`
-  is reshaped schema-first: `business.schema.ts` → `business.json` →
-  components via `getBusiness()`.
+- **Schema**: `data` + `voice` are frozen; the per-client `content` region is
+  reshaped schema-first (`business.schema.ts` → `business.json` →
+  components via `getBusiness()`).
 
 ## The design process (before any code)
 
 Write the concept in four lines — if you can't, it isn't one concept yet:
 
 1. **Metaphor** — one thing from the client's world their customers instantly
-   recognize (vinyl / steam / thread / clipper lines). Check it against
-   `docs/PORTFOLIO.md` first: a metaphor family that already shipped is
-   spent material, not a foundation to vary.
+   recognize, derived from quoted brief evidence (see `/new-client` Step 1a).
+   Name it as a kebab-case family slug; `npm run validate:divergence` rejects
+   a family already in `docs/portfolio.json`.
 2. **Color story** — the LOGIC by which color moves through the page and
-   where the accent burns brightest (usually the CTA). Light/tinted/dark
-   band rhythm is one logic among many — a single dramatic turn, one
-   saturated world, ink-on-paper with a single burning object, a duotone
-   are all color stories. Coherent intent, not stripes — and not
-   necessarily bands.
-3. **Composition** — name the page FORM first (see "A page is a form" at
-   the top of this doc), then the actual page: what exists, in what order,
-   and why that order serves this business.
+   where the accent burns brightest (usually the CTA). A band rhythm is one
+   logic among many — a single dramatic turn, one saturated world,
+   ink-on-paper with a single burning object, a duotone all qualify.
+   Coherent intent, not stripes.
+3. **Composition** — name the page FORM first (the list at the top of this
+   doc), then the actual page: what exists, in what order, and why that
+   order serves this business.
 4. **Motion identity** — one recognizable identity (easing, direction,
-   character), expressed across the required aliveness inventory (see
-   "Aliveness" in Craft bars, above) rather than one movement copy-pasted
-   everywhere — including which `data-reveal` presets you choose per section.
+   character), expressed across the aliveness inventory (Craft bar 3),
+   including which `data-reveal` presets each section gets.
+
+Then write the fingerprint block into `docs/concept.md` (format:
+`docs/PORTFOLIO.md` → Fingerprint format) and run `npm run validate:divergence`
+before any code.
 
 Plus the reduced-motion still frame: the page must look complete without any
 motion. ONE concept, expressed everywhere it helps — incoherence, not
 quantity, is what reads as noise.
-
-## The promote loop
-
-When a client-repo idea proves broadly useful, generalize it (tokens, a
-`data-reveal` preset, or a new recipe in `docs/RECIPES.md`) and PR it into
-the template.
-Client repos stay free to be weird; the template absorbs only the winners.
-Never copy client-specific code between client repos.

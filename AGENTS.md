@@ -4,7 +4,7 @@ Static Astro template for small-business sites. Cloned once per client, then des
 
 ## Stack
 
-Astro 7 (static) · TypeScript strict · Tailwind CSS 4 (CSS-first, no `tailwind.config.js`) · GSAP + ScrollTrigger + Lenis · Zod-validated content collection · Biome · Playwright · Lighthouse CI. No React — sections are pure `.astro`. Only add a framework island if a section is genuinely interactive (then: one isolated island, `client:visible`).
+Astro 7 (static) · TypeScript strict · Tailwind CSS 4 (CSS-first, no `tailwind.config.js`) · GSAP + ScrollTrigger + Lenis · Zod-validated content collection · Biome · Playwright · Lighthouse CI. No React — sections are pure `.astro`. Only add a framework island if a section is genuinely interactive (then: one isolated island, `client:visible`). No new dependencies — the stack above is the whole stack.
 
 ## Commands
 
@@ -16,6 +16,10 @@ npm run lint              # biome check .
 npm run format            # biome check --write .
 npm run typecheck         # astro check
 npm run validate:content  # business.json: schema + WCAG palette contrast + phone/hours/date checks
+npm run validate:divergence # concept fingerprint vs docs/portfolio.json (anti-sameness gate;
+                          # skips with exit 0 when no docs/concept.md exists — template repo, CI)
+npm run sample:palette    # dominant colors from src/assets/images/ → suggested voice.palette,
+                          # pre-checked against the same 9 WCAG pairs as validate:content
 npm run preflight         # LAUNCH gate: placeholders, skeleton denylist, OG file, broken links,
                           # form key, analytics↔privacy consistency — FAILS on the skeleton by
                           # design; runs automatically inside production deploys
@@ -38,6 +42,10 @@ npm run lhci              # Lighthouse CI against dist/ (run build first)
 ```
 
 After an intentional visual change, rebaseline: `npx playwright test --grep @visual --update-snapshots`.
+
+The gate: `npm run test` + `npm run test:e2e` + `npm run test:ltr-build` green and the Lighthouse
+budgets hold — LCP ≤ 2.5s, TBT ≤ 200ms (INP lab proxy), CLS ≤ 0.1 (`npm run lhci` after a build).
+This is the single statement of the gate; every other doc points here.
 
 ## Folder map
 
@@ -73,26 +81,32 @@ src/
   assets/images/                   ← empty in the skeleton (+ .gitkeep); client photos land
                                      here once a design adds image fields (see the contract
                                      below); starter placeholders via npm run generate:placeholders
-docs/                              ← brief.md (intake) · CLIENT-SITE-GUIDE.md (new-dev guide) ·
-                                     DESIGN-DOCTRINE.md (design doctrine) · RECIPES.md (RTL/a11y
-                                     patterns for nav/forms/sections/subpages) · TRAPS.md (measured
-                                     perf/a11y/RTL failures from shipped builds — read before
-                                     composing and before the Lighthouse gate) · PORTFOLIO.md
-                                     (design fingerprints of shipped sites — the anti-sameness
-                                     memory; read before concepting, append at handoff) ·
-                                     PLAYBOOK.md (owner
+docs/                              ← brief.md (intake) · DESIGN-DOCTRINE.md (design contract) ·
+                                     RECIPES.md (RTL/a11y markup contracts for nav/forms/sections/
+                                     subpages) · TRAPS.md (measured perf/a11y/RTL failures from
+                                     shipped builds — read before composing and before the
+                                     Lighthouse gate) · PORTFOLIO.md (narrative anti-sameness
+                                     memory: why it exists + the fingerprint format) ·
+                                     portfolio.json (machine-readable fingerprints — the
+                                     divergence validator's input; append at handoff) ·
+                                     portfolio/ (390-wide screenshots of shipped sites, for
+                                     design-review's comparative pass) · PLAYBOOK.md (owner
                                      operating procedure) · OPERATIONS.md (studio/fleet runbook:
                                      registry, DNS, monitoring, rollback) · CHANGELOG.md (per-
                                      TEMPLATE_VERSION sync notes) · superpowers/ (archive of shipped
                                      redesign plans — history, not instructions)
-scripts/                           ← validate-content.ts, preflight.ts (launch gate),
+scripts/                           ← validate-content.ts, validate-divergence.ts (anti-sameness
+                                     gate), sample-palette.ts (palette from client photos),
+                                     preflight.ts (launch gate), lib/color.ts (shared WCAG pairs +
+                                     hue families), lib/divergence.ts (fingerprint rules),
                                      generate-placeholders.ts, generate-og.ts, check-ltr-build.ts,
                                      deploy.ts (Cloudflare Pages upload), setup-gsc.ts,
                                      setup-skills.ts, sync-template.ts, report.ts
 TEMPLATE_VERSION                   ← calver stamp a clone carries; sync-template compares against it
-tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts (Playwright) +
-                                     contract.ts (expectations derived from the frozen core —
-                                     tests never assume a section exists)
+tests/                             ← smoke.spec.ts · a11y.spec.ts · visual.spec.ts ·
+                                     divergence.spec.ts (Playwright) + contract.ts (expectations
+                                     derived from the frozen core — tests never assume a section
+                                     exists) + fixtures/ (divergence test concepts)
 ```
 
 Per-client artifacts that exist only in CLIENT repos, never in the template: `docs/concept.md`
@@ -132,11 +146,14 @@ Per-client artifacts that exist only in CLIENT repos, never in the template: `do
   `line`) come from `voice.palette` with light-theme defaults; dark sites are first-class, not a
   workaround. `text-primary` only on `bg-surface`; text on `bg-accent` is always `text-secondary`;
   never use `accent` as text on light backgrounds. New color-as-text usage → add the pair to
-  `scripts/validate-content.ts` first.
+  `contrastPairs()` in `scripts/lib/color.ts` first — `validate-content.ts` and
+  `sample-palette.ts` both read it.
 - **Model-first design** — the page is designed per client under `docs/DESIGN-DOCTRINE.md`:
   composition, section design, shape/rhythm tokens, color story are all code decisions. The
   only design data in `business.json` is `design.fontPairing` (fifteen self-hosted Hebrew-capable
-  pairings mapped in astro.config.mjs; components only use `font-display`/`font-sans`).
+  pairings mapped in astro.config.mjs; components only use `font-display`/`font-sans`) — and
+  `fontPairing` is one of the fingerprint axes `npm run validate:divergence` checks against
+  shipped sites.
 - **Content split** — `data` + `voice` + the `content` frozen core (`nav`, `ui`, `consent`,
   `notFound`, `legal`) are identical in every repo. The per-client region ships NO content
   shapes beyond three optional canonical blocks: `faq` (feeds FAQPage JSON-LD + llms.txt —

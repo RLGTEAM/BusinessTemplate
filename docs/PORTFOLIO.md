@@ -1,4 +1,4 @@
-# Portfolio — design fingerprints of shipped sites
+# Portfolio — the anti-sameness memory
 
 **Why this file exists:** each client build runs in a fresh repo with no
 memory of the others, and the model's stable taste re-derives its favorite
@@ -9,67 +9,90 @@ the same font pairing** (`poster` / Suez One), and **all four chose a
 gold/amber accent** on a warm cream/dark palette. Each looked distinctive
 alone; the portfolio looks like one designer repeating themselves.
 
-This file is the cross-client memory that breaks that loop. It records the
-FINGERPRINT of every shipped site — not the design itself, just the axes on
-which sameness happens.
+This memory is the cross-client record that breaks that loop — and since
+TEMPLATE_VERSION 2026.08.23 it is mechanized, not prose:
 
-**How it's used (binding):**
-
-- `/new-client` Step 1 reads this file before generating concepts. Every
-  candidate states its distance from each entry, and the chosen concept
-  must not repeat an entry's metaphor family — a family already shipped is
-  spent material, not a foundation to vary.
-- `/design-review` scores Distinctiveness against these entries: a build
-  sharing metaphor family + page form, or font pairing + accent family,
-  with any entry caps Distinctiveness at 2.
-- At handoff (PLAYBOOK step 9), append the new site's row — in the
-  TEMPLATE repo, so every future clone carries it. Keep entries to the
-  table row plus at most two lines of notes.
+- The fingerprints live in **`docs/portfolio.json`** (machine-readable; one
+  entry per shipped site, appended at handoff — PLAYBOOK step 9).
+- The binding checks run in **`npm run validate:divergence`**: a repeated
+  metaphor family, a (fontPairing + accent hue family) already shipped, or a
+  (pageForm + metaphorFamily) already shipped FAILS the concept before any
+  page code is written. `-- --summary` prints the spent-material frequency
+  tables straight from the JSON, so they can never drift from the truth.
+- The design rule is `docs/DESIGN-DOCTRINE.md` → Divergence; the scoring
+  consequence is the design-review skill's Distinctiveness axis, which
+  compares the new build's screenshot against **`docs/portfolio/*.png`**
+  (390-wide full-page screenshots of the shipped sites).
+- No shell to run? Read `docs/portfolio.json` directly — it is the same data.
 
 A repeat is only legitimate when the client's world genuinely demands it —
-argued explicitly in `docs/concept.md` against the specific prior entry,
-never silently.
+declared explicitly in the fingerprint's `argues` array, naming the specific
+prior entry, never silently. A (pageForm + metaphorFamily) repeat cannot be
+argued at all: same form + same metaphor is the same site with new words.
 
-## Shipped sites
+All clients so far are food businesses — some SECTION overlap (menu, hours,
+reviews) is the client mix, not a failure. The fingerprint axes are design
+choices, and those have no such excuse.
 
-| # | Client (date) | Business | Metaphor family | Page form | Palette family | Accent | Font pairing | Signature element | Motion identity |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | THE-TREE (2026-07) | restaurant | **time-of-day arc** (sunset → late night) | vertical band stack | dark green night + cream | gold `#d9a441` | `refined` | cream menu card "lit" mid-night; ticker | light draining section by section |
-| 2 | natan-meathouse (2026-07) | steakhouse | **ritual sequence** (the board arrives, the evening unfolds) | vertical band stack | near-black char + cream | gold `#d8a13c` (ember red 2nd) | `poster` | the board (pinned/tilted); sear divider | sear/char, slats |
-| 3 | under-the-tree (2026-07) | café | **time-of-day arc** ("שעון הצל", 07:00 → midnight) | vertical band stack | cream/kraft + forest | gold `#a99841` | `poster` | shade-clock rail; canopy; ticker | one day passing |
-| 4 | barbarini (2026-08) | café-restaurant | **time-of-day arc** (dawn → night bands) | vertical band stack | cream/sand + night wine | amber `#E09A2E` | `poster` | taboon arch (only curve on the site); day-rail scrub | "falling light" — settle, never snap |
-| 5 | nook-cafe (2026-08) | café | **the place itself** — photo-led; the courtyard is the product | full-bleed video hero → framed photography beside copy → one dark band | warm cream/kraft + espresso | rust `#e2703a` | `bold` (Karantina) | hero video loop of the branded takeaway cups; menu set as a ruled document with scrubbed leader dots | "sunlight" — slow push-in, photographs drift inside their frames |
+## Fingerprint format
 
-## Spent material (do not reuse without an explicit argument)
+Two places, one shape:
 
-- **Metaphor:** time-of-day / passage-of-light mapped to surface color down
-  the page. Shipped three times. Retired.
-- **Page form:** all four sites are a vertical stack of full-width color
-  bands: `Header → Hero → bands → FAQ → Visit/Contact → Footer → ContactBar`.
-  The next build must at minimum argue why this form and not another —
-  better, ship a different one (see DESIGN-DOCTRINE on page forms).
-- **Accent:** the gold/amber family (4/4). A warm business does not require
-  a gold accent.
-- **Font pairing:** `poster` (Suez One) — 3/4. Twelve other pairings exist;
-  `astro.config.mjs` documents each one's personality.
-- **Furniture:** a marquee/ticker band (3/4); a "cream card glowing on a
-  dark band" moment (2/4).
+1. **`docs/concept.md`** (client repo — written by `/new-client` Step 1) —
+   a fenced block with info string `json fingerprint`, anywhere in the file.
+   `npm run validate:divergence -- --print-template` prints an empty one:
 
-- **Photo-led composition + a warm rust accent** (#5). Not retired — but a
-  sixth food client leading with full-bleed photography and a warm accent is
-  repeating that entry, not diverging from it.
+   ````markdown
+   ```json fingerprint
+   {
+     "client": "acme-bakery",
+     "date": "2026-08-23",
+     "businessType": "bakery",
+     "metaphorFamily": "proofing-basket",
+     "metaphorNote": "the coiled rings the dough leaves behind",
+     "pageForm": "spine-rail",
+     "paletteFamily": "flour white + rye",
+     "accentHex": "#3f6f8f",
+     "fontPairing": "editorial",
+     "signature": "the rail of proof rings the content hangs off",
+     "motionIdentity": "rise — everything settles upward, nothing drops",
+     "furniture": [],
+     "argues": []
+   }
+   ```
+   ````
 
-All five clients so far are food businesses — some SECTION overlap (menu,
-hours, reviews) is the client mix, not a failure. The fingerprint axes
-above are design choices, and those have no such excuse.
+   `client` / `metaphorFamily` / `pageForm` are kebab-case slugs — the
+   validator compares family slugs (with token-set matching, so a rephrasing
+   like "arc-of-the-day" still matches "time-of-day-arc") and hard-errors on
+   free text. `fontPairing` is one of the 15 pairing keys; `accentHex` must
+   agree with `business.json`'s `voice.palette.accent` (business.json wins —
+   a stale fingerprint fails). `furniture` lists reusable props by slug
+   (e.g. `"marquee-ticker"`) so their frequency can be tracked. `argues` is
+   the explicit-repeat escape hatch:
+   `{ "against": "<client-slug>", "axis": "metaphorFamily" | "fontPairing+accent" | "pageForm", "why": "<≥40 chars, specific to THIS client>" }`.
 
-**What #5 cost, and why it is written here.** nook-cafe is the first
-photo-led build and the first with a video hero — but only on the second
-attempt. The first shipped typographically because the client's photographs
-were withheld as "scraped from Instagram", and the operator rejected the
-result as cold and dated. The rebuild around their real photography was a
-different site entirely: new palette (sampled from the photos, not invented),
-new font, new composition.
+2. **`docs/portfolio.json`** (template repo) — the same object per shipped
+   site, plus `accentHexAlt` (informational secondary accent) and
+   `screenshot` (`"portfolio/<client>.png"`). `accentHex` records the site's
+   DOMINANT brand accent as judged — what the page reads as, which is what
+   sameness was measured on — not necessarily the literal
+   `voice.palette.accent` field.
+
+Screenshot capture spec (identical for every entry, so the comparison is
+fair): Playwright, viewport 390×844, deviceScaleFactor 1, `fullPage: true`,
+production build, page scrolled once end-to-end first so lazy images settle.
+Keep each PNG under 1.5MB (the validator warns above it; re-encode with
+sharp at width 390, png quality 80).
+
+## What #5 cost, and why it is written here
+
+nook-cafe is the first photo-led build and the first with a video hero — but
+only on the second attempt. The first shipped typographically because the
+client's photographs were withheld as "scraped from Instagram", and the
+operator rejected the result as cold and dated. The rebuild around their real
+photography was a different site entirely: new palette (sampled from the
+photos, not invented), new font, new composition.
 
 The lesson is the one `/fill-brief` already states and that build ignored:
 **settle the photography question before concepting, never after.** A page
@@ -77,4 +100,6 @@ composed without images was designed for images that do not exist, and
 re-skinning it later is not a substitute. When the operator supplies client
 media, ASK whether it may be used rather than silently applying the
 scraped-images rule — that rule exists to protect against unknown rights, not
-to override the operator's own client material.
+to override the operator's own client material. `npm run sample:palette`
+mechanizes the palette half of this lesson: with photos in
+`src/assets/images/`, the palette is sampled from reality, not invented.

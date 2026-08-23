@@ -30,9 +30,19 @@ const TEMPLATE_PATHS = [
   "docs/CHANGELOG.md",
   "docs/RECIPES.md",
   "docs/DESIGN-DOCTRINE.md",
-  "docs/CLIENT-SITE-GUIDE.md",
+  "docs/TRAPS.md",
+  "docs/PORTFOLIO.md",
+  // A directory pathspec matches on "/" boundaries, so "docs/portfolio" does
+  // NOT pick up portfolio.json — both must be listed.
+  "docs/portfolio.json",
+  "docs/portfolio",
   "docs/PLAYBOOK.md",
   "docs/OPERATIONS.md",
+  // Skills are template-owned workflow; a client-authored skill in its own
+  // directory survives (checkout only writes files present in the ref).
+  // .claude/settings.json is deliberately NOT synced — client repos may
+  // carry local permission entries.
+  ".claude/skills",
   "scripts",
   "tests",
   ".github",
@@ -55,6 +65,12 @@ const TEMPLATE_PATHS = [
   "src/layouts/BaseLayout.astro",
   "src/styles/global.css",
 ];
+
+/** Template-owned files DELETED upstream. `git checkout <ref> -- <path>`
+ *  silently skips paths absent from the ref — it never deletes — so without
+ *  this list a client repo keeps a stale copy forever and reads it as
+ *  current. Applied on the sync branch after the checkout loop. */
+const REMOVED_PATHS = ["docs/CLIENT-SITE-GUIDE.md"];
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const args = process.argv.slice(2);
@@ -139,6 +155,15 @@ for (const path of TEMPLATE_PATHS) {
   if (tryGit(`checkout ${ref} -- "${path}"`) !== undefined) synced += 1;
 }
 
+let removed = 0;
+for (const path of REMOVED_PATHS) {
+  // Delete only when the file exists here AND is really gone from the ref.
+  if (existsSync(`${root}${path}`) && tryGit(`cat-file -e ${ref}:"${path}"`) === undefined) {
+    git(`rm -q "${path}"`);
+    removed += 1;
+  }
+}
+
 const changed = tryGit("status --porcelain") ?? "";
 if (changed === "") {
   git("checkout -");
@@ -147,7 +172,9 @@ if (changed === "") {
   process.exit(0);
 }
 
-console.log(`\n✓ Synced ${synced} template path groups onto branch ${syncBranch}:\n`);
+console.log(
+  `\n✓ Synced ${synced} template path groups${removed > 0 ? ` (+ removed ${removed} stale template file(s))` : ""} onto branch ${syncBranch}:\n`,
+);
 console.log(changed);
 console.log(
   [

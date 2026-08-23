@@ -78,11 +78,9 @@ via `pointerdown` (beats the capture-phase Lenis anchor handler) + `click`
 
 Rules:
 
-- `id="menu-toggle"` is REQUIRED, not decorative: `tests/smoke.spec.ts` and
-  `tests/a11y.spec.ts` locate the toggle by that id and `test.skip()` when it
-  is absent. Ship the toggle without it and the drawer tests — including the
-  containing-block-trap test that is supposed to FAIL the build — silently do
-  not run at all.
+- `id="menu-toggle"` is REQUIRED, not decorative (TRAPS 18 — without it the
+  drawer tests, including the containing-block test that must FAIL the
+  build, silently skip).
 - Labels come from `content.ui.openMenu` / `content.ui.closeMenu` — never
   hardcode "פתח תפריט"/"Menu".
 - Design the open drawer's entrance off `[data-open]` in CSS (stagger via
@@ -97,17 +95,9 @@ Step 4 nav pass), never by reading the markup — **and always AFTER scrolling
 to mid-page first**, because the worst failure below only appears in the
 scrolled state:
 
-- **The containing-block trap (every shipped site has hit this)**: `filter`,
-  `backdrop-filter`, `transform`, `perspective`, `will-change: transform`,
-  or `contain: layout|paint` on `<header>` — or ANY ancestor of the drawer —
-  makes that element the containing block for `position: fixed` descendants.
-  A fixed full-screen drawer inside it stops covering the viewport and gets
-  trapped in the header's box: it "won't open" or paints behind the page.
-  The killer variant is applying a glass effect only in the scrolled state
-  (`header[data-scrolled] { backdrop-filter: ... }`): the drawer works at
-  the top of the page and breaks the moment the user scrolls — which is why
-  a nav check performed at scroll-0 always passes and the bug ships anyway.
-  Canonical structure that makes this impossible:
+- **The containing-block trap** (full write-up + CSS-property list: TRAPS 11 —
+  it only breaks in the SCROLLED state, which is why a scroll-0 check always
+  passes). Canonical structure that makes it impossible:
 
   ```astro
   <header class="sticky top-0 z-50">      <!-- positioning ONLY: sticky + z. NEVER filter/blur/transform here -->
@@ -127,10 +117,9 @@ scrolled state:
   included). Section-level `isolate` + `-z-10` decor only protects within
   that section; an un-z-indexed drawer WILL render beneath a later section
   or a hero's decorative layer.
-- **Animated drawers still need `hidden`**: if the drawer animates open and
-  closed, closed must still end at `hidden` (or `inert`) — an `opacity-0`
-  drawer whose links remain tabbable is an a11y failure. Flip `hidden` after
-  the close transition finishes.
+- **Animated drawers still need `hidden`**: closed must end at `hidden` (or
+  `inert`) after the close transition — an `opacity-0` drawer whose links
+  remain tabbable is an a11y failure (TRAPS 8).
 - **Scroll lock**: a full-height drawer locks body scroll while open
   (`overflow: hidden` on `<body>`, restored on close AND on
   `astro:before-swap`) — an open drawer over a still-scrolling page reads as
@@ -543,10 +532,9 @@ Rules:
   with a home-indicator inset, so the spacer needs the same
   `padding-block-end: env(safe-area-inset-bottom)`, not just the same
   `min-h-14`.
-- `inset-x-0`, never `left-0 right-0` written separately. NOTE: there is no
-  `inset-inline-0` utility in Tailwind — it silently does nothing, and the bar
-  becomes shrink-to-fit instead of spanning the screen. `inset-x-0` sets both
-  physical edges to 0, which is direction-agnostic anyway.
+- `inset-x-0`, never `left-0 right-0` written separately and never
+  `inset-inline-0` (TRAPS 17 — it compiles to nothing and the bar becomes
+  shrink-to-fit). `inset-x-0` is direction-agnostic anyway.
 - This bar counts toward the page contract's "clear contact path reachable"
   — it doesn't replace the nav's own contact link, but on mobile it's
   usually the one visitors actually use.

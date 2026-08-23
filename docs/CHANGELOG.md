@@ -13,6 +13,54 @@ Entry tags:
   contract) that a client site may have built against; read the notes and
   check the named surfaces before merging.
 
+## 2026.08.23
+
+Sources, not filters: the anti-sameness rules stop being prose and become
+scripts, and every rule gets exactly one canonical home.
+
+- **[review]** `docs/portfolio.json` + `npm run validate:divergence` — the
+  five shipped fingerprints are machine-readable, and `/new-client` Step 1
+  fails on a repeated metaphor family, a (fontPairing + accent hue family)
+  already shipped, or a (pageForm + metaphorFamily) already shipped (that
+  last one can never be argued away). CLIENT REPOS: a `docs/concept.md`
+  that predates this version has no fingerprint block — add one
+  (`npm run validate:divergence -- --print-template`) before the next
+  design-review round, or the validator exits 2.
+- **[safe-to-sync]** `npm run sample:palette` (`scripts/sample-palette.ts`) —
+  dominant colors from `src/assets/images/`, roles assigned and auto-nudged
+  against the same 9 WCAG pairs `validate:content` enforces. The palette is
+  sampled from the client's photographs, not invented (PORTFOLIO's #5 lesson).
+- **[review]** `scripts/lib/color.ts` — luminance/contrast/the 9-pair table
+  factored out of `scripts/validate-content.ts`; the validator, the sampler,
+  and the divergence check share one copy. A client repo that ADDED a
+  contrast pair to `validate-content.ts` must move it to `contrastPairs()`
+  in `scripts/lib/color.ts`, or the sync drops it. Output text unchanged.
+- **[safe-to-sync]** `docs/portfolio/<client>.png` — 390-wide full-page
+  screenshots of shipped sites; design-review's Distinctiveness axis is now
+  COMPARATIVE ("which of these came from a different studio?", citing prior
+  entries by name). Screenshots are backfilled by the operator; the pass
+  degrades gracefully while any are missing.
+- **[safe-to-sync]** Doc restructure — one canonical home per rule. AGENTS.md
+  owns the engineering floor (gate + budgets, no-new-deps, palette contract →
+  `scripts/lib/color.ts`); DESIGN-DOCTRINE lost its exhortation essays and
+  now points instead of restating; RECIPES cites TRAPS by number instead of
+  re-explaining (TRAPS 11 absorbed the containing-block property list);
+  PORTFOLIO.md is narrative memory + the Fingerprint format spec (the table
+  moved to portfolio.json; spent-material counts come from
+  `validate:divergence -- --summary`, so they can never drift). Skills are
+  process-only and reference the canonical docs.
+- **[review]** `docs/CLIENT-SITE-GUIDE.md` DELETED (unique content folded
+  into README/PLAYBOOK). `npm run sync:template` now REMOVES it from client
+  repos (new REMOVED_PATHS mechanism); if you edited it locally, copy
+  anything you still want out before syncing.
+- **[safe-to-sync]** `sync:template` now also syncs `docs/TRAPS.md`,
+  `docs/PORTFOLIO.md`, `docs/portfolio.json`, `docs/portfolio/` and
+  `.claude/skills` — all previously stranded at clone-time versions in every
+  client repo.
+- **[safe-to-sync]** `preflight` gained a warn-only divergence pass (a samey
+  site is not a launch blocker, but launch is the last moment to notice);
+  CI runs `validate:divergence` (skips with exit 0 in the template).
+
 ## 2026.08.16
 
 Wall-clock + anti-sameness release: the mechanism every build re-derived by

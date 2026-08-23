@@ -103,6 +103,8 @@ procedure lives in [docs/PLAYBOOK.md](./docs/PLAYBOOK.md)):
 | `npm run preview`          | Serve the built site                               |
 | `npm run test`             | Content validation + Biome + `astro check`         |
 | `npm run preflight`        | Launch gate: placeholders, skeleton values, OG file, broken links, form key — fails on the skeleton by design; runs inside production deploys |
+| `npm run validate:divergence` | Anti-sameness gate: the concept's fingerprint vs `docs/portfolio.json` (skips when no `docs/concept.md`) |
+| `npm run sample:palette`   | Dominant colors from `src/assets/images/` → suggested `voice.palette`, pre-checked on the WCAG pairs |
 | `npm run test:e2e`         | Playwright smoke + axe a11y tests (builds + serves itself) |
 | `npm run test:ltr-build`   | Builds the English/LTR variant and checks its structure    |
 | `npm run test:visual`      | Visual regression snapshots (local; rebaseline with `--update-snapshots`) |
@@ -154,8 +156,9 @@ Notes:
   their two patch paths are Dependabot **security** updates (enable per client repo) and
   `npm run sync:template` for template-owned code fixes (`TEMPLATE_VERSION` +
   `docs/CHANGELOG.md` make fleet triage possible; `docs/OPERATIONS.md` is the studio runbook).
-- Claude Code users get a `/new-client` skill (`.claude/skills/new-client/`) that walks the
-  whole fill-validate-test pipeline for a new client brief.
+- Claude Code users get three skills (`.claude/skills/`): `/fill-brief` (scrape the client's
+  public presence into `docs/brief.md`), `/new-client` (the whole concept-build-validate-test
+  pipeline), and `/design-review` (the judge that scores the built result).
 
 ## MCP setup for AI agents (first time — nothing to install)
 
@@ -238,9 +241,10 @@ matches it and redeploy — it drives canonical URLs, sitemap, robots and JSON-L
 
 See [AGENTS.md](./AGENTS.md) for the folder map, the business.json contract, RTL rules, and
 coding conventions. `CLAUDE.md` points AI agents at the same contract. For humans:
-[docs/CLIENT-SITE-GUIDE.md](./docs/CLIENT-SITE-GUIDE.md) is the new-developer walkthrough for
-building a client site, and [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md) is the design
-contract — the quality floor, the toolkit, the divergence hard rules, and the required design
-process for building each client site 0→100. The `design-review` skill
+[docs/PLAYBOOK.md](./docs/PLAYBOOK.md) is the owner's operating procedure from client call to
+live site, and [docs/DESIGN-DOCTRINE.md](./docs/DESIGN-DOCTRINE.md) is the design contract —
+the quality floor, the page contract, the divergence hard rules, and the required design
+process for building each client site 0→100. [docs/PORTFOLIO.md](./docs/PORTFOLIO.md) +
+`docs/portfolio.json` are the anti-sameness memory (`npm run validate:divergence` enforces it). The `design-review` skill
 (`.claude/skills/design-review/`) is the judge that scores the built result against that
 doctrine's rubric — client repos only, it never ships a `docs/design-review.md` in the template.

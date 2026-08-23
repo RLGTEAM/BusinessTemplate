@@ -3,6 +3,7 @@
  * content collection schema). Run with: npm run validate:content
  */
 import { businessSchema } from "../src/content/business.schema";
+import { failingPairs, MIN_TEXT_CONTRAST } from "./lib/color";
 import { readBusinessJson } from "./lib/content";
 
 const raw: unknown = readBusinessJson();
@@ -88,75 +89,10 @@ console.log("✓ every schema object is strict (typo'd keys fail the build)");
  * Pairs are computed against the ACTUAL palette (neutrals included, schema
  * defaults applied) — dark themes are validated for real. `line` is
  * border-only decoration, not text, so it is deliberately not
- * contrast-checked. See AGENTS.md → "Palette contract".
+ * contrast-checked. See AGENTS.md → "Palette contract"; the pair list lives
+ * in scripts/lib/color.ts (contrastPairs) — shared with sample-palette.ts.
  */
-const MIN_TEXT_CONTRAST = 4.5; // WCAG AA, normal text
-
-function luminance(hex: string): number {
-  const channel = (i: number): number => {
-    const c = Number.parseInt(hex.slice(i, i + 2), 16) / 255;
-    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
-}
-
-function contrast(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
-  return (hi + 0.05) / (lo + 0.05);
-}
-
-const p = result.data.voice.palette;
-const pairs: Array<{ label: string; a: string; b: string; usage: string }> = [
-  { label: "ink ↔ surface", a: p.ink, b: p.surface, usage: "body copy on the base background" },
-  {
-    label: "ink ↔ surface-alt",
-    a: p.ink,
-    b: p.surfaceAlt,
-    usage: "body copy on alternate sections",
-  },
-  { label: "ink-muted ↔ surface", a: p.inkMuted, b: p.surface, usage: "muted/secondary text" },
-  {
-    label: "ink-muted ↔ surface-alt",
-    a: p.inkMuted,
-    b: p.surfaceAlt,
-    usage: "muted text on alternate sections",
-  },
-  {
-    label: "primary ↔ surface",
-    a: p.primary,
-    b: p.surface,
-    usage: "links/prices on base bg; surface text on primary buttons",
-  },
-  {
-    label: "primary ↔ surface-alt",
-    a: p.primary,
-    b: p.surfaceAlt,
-    usage: "primary-colored text on alternate sections",
-  },
-  {
-    label: "secondary ↔ surface",
-    a: p.secondary,
-    b: p.surface,
-    usage:
-      "headings on base bg; symmetric, so also covers text-surface on bg-secondary (footer, skip link)",
-  },
-  {
-    label: "secondary ↔ surface-alt",
-    a: p.secondary,
-    b: p.surfaceAlt,
-    usage: "headings/labels on alternate bg",
-  },
-  {
-    label: "accent ↔ secondary",
-    a: p.accent,
-    b: p.secondary,
-    usage: "CTA button text on accent bg",
-  },
-];
-
-const failures = pairs
-  .map((pair) => ({ ...pair, ratio: contrast(pair.a, pair.b) }))
-  .filter((pair) => pair.ratio < MIN_TEXT_CONTRAST);
+const failures = failingPairs(result.data.voice.palette);
 
 if (failures.length > 0) {
   console.error(`\n✗ voice.palette fails WCAG AA contrast (need ≥ ${MIN_TEXT_CONTRAST}:1):\n`);

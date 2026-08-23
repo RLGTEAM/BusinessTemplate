@@ -159,7 +159,35 @@ if (data.analytics.cloudflareToken === "") {
   );
 }
 
-/* ── 5. Built-output checks (when dist/ exists) ───────────────────────────── */
+/* ── 5. Divergence (warn-only) ────────────────────────────────────────────── */
+// A samey site is not a LAUNCH blocker — but launching is the last moment to
+// notice one. The hard gate is /new-client Step 1 and design-review; here the
+// findings surface as warnings only.
+const conceptPath = join(ROOT, "docs", "concept.md");
+const portfolioPath = join(ROOT, "docs", "portfolio.json");
+if (existsSync(conceptPath) && existsSync(portfolioPath)) {
+  const { checkDivergence, parseFingerprintBlock, readPortfolio } = await import(
+    "./lib/divergence"
+  );
+  const parsed = parseFingerprintBlock(readFileSync(conceptPath, "utf-8"));
+  if (!parsed.ok) {
+    warnings.push(
+      `divergence: docs/concept.md has no readable fingerprint block (${parsed.reason}) — ` +
+        "run `npm run validate:divergence` for the full report.",
+    );
+  } else {
+    const { entries } = readPortfolio(portfolioPath);
+    const { findings } = checkDivergence(parsed.fingerprint, entries, {
+      fontPairing: business.design.fontPairing,
+      accentHex: business.voice.palette.accent,
+    });
+    for (const finding of findings.filter((f) => f.severity === "fail")) {
+      warnings.push(`divergence: ${finding.message}`);
+    }
+  }
+}
+
+/* ── 6. Built-output checks (when dist/ exists) ───────────────────────────── */
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
