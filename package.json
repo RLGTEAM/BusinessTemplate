@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": "v26.8.2"
   },
   "description": "Static, RTL-first Astro template for small-business sites. Content-driven via business.json.",
   "scripts": {
