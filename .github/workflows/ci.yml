@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
       - name: Template repo must not contain per-client artifacts
         # docs/concept.md and docs/design-review.md are written per client —
         # one stray commit in the template pollutes every future clone.
@@ -32,9 +32,9 @@ jobs:
             echo "::error::docs/concept.md / docs/design-review.md are per-client artifacts and must never exist in the template"
             exit 1
           fi
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22
+          node-version: 22.23.2
           cache: npm
       - run: npm ci
       - run: npm run test
@@ -48,10 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4.4.0
+      - uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22
+          node-version: 22.23.2
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
@@ -59,7 +59,7 @@ jobs:
       # so test:e2e itself excludes the visual suite (--grep-invert @visual);
       # it's local-only, not a CI-specific exclusion.
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4.6.2
         if: failure()
         with:
           name: playwright-report
@@ -71,10 +71,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4.4.0
+      - uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22
+          node-version: 22.23.2
           cache: npm
       - run: npm ci
       - run: npm run build
